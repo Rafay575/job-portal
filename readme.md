@@ -1,1 +1,1 @@
-print("Hello world")
+h1 Hello world
