@@ -106,7 +106,7 @@ export default function Step1() {
 
   return (
     <>
-      <h2 className="text-primary text-3xl font-medium italic mb-4 md:mb-7 text-center">
+      <h2 className="text-primary text-3xl font-medium  mb-4 md:mb-7 text-center">
         Basic Personal Information
       </h2>
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 ">

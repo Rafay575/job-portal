@@ -83,7 +83,7 @@ export default function Step2() {
 
   return (
     <>
-      <h2 className="text-primary text-3xl font-medium italic mb-4 md:mb-7 text-center">
+      <h2 className="text-primary text-3xl font-medium  mb-4 md:mb-7 text-center">
         Pre-Qualifying Questions
       </h2>
 

@@ -53,7 +53,7 @@ export default function Step10() {
 
   return (
     <>
-      <h2 className="text-primary text-3xl font-medium italic mb-4 md:mb-7 text-center">
+      <h2 className="text-primary text-3xl font-medium  mb-4 md:mb-7 text-center">
         Supporting Statement
       </h2>
 
