@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
+import { IoIosArrowForward } from "react-icons/io";
+import { IoIosArrowBack } from "react-icons/io";
 
 type Props = {
   step: number;
@@ -35,18 +37,18 @@ function SignupNavButtons({ step, validateStep }: Props) {
   };
 
   return (
-    <div className="flex gap-2 mt-3 ">
+    <div className="flex gap-2 mt-3 justify-between ">
       <Button
         type="button"
         variant="outline"
         onClick={handleBack}
         disabled={step === 1}
       >
-        Back
+        <IoIosArrowBack />Back
       </Button>
 
       <Button type="button" onClick={handleNext}>
-        Next
+        Next<IoIosArrowForward />
       </Button>
     </div>
   );
@@ -106,9 +108,6 @@ export default function Step1() {
 
   return (
     <>
-      <h2 className="text-primary text-3xl font-medium  mb-4 md:mb-7 text-center">
-        Basic Personal Information
-      </h2>
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 ">
         <div>
           <Label>Full Name *</Label>
@@ -231,15 +230,11 @@ export default function Step1() {
             </div>
           </>
         )}
-
-        <SignupNavButtons step={step} validateStep={validateStep} />
       </div>
+      <SignupNavButtons step={step} validateStep={validateStep} />
       <p className="text-center text-sm text-gray-600 mt-6">
-        Don&apos;t have an account?{" "}
-        <Link
-          href="/auth/login"
-          className="text-[var(--primary)] font-[400]"
-        >
+        Already have an account?{" "}
+        <Link href="/auth/login" className="text-[var(--primary)] font-[400]">
           Login
         </Link>
       </p>

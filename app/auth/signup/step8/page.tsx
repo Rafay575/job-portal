@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
 type Employment = {
   employerName: string;
@@ -43,12 +44,19 @@ function SignupNavButtons({ step, validateStep }: Props) {
   };
 
   return (
-    <div className="flex gap-2 mt-3">
-      <Button variant="outline" onClick={handleBack}>
-        Back
+    <div className="flex gap-2 mt-3 justify-between ">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={handleBack}
+        disabled={step === 1}
+      >
+        <IoIosArrowBack />Back
       </Button>
 
-      <Button onClick={handleNext}>Next</Button>
+      <Button type="button" onClick={handleNext}>
+        Next<IoIosArrowForward />
+      </Button>
     </div>
   );
 }
@@ -138,9 +146,7 @@ export default function Step8() {
 
   return (
     <>
-      <h2 className="text-primary text-3xl font-medium  mb-4 md:mb-7 text-center">
-        Employment History
-      </h2>
+      
 
       <div className="min-w-full space-y-5 p-1 flex flex-col">
         {employmentHistory.map((job, index) => (
