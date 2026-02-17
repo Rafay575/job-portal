@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { GoAlert } from "react-icons/go";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
 type Props = {
   step: number;
@@ -29,12 +30,18 @@ function SignupNavButtons({ step, validateStep }: Props) {
   };
 
   return (
-    <div className="flex gap-2 mt-3">
-      <Button type="button" variant="outline" onClick={handleBack}>
-        Back
+    <div className="flex gap-2 mt-3 justify-between ">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={handleBack}
+        disabled={step === 1}
+      >
+        <IoIosArrowBack />Back
       </Button>
+
       <Button type="button" onClick={handleNext}>
-        Next
+        Next<IoIosArrowForward />
       </Button>
     </div>
   );
@@ -61,9 +68,7 @@ export default function Step4() {
 
   return (
     <>
-      <h2 className="text-primary text-3xl font-medium  mb-4 md:mb-7 text-center">
-        Health Information (Optional)
-      </h2>
+      
 
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
         {/* Notice */}
@@ -193,8 +198,8 @@ export default function Step4() {
           </RadioGroup>
         </div>
 
-        <SignupNavButtons step={step} validateStep={validateStep} />
       </div>
+        <SignupNavButtons step={step} validateStep={validateStep} />
     </>
   );
 }

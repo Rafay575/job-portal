@@ -17,7 +17,7 @@ export default function Profile() {
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="p-0 rounded-full border focus-visible:ring-0 focus-visible:ring-offset-0" >
                         <div className="relative inline-block">
-                            <Avatar className="w-[30px] md:w-[35px] h-[35px] md:h-[35px] cursor-pointer">
+                            <Avatar className="w-[35px] h-[35px] cursor-pointer">
                                 {/* <AvatarImage src="/avatar22.png" className="object-cover"/> */}
                                 <AvatarFallback>AS</AvatarFallback>
                             </Avatar>

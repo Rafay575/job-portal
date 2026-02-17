@@ -6,26 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { IoIosArrowBack } from "react-icons/io";
 
-type Props = {
-  step: number;
-  handleSubmit: (e: React.FormEvent) => void;
-};
-
-function SignupNavButtons({ step, handleBack }: { step: number; handleBack: () => void }) {
-  return (
-    <div className="flex gap-2 mt-3">
-      <Button variant="outline" onClick={handleBack}>
-        Back
-      </Button>
-    </div>
-  );
-}
-
-export default function Step11({ handleSubmit }: Props) {
+export default function Step11() {
   const router = useRouter();
-  const [step] = useState(11);
+  const step = 11;
 
   const [declarationConfirmed, setDeclarationConfirmed] = useState(false);
   const [digitalSignature, setDigitalSignature] = useState("");
@@ -51,18 +36,32 @@ export default function Step11({ handleSubmit }: Props) {
     return true;
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateStep()) return;
+
+    const payload = {
+      declarationConfirmed,
+      digitalSignature,
+      declarationDate,
+    };
+
+    console.log("FINAL SUBMISSION:", payload);
+
+    toast.success("Application submitted successfully!");
+
+    // redirect after submit
+    router.push("/");
+  };
+
   return (
     <>
-      <h2 className="text-primary text-3xl font-medium  mb-4 md:mb-7 text-center">
-        Declaration
-      </h2>
+      
 
       <form
         className="min-w-full space-y-3 p-1 flex flex-col"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (validateStep()) handleSubmit(e);
-        }}
+        onSubmit={handleSubmit}
       >
         <div className="flex items-center gap-2">
           <input
@@ -95,12 +94,14 @@ export default function Step11({ handleSubmit }: Props) {
 
         <div className="flex gap-2 mt-5">
           <Button variant="outline" type="button" onClick={handleBack}>
-            Back
+            <IoIosArrowBack />Back
           </Button>
-          <Button type="submit">Submit</Button>
+
+          <Button type="submit">
+            Submit
+          </Button>
         </div>
       </form>
-      
     </>
   );
 }

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
 type Props = {
   step: number;
@@ -28,18 +29,18 @@ function SignupNavButtons({ step, validateStep }: Props) {
   };
 
   return (
-    <div className="flex gap-2 mt-3 ">
+    <div className="flex gap-2 mt-3 justify-between ">
       <Button
         type="button"
         variant="outline"
         onClick={handleBack}
         disabled={step === 1}
       >
-        Back
+        <IoIosArrowBack />Back
       </Button>
 
       <Button type="button" onClick={handleNext}>
-        Next
+        Next<IoIosArrowForward />
       </Button>
     </div>
   );
@@ -83,10 +84,7 @@ export default function Step2() {
 
   return (
     <>
-      <h2 className="text-primary text-3xl font-medium  mb-4 md:mb-7 text-center">
-        Pre-Qualifying Questions
-      </h2>
-
+      
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 ">
         {/* Availability Issue */}
         <div>
