@@ -1,14 +1,9 @@
-import Hero from "@/components/home/Hero";
-import TrendingJobs from "@/components/home/TrendingJobs";
-import TopNav from "@/components/TopNav";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function Home() {
   return (
     <div>
-      <Hero/>
-      <TrendingJobs/>
       <p className="text-[25px]">Dashboard</p>
       <Button><Link href="/auth/signup/step1">SignUp</Link></Button>
     </div>

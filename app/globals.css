@@ -6,10 +6,10 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --primary: #8a07db;
+  --primary:rgb(92, 73, 216);
   --radius: 0.625rem;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: #585858;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -19,7 +19,7 @@
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(40.54% 0.00005 271.152);
-  --accent: #f9f1ff;
+  --accent: rgb(247, 246, 255);
   --accent-foreground: oklch(16.842% 0.00002 271.152);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
@@ -97,6 +97,28 @@ html{
 input{
   @apply focus-visible:outline-0 
 } 
+.container{
+  @apply max-w-[95%] md:max-w-[85%]
+}
+
+
+.heading {
+  @apply text-[30px] lg:text-[38px] 2xl:text-[45px]  ;
+}
+.subheading {
+  @apply  text-[18px] md:text-[19px] lg:text-[21px] ;
+
+}
+p{
+  @apply text-[14px] md:text-[15px]
+}
+
+.pad{
+  @apply py-[50px] lg:py-[80px]
+}
+.mar{
+  @apply my-[50px] lg:my-[80px]
+}
 
 @keyframes floatUp {
   0% {

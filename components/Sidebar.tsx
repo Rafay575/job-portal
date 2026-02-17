@@ -26,12 +26,12 @@ export default function Sidebar() {
   const links = [
     {
       name: "Dashboard",
-      href: "/",
+      href: "/admin/dashboard",
       icon: LayoutDashboard,
     },
     {
       name: "Latest Jobs",
-      href: "/jobs",
+      href: "/admin/jobs",
       icon: Briefcase,
     },
   ];

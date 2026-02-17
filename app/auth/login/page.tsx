@@ -68,7 +68,7 @@ export default function SignInPage() {
             variant="outline"
             className="flex-1 gap-2 sm:py-5  cursor-pointer font-[400]"
           >
-            <FaApple className="text-[20px]" />
+            <FaApple className="text-[20px] text-black" />
             Continue with Apple
           </Button>
         </div>
@@ -116,9 +116,9 @@ export default function SignInPage() {
                 className="absolute right-3 top-2.5"
               >
                 {showPassword ? (
-                  <EyeOff className="color" />
+                  <EyeOff className="text-primary" />
                 ) : (
-                  <Eye className="color" />
+                  <Eye className="text-primary" />
                 )}
               </button>
             </div>
