@@ -1,55 +1,59 @@
 import Image from "next/image";
 import { Button } from "../ui/button";
+import { GoArrowUpRight } from "react-icons/go";
 
 export default function Hero() {
-  return (
-    <div className=" min-h-[90vh] bg-primary flex  justify-center px-6 py-10 relative">
-        <Image
-          src="/herob.png"
-          alt="logo"
-          width={500}
-          height={500}
-          className=" w-[16%]  hidden lg:block absolute left-10 bottom-9"
-        />
-      <div className=" w-full lg:w-[65%]  flex flex-col space-y-3 items-center">
-        <p className="!text-[50px] text-white text-center font-medium">
-          Find the right talent for your company
-        </p>
-        <p className="!text-[30px] text-white text-center font-[300] w-[80%]">
-          Connecting employers with people quickly through the UK's most
-          effective job advert and CV Search service.
-        </p>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-7 gap-y-5 p-5 mt-auto">
-          <div className="flex flex-col gap-2">
-            <div className="border-2 rounded-[10px] border-white p-5 flex flex-col items-center">
-              <p className="!text-[25px]  xl:!text-[30px] text-white">Pay-Per-Application job</p>
-              <p className="subheading font-light text-white text-center w-[65%]">
-                Set a budget cap and only pay for the applications you receive
-              </p>
-              <p className="text-[30px] lg:!text-[40px] text-white font-[700]">Free to Post</p>
-            </div>
-            <Button type="button" className="w-full py-10 text-[30px] xl:text-[40px] bg-white text-primary hover:bg-white" >Register as Applicant</Button>
-          </div>
+  const cards = [
+    {
+      title: "APPLICANT JOURNEY",
+      subtitle: "Elevate Your Career with Top Opportunities",
+      image: "/hero1.png",
+      btn:"Find a Job Now "
+    },
+    {
+      title: "EMPLOYER JOURNEY",
+      subtitle: "Access Premier Talent Hire Faster ",
+      image: "/hero2.png",
+      btn:"Post a Job Now "
 
-          <div className="flex flex-col gap-2">
-            <div className="border-2 rounded-[10px] border-white p-5 flex flex-col items-center">
-              <p className="!text-[25px]  xl:!text-[30px] text-white">Pay-Per-Application job</p>
-              <p className="subheading font-light text-white text-center w-[65%]">
-                Set a budget cap and only pay for the applications you receive
-              </p>
-              <p className="text-[30px] lg:!text-[40px] text-white font-[700]">Free to Post</p>
-            </div>
-            <Button type="button" className="w-full py-10 text-[30px] xl:text-[40px] bg-white text-primary hover:bg-white" >Register as Applicant</Button>
+    },
+  ];
+  
+  return (
+    <div className=" md:h-[70vh]  bg-primary flex items-center justify-center px-6 py-10 relative">
+      <div className="w-full max-w-5xl xl:max-w-[65%]   border-white rounded-4xl flex flex-col sm:flex-row p-5 sm:p-8 gap-5 md:gap-10">
+        {cards.map((card, index) => (
+          <div
+            key={index}
+            className="border-2 border-white rounded-4xl grow flex flex-col items-center gap-5 p-8"
+          >
+            <p className="text-white text-center !text-[6vw] sm:!text-[4vw]  lg:!text-[3vw] xl:!text-[2vw] leading-[100%] font-bold">
+              {card.title}
+            </p>
+
+            <p className="text-white text-center !text-[18px]  md:!text-[20px] lg:w-[70%]">
+              {card.subtitle}
+            </p>
+
+            <Image
+              src={card.image}
+              alt="hero-image"
+              width={500}
+              height={400}
+              className="w-full mt-auto"
+              unoptimized
+            />
+
+            <Button
+              type="button"
+              className="bg-white text-primary font-semibold hover:text-white border border-white cursor-pointer w-full text-[15pxz] sm:text-[17px] md:text-[23px] py-[2vw] sm:py-[1.5vw]"
+            >
+              {card.btn}
+              <GoArrowUpRight className="font-semibold size-4 md:size-[1.5vw]" />
+            </Button>
           </div>
-        </div>
+        ))}
       </div>
-        <Image
-          src="/herog.png"
-          alt="logo"
-          width={500}
-          height={500}
-          className=" w-[18%] hidden lg:block  absolute right-10 bottom-9" 
-        />
     </div>
   );
 }

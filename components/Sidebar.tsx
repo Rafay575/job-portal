@@ -46,7 +46,7 @@ export default function Sidebar() {
         <div className="h-16 flex items-center justify-between px-4">
           {/* Logo */}
           {!collapsed && (
-            <Image src="/logo.png" alt="logo" width={120} height={40} />
+            <Image src="/logo.png" alt="logo" width={120} height={40} unoptimized />
           )}
 
           <Button

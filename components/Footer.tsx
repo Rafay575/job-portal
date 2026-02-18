@@ -13,7 +13,7 @@ export default function Footer() {
         {/* Newsletter Card */}
         <div className=" border border-white rounded-2xl px-3  py-7 md:px-6 md:py-10 flex flex-col md:flex-row  md:items-center gap-6 shadow-xl">
           <div className="flex items-center gap-4 transition-width duration-500  w-[40%] md:w-[30%] lg:w-[20%]">
-            <Image src="/logo-white.png" alt="logo" width={380} height={380} className="w-full md:border-r pr-3" />
+            <Image src="/logo-white.png" alt="logo" width={380} height={380} className="w-full md:border-r pr-3"  unoptimized/>
           </div>
 
           <div className="flex-1">
@@ -73,7 +73,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-white/30 mt-6 py-3 flex flex-col md:flex-row justify-between text-sm text-white/80 gap-3">
+        <div className="border-t border-white/30 mt-6 py-3 flex flex-col items-center md:flex-row justify-between text-sm text-white/80 gap-3">
           <span>2026 Hayaiibu Talent. All Rights Reserved</span>
 
           <div className="flex gap-4">

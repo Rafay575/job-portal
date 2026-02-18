@@ -28,6 +28,7 @@ export default function Navbar() {
             width={500}
             height={500}
             className="w-full "
+            unoptimized
           />
         </Link>
 
