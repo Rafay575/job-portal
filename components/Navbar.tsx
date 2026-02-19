@@ -5,18 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import Image from "next/image";
-import { CiGrid41 } from "react-icons/ci";
 const navLinks = [
-  { name: "Categories", href: "#" },
   { name: "Home", href: "#" },
+  { name: "About", href: "#" },
+  { name: "Contact", href: "#" },
   { name: "Jobs", href: "#" },
-  { name: "Career Advice", href: "#" },
+  { name: "Pages", href: "#" },
+  { name: "Blog", href: "#" },
 ];
 
 export default function Navbar() {
   return (
     <header className="border-b sticky top-0 left-0 bg-white z-[10]">
-      <div className=" px-4 py-2 flex items-center justify-between relative ">
+      <div className=" px-4 py-2 flex items-center justify-between relative">
         {/* LOGO */}
         <Link
           href="/"
@@ -28,21 +29,15 @@ export default function Navbar() {
             width={500}
             height={500}
             className="w-full "
+            unoptimized
           />
         </Link>
 
         {/* DESKTOP NAV */}
         <nav className="hidden lg:flex items-center gap-8 text-md">
           {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="text-primary font-medium "
-            >
+            <Link key={link.name} href={link.href} className=" font-medium ">
               <div className="flex items-center gap-1">
-                {link.name == "Categories" && (
-                  <CiGrid41 className="text-[20px]" />
-                )}
                 <p>{link.name}</p>
               </div>
             </Link>
@@ -51,19 +46,25 @@ export default function Navbar() {
 
         {/* DESKTOP ACTIONS */}
         <div className="hidden lg:flex items-center gap-3">
-          <Button
-            variant="outline"
-            className="border-primary text-primary rounded-4xl"
-          >
-            Recruiting? Post a Job
-          </Button>
+          <div className="inline-flex rounded-full border  bg-white ">
+            {/* Left button: outlined/ghost */}
+            <Button
+              variant="outline"
+              className="rounded-full px-6 py-2 border-0 shadow-none bg-white hover:bg-white"
+            >
+              Post a Job
+            </Button>
 
-          <Button className="bg-primary hover:bg-primary/90 rounded-4xl">
-            Register a CV
-          </Button>
-
-          <Link href="#" className="text-sm text-primary ml-2 font-medium">
-            Sign in
+            {/* Right button: filled/primary */}
+            <Button className="rounded-full px-6 py-2">Register a CV</Button>
+          </div>
+          <Link href={"/auth/signup/step1"}>
+            <Button
+              variant="outline"
+              className="border-primary text-primary rounded-4xl"
+            >
+              Sign in
+            </Button>
           </Link>
         </div>
 
@@ -85,9 +86,16 @@ export default function Navbar() {
                 </Link>
               ))}
             </div>
-            <Button variant="outline" className="border-primary text-primary mt-2">Recruiting? Post a Job</Button>
+            <Button
+              variant="outline"
+              className="border-primary text-primary mt-2"
+            >
+              Recruiting? Post a Job
+            </Button>
             <Button className="bg-primary">Register a CV</Button>
-            <Button className="bg-primary">Sign in</Button>
+            <Button variant="outline" className="bg-primary ">
+              Sign in
+            </Button>
           </SheetContent>
         </Sheet>
       </div>
