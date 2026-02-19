@@ -17,7 +17,7 @@ export default function Section3() {
           <p className="text-primary font-medium">Why Plan-A</p>
         </div>
         <div className=" grow  ">
-          <div className="flex items-end justify-between border-b py-[30px]">
+          <div className="flex items-end justify-between border-b py-[10px] md:py-[30px]">
             <p className="w-[70%] sm:w-[45%] xl:w-[30%] !text-[40px]  md:!text-[60px] text-primary font-semibold leading-[100%]">
               Why should you choose us?
             </p>

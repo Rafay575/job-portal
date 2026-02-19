@@ -8,20 +8,35 @@ export default function Hero() {
       title: "APPLICANT JOURNEY",
       subtitle: "Elevate Your Career with Top Opportunities",
       image: "/hero1.png",
-      btn:"Find a Job Now "
+      btn: "Find a Job Now ",
     },
     {
       title: "EMPLOYER JOURNEY",
       subtitle: "Access Premier Talent Hire Faster ",
       image: "/hero2.png",
-      btn:"Post a Job Now "
-
+      btn: "Post a Job Now ",
     },
   ];
-  
+
   return (
-    <div className=" md:h-[70vh]  bg-primary flex items-center justify-center px-6 py-10 relative">
-      <div className="w-full max-w-5xl xl:max-w-[65%]   border-white rounded-4xl flex flex-col sm:flex-row p-5 sm:p-8 gap-5 md:gap-10">
+    <div className=" md:h-[70vh]  bg-primary flex items-center justify-center px-6 py-4 md:py-10 relative ">
+      <Image
+        src='/boy.png'
+        alt="hero-image"
+        width={500}
+        height={400}
+        className="w-[13%] mt-auto absolute bottom-7 left-8 hidden xl:block"
+        unoptimized
+      />
+      <Image
+        src='/girl.png'
+        alt="hero-image"
+        width={500}
+        height={400}
+        className="w-[15%] mt-auto absolute  bottom-7  right-8 hidden xl:block"
+        unoptimized
+      />
+      <div className="w-full max-w-5xl xl:max-w-[65%]   border-white rounded-4xl flex flex-col sm:flex-row md:p-5 sm:p-8 gap-5 md:gap-10">
         {cards.map((card, index) => (
           <div
             key={index}
