@@ -3,6 +3,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+<<<<<<< HEAD
+=======
+import Stepper from "./Stepper";
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
 
 export default function SignupLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -31,8 +35,14 @@ export default function SignupLayout({ children }: { children: React.ReactNode }
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: direction > 0 ? -300 : 300, opacity: 0 }}
           transition={{ duration: 0.3 }}
+<<<<<<< HEAD
           className="overflow-hidden bg-white w-[90%] max-w-4xl mx-auto px-[30px] md:px-[50px] py-[30px] md:py-[50px]"
         >
+=======
+          className="overflow-hidden bg-white w-[90%] max-w-5xl mx-auto px-[30px] md:px-[50px] py-[30px] md:py-[50px]"
+        >
+          <Stepper/>
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
           {children}
         </motion.div>
       </AnimatePresence>

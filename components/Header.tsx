@@ -19,7 +19,11 @@ export default function Header() {
       </div>
 
       {/* RIGHT */}
+<<<<<<< HEAD
       <div className="flex items-center gap-4">
+=======
+      <div className="flex items-center gap-2  md:gap-4">
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
         {/* Settings */}
         <Settings className="h-6 w-6" />
 

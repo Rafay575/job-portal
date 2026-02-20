@@ -27,7 +27,11 @@ export default function AuthBG() {
       {boxes.map((box, i) => (
         <div
           key={i}
+<<<<<<< HEAD
           className={`absolute ${box.size} rounded-lg shadow-md bg-white/30 opacity-10 animate-float-box`}
+=======
+          className={`absolute ${box.size} shadow-md bg-white/30 opacity-10 animate-float-box`}
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
           style={{
             left: `${box.left}%`,
             top: `${box.top}%`,

@@ -68,7 +68,11 @@ export default function SignInPage() {
             variant="outline"
             className="flex-1 gap-2 sm:py-5  cursor-pointer font-[400]"
           >
+<<<<<<< HEAD
             <FaApple className="text-[20px]" />
+=======
+            <FaApple className="text-[20px] text-black" />
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
             Continue with Apple
           </Button>
         </div>
@@ -116,9 +120,15 @@ export default function SignInPage() {
                 className="absolute right-3 top-2.5"
               >
                 {showPassword ? (
+<<<<<<< HEAD
                   <EyeOff className="color" />
                 ) : (
                   <Eye className="color" />
+=======
+                  <EyeOff className="text-primary" />
+                ) : (
+                  <Eye className="text-primary" />
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
                 )}
               </button>
             </div>
@@ -147,7 +157,11 @@ export default function SignInPage() {
         <p className="text-center text-sm text-gray-600 mt-6">
           Don&apos;t have an account?{" "}
           <Link
+<<<<<<< HEAD
             href="/auth/signup"
+=======
+            href="/auth/signup/step1"
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
             className="text-[var(--primary)] font-[400]"
           >
             Sign Up
