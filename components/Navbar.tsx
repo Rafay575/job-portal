@@ -6,12 +6,11 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import Image from "next/image";
 const navLinks = [
-  { name: "Home", href: "#" },
-  { name: "About", href: "#" },
-  { name: "Contact", href: "#" },
-  { name: "Jobs", href: "#" },
-  { name: "Pages", href: "#" },
-  { name: "Blog", href: "#" },
+  { name: "Home", href: "/" },
+  { name: "About", href: "/about" },
+  { name: "Contact", href: "/contact" },
+  { name: "Jobs", href: "/jobs" },
+  { name: "Blog", href: "/blogs" },
 ];
 
 export default function Navbar() {
@@ -56,9 +55,12 @@ export default function Navbar() {
             </Button>
 
             {/* Right button: filled/primary */}
-            <Button className="rounded-full px-6 py-2">Register a CV</Button>
+            <Link href={"/auth/register"}>
+              <Button className="rounded-full px-6 py-2">Register a CV</Button>
+            </Link>
           </div>
-          <Link href={"/auth/signup/step1"}>
+          <Link href={"/auth/login"}>
+          
             <Button
               variant="outline"
               className="border-primary text-primary rounded-4xl"

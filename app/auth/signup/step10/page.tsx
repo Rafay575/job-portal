@@ -6,7 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+<<<<<<< HEAD
+=======
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
 
 type Props = {
   step: number;
@@ -27,6 +30,14 @@ function SignupNavButtons({ step, validateStep }: Props) {
   };
 
   return (
+<<<<<<< HEAD
+    <div className="flex gap-2 mt-3">
+      <Button variant="outline" onClick={handleBack}>
+        Back
+      </Button>
+
+      <Button onClick={handleNext}>Next</Button>
+=======
     <div className="flex gap-2 mt-3 justify-between ">
       <Button
         type="button"
@@ -40,6 +51,7 @@ function SignupNavButtons({ step, validateStep }: Props) {
       <Button type="button" onClick={handleNext}>
         Next<IoIosArrowForward />
       </Button>
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
     </div>
   );
 }
@@ -61,7 +73,13 @@ export default function Step10() {
 
   return (
     <>
+<<<<<<< HEAD
+      <h2 className="text-primary text-3xl font-medium italic mb-4 md:mb-7 text-center">
+        Supporting Statement
+      </h2>
+=======
       
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
 
       <div className="min-w-full space-y-3 p-1 flex flex-col">
         <Label>Supporting Statement (Max 150 words)</Label>

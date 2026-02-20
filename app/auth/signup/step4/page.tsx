@@ -9,7 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { GoAlert } from "react-icons/go";
+<<<<<<< HEAD
+=======
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
 
 type Props = {
   step: number;
@@ -30,6 +33,14 @@ function SignupNavButtons({ step, validateStep }: Props) {
   };
 
   return (
+<<<<<<< HEAD
+    <div className="flex gap-2 mt-3">
+      <Button type="button" variant="outline" onClick={handleBack}>
+        Back
+      </Button>
+      <Button type="button" onClick={handleNext}>
+        Next
+=======
     <div className="flex gap-2 mt-3 justify-between ">
       <Button
         type="button"
@@ -42,6 +53,7 @@ function SignupNavButtons({ step, validateStep }: Props) {
 
       <Button type="button" onClick={handleNext}>
         Next<IoIosArrowForward />
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
       </Button>
     </div>
   );
@@ -68,7 +80,13 @@ export default function Step4() {
 
   return (
     <>
+<<<<<<< HEAD
+      <h2 className="text-primary text-3xl font-medium italic mb-4 md:mb-7 text-center">
+        Health Information (Optional)
+      </h2>
+=======
       
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
 
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
         {/* Notice */}
@@ -198,8 +216,13 @@ export default function Step4() {
           </RadioGroup>
         </div>
 
+<<<<<<< HEAD
+        <SignupNavButtons step={step} validateStep={validateStep} />
+      </div>
+=======
       </div>
         <SignupNavButtons step={step} validateStep={validateStep} />
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
     </>
   );
 }

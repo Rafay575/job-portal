@@ -6,7 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+<<<<<<< HEAD
+=======
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
 
 type Training = {
   title: string;
@@ -34,6 +37,14 @@ function SignupNavButtons({ step, validateStep }: Props) {
   };
 
   return (
+<<<<<<< HEAD
+    <div className="flex gap-2 mt-3">
+      <Button variant="outline" onClick={handleBack}>
+        Back
+      </Button>
+
+      <Button onClick={handleNext}>Next</Button>
+=======
     <div className="flex gap-2 mt-3 justify-between ">
       <Button
         type="button"
@@ -47,6 +58,7 @@ function SignupNavButtons({ step, validateStep }: Props) {
       <Button type="button" onClick={handleNext}>
         Next<IoIosArrowForward />
       </Button>
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
     </div>
   );
 }
@@ -94,9 +106,17 @@ export default function Step7() {
 
   return (
     <>
+<<<<<<< HEAD
+      <h2 className="text-primary text-3xl font-medium italic mb-4 md:mb-7 text-center">
+        Training & Courses
+      </h2>
+
+      <div className="min-w-full space-y-5  grid gap-x-5 gap-y-3 grid-cols-1 md:grid-cols-2  mb-3">
+=======
       
 
       <div className="min-w-full space-y-5  grid gap-x-5 gap-y-3 grid-cols-1 md:grid-cols-2  mb-3 ">
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
         {trainings.map((t, index) => (
           <div key={index} className="border p-4 rounded-lg space-y-3 mb-0">
             <Label>Training / Course {index + 1}</Label>

@@ -1,6 +1,13 @@
 "use client";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+// import Sidebar from "@/components/Sidebar";
+
+import Header from "@/components/Header";
+
+import { AppSidebar } from "@/components/app-sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "sonner";
 import Navbar from "@/components/Navbar";
@@ -23,13 +30,52 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const isAdminRoute =
-    pathname.startsWith("/admin") || pathname.startsWith("/auth");
+
+  const hideSidebar = pathname.startsWith("/auth");
+
+
+  const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/auth") || pathname.startsWith("/user");
+
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+
+        <div className="flex">
+          <SidebarProvider>
+          {!hideSidebar && <AppSidebar />}
+          
+          <main className="flex-1 ">
+            <TooltipProvider>
+              {!hideSidebar && <Header />}
+              <div className={`${!hideSidebar ? "p-2" : ""}`}>{children}</div>
+              {/* Change position: top-right, top-left, bottom-right, bottom-left, top-center, bottom-center */}
+              <Toaster position="top-center" richColors />
+            </TooltipProvider>
+          </main>
+          </SidebarProvider>
+        </div>
+
+        <TooltipProvider>
+          {!isAdminRoute && (
+            <>
+              <TopNav />
+              <Navbar />
+            </>
+          )}
+          {children}
+          {!isAdminRoute && (
+            <>
+              <Footer />
+            </>
+          )}
+          
+          {/* Change position: top-right, top-left, bottom-right, bottom-left, top-center, bottom-center */}
+          <Toaster position="top-center" richColors />
+        </TooltipProvider>
+
         <QueryProvider>
           <TooltipProvider>
             {!isAdminRoute && (
@@ -49,6 +95,7 @@ export default function RootLayout({
             <Toaster position="top-center" richColors />
           </TooltipProvider>
         </QueryProvider>
+
       </body>
     </html>
   );

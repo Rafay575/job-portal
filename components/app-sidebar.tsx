@@ -17,7 +17,10 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
+<<<<<<< HEAD
+=======
   SidebarTrigger,
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
 } from "@/components/ui/sidebar";
 import { useSidebar } from "@/components/ui/sidebar";
 import Image from "next/image";
@@ -147,7 +150,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="mb-[10px]">
         {open ? (
+<<<<<<< HEAD
+=======
           <div className="flex justify-between">
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
           <Image
             src="/logo.png"
             alt="Logo"
@@ -156,8 +162,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             className="w-[70%] "
             unoptimized
           />
+<<<<<<< HEAD
+=======
           <SidebarTrigger className="text-[10px] block md:hidden" />
           </div>
+>>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
         ) : (
           // Collapsed → Icon only
            <Image
