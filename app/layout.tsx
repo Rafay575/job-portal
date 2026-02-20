@@ -16,36 +16,39 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
+import QueryProvider from "@/providers/QueryProvider";
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/auth");
+  const isAdminRoute =
+    pathname.startsWith("/admin") || pathname.startsWith("/auth");
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <TooltipProvider>
-          {!isAdminRoute && (
-            <>
-              <TopNav />
-              <Navbar />
-            </>
-          )}
-          {children}
-          {!isAdminRoute && (
-            <>
-              <Footer />
-            </>
-          )}
-          
-          {/* Change position: top-right, top-left, bottom-right, bottom-left, top-center, bottom-center */}
-          <Toaster position="top-center" richColors />
-        </TooltipProvider>
+        <QueryProvider>
+          <TooltipProvider>
+            {!isAdminRoute && (
+              <>
+                <TopNav />
+                <Navbar />
+              </>
+            )}
+            {children}
+            {!isAdminRoute && (
+              <>
+                <Footer />
+              </>
+            )}
+
+            {/* Change position: top-right, top-left, bottom-right, bottom-left, top-center, bottom-center */}
+            <Toaster position="top-center" richColors />
+          </TooltipProvider>
+        </QueryProvider>
       </body>
     </html>
   );
