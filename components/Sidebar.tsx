@@ -26,12 +26,12 @@ export default function Sidebar() {
   const links = [
     {
       name: "Dashboard",
-      href: "/",
+      href: "/admin/dashboard",
       icon: LayoutDashboard,
     },
     {
       name: "Latest Jobs",
-      href: "/jobs",
+      href: "/admin/jobs",
       icon: Briefcase,
     },
   ];
@@ -46,7 +46,7 @@ export default function Sidebar() {
         <div className="h-16 flex items-center justify-between px-4">
           {/* Logo */}
           {!collapsed && (
-            <Image src="/logo.png" alt="logo" width={120} height={40} />
+            <Image src="/logo.png" alt="logo" width={120} height={40} unoptimized />
           )}
 
           <Button
