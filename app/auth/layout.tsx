@@ -4,6 +4,8 @@ import "@/app/globals.css";
 import { usePathname } from "next/navigation";
 import AuthBG from "@/components/AuthBG";
 import { AnimatePresence, motion } from "framer-motion";
+import TopNav from "@/components/TopNav";
+import Navbar from "@/components/Navbar";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -24,23 +26,15 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body
-      >
-        <div className="relative isolate min-h-[100vh] max-w-[100vw]! overflow-x-hidden  flex items-center justify-center overflow-hidden  bg-primary py-[50px]">
-          <AuthBG />
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={pathname} 
-              initial={{ x: direction * 300, opacity: 0 }}  
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: direction * 300, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="w-full!  overflow-hidden"
-            >
-              {children}            
-            </motion.div>
-          </AnimatePresence>  
-        </div>
+      <body>
+          <>
+            <TopNav />
+            <Navbar />
+          </>
+       
+
+          {children}
+        
       </body>
     </html>
   );

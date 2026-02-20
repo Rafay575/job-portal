@@ -15,12 +15,12 @@ const navLinks = [
 
 export default function Navbar() {
   return (
-    <header className="border-b sticky top-0 left-0 bg-white z-[10]">
+    <header className="border-b sticky top-0 left-0 bg-white z-50">
       <div className=" px-4 py-2 flex items-center justify-between relative">
         {/* LOGO */}
         <Link
           href="/"
-          className="flex items-center gap-2 w-[30%] max-w-[180px]"
+          className="flex items-center gap-2 w-[30%] max-w-45"
         >
           <Image
             src="/logo.png"
