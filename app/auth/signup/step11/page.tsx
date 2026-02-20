@@ -6,33 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-<<<<<<< HEAD
-
-type Props = {
-  step: number;
-  handleSubmit: (e: React.FormEvent) => void;
-};
-
-function SignupNavButtons({ step, handleBack }: { step: number; handleBack: () => void }) {
-  return (
-    <div className="flex gap-2 mt-3">
-      <Button variant="outline" onClick={handleBack}>
-        Back
-      </Button>
-    </div>
-  );
-}
-
-export default function Step11({ handleSubmit }: Props) {
-  const router = useRouter();
-  const [step] = useState(11);
-=======
 import { IoIosArrowBack } from "react-icons/io";
 
 export default function Step11() {
   const router = useRouter();
   const step = 11;
->>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
 
   const [declarationConfirmed, setDeclarationConfirmed] = useState(false);
   const [digitalSignature, setDigitalSignature] = useState("");
@@ -58,20 +36,6 @@ export default function Step11() {
     return true;
   };
 
-<<<<<<< HEAD
-  return (
-    <>
-      <h2 className="text-primary text-3xl font-medium italic mb-4 md:mb-7 text-center">
-        Declaration
-      </h2>
-
-      <form
-        className="min-w-full space-y-3 p-1 flex flex-col"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (validateStep()) handleSubmit(e);
-        }}
-=======
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -98,7 +62,6 @@ export default function Step11() {
       <form
         className="min-w-full space-y-3 p-1 flex flex-col"
         onSubmit={handleSubmit}
->>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
       >
         <div className="flex items-center gap-2">
           <input
@@ -131,18 +94,12 @@ export default function Step11() {
 
         <div className="flex gap-2 mt-5">
           <Button variant="outline" type="button" onClick={handleBack}>
-<<<<<<< HEAD
-            Back
-          </Button>
-          <Button type="submit">Submit</Button>
-=======
             <IoIosArrowBack />Back
           </Button>
 
           <Button type="submit">
             Submit
           </Button>
->>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
         </div>
       </form>
     </>

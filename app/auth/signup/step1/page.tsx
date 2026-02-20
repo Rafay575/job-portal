@@ -14,12 +14,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-<<<<<<< HEAD
-=======
 import Link from "next/link";
 import { IoIosArrowForward } from "react-icons/io";
 import { IoIosArrowBack } from "react-icons/io";
->>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
 
 type Props = {
   step: number;
@@ -40,30 +37,18 @@ function SignupNavButtons({ step, validateStep }: Props) {
   };
 
   return (
-<<<<<<< HEAD
-    <div className="flex gap-2 mt-3 ">
-=======
     <div className="flex gap-2 mt-3 justify-between ">
->>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
       <Button
         type="button"
         variant="outline"
         onClick={handleBack}
         disabled={step === 1}
       >
-<<<<<<< HEAD
-        Back
-      </Button>
-
-      <Button type="button" onClick={handleNext}>
-        Next
-=======
         <IoIosArrowBack />Back
       </Button>
 
       <Button type="button" onClick={handleNext}>
         Next<IoIosArrowForward />
->>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
       </Button>
     </div>
   );
@@ -123,10 +108,6 @@ export default function Step1() {
 
   return (
     <>
-<<<<<<< HEAD
-      <h2 className="text-primary text-3xl font-medium italic mb-4 md:mb-7 text-center">Basic Personal Information</h2>
-=======
->>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 ">
         <div>
           <Label>Full Name *</Label>
@@ -249,11 +230,6 @@ export default function Step1() {
             </div>
           </>
         )}
-<<<<<<< HEAD
-
-        <SignupNavButtons step={step} validateStep={validateStep} />
-      </div>
-=======
       </div>
       <SignupNavButtons step={step} validateStep={validateStep} />
       <p className="text-center text-sm text-gray-600 mt-6">
@@ -262,7 +238,6 @@ export default function Step1() {
           Login
         </Link>
       </p>
->>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
     </>
   );
 }

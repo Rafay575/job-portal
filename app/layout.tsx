@@ -43,38 +43,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
 
-        <div className="flex">
-          <SidebarProvider>
-          {!hideSidebar && <AppSidebar />}
-          
-          <main className="flex-1 ">
-            <TooltipProvider>
-              {!hideSidebar && <Header />}
-              <div className={`${!hideSidebar ? "p-2" : ""}`}>{children}</div>
-              {/* Change position: top-right, top-left, bottom-right, bottom-left, top-center, bottom-center */}
-              <Toaster position="top-center" richColors />
-            </TooltipProvider>
-          </main>
-          </SidebarProvider>
-        </div>
+      
 
-        <TooltipProvider>
-          {!isAdminRoute && (
-            <>
-              <TopNav />
-              <Navbar />
-            </>
-          )}
-          {children}
-          {!isAdminRoute && (
-            <>
-              <Footer />
-            </>
-          )}
-          
-          {/* Change position: top-right, top-left, bottom-right, bottom-left, top-center, bottom-center */}
-          <Toaster position="top-center" richColors />
-        </TooltipProvider>
+       
 
         <QueryProvider>
           <TooltipProvider>
