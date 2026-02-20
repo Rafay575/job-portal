@@ -23,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/auth");
+  const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/auth") || pathname.startsWith("/user");
   return (
     <html lang="en">
       <body
