@@ -18,7 +18,7 @@ export default function Section2() {
         </div>
         <div className="flex items-center  md:justify-between w-full flex-wrap md:flex-nowrap gap-y-7">
           {logos.map((logo, i) => (
-            <div className="h-full w-[20%] flex justify-start md:justify-end">
+            <div key={i} className="h-full w-[20%] flex justify-start md:justify-end">
               <Image
                 src={logo}
                 alt="logo"

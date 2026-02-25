@@ -14,17 +14,14 @@ const profileSections = [
   { label: 'About You', icon: User, completed: false },
   { label: 'Looking for', icon: Search, completed: false },
   { label: 'Status & Availability', icon: AlertCircle, completed: false },
-  { label: 'Work Experience', icon: FileCheck, completed: false },
-  { label: 'Qualifications', icon: CheckCircle2, completed: false },
-  { label: 'Update Profile', icon: Settings, completed: false },
+
 ]
 
 const activitySections = [
   { label: 'Applications', icon: FileText },
   { label: 'Draft Applications', icon: FileText },
   { label: 'Saved Jobs', icon: Bookmark },
-  { label: 'Job Alerts', icon: AlertCircle },
-  { label: 'Recommended Jobs', icon: Heart },
+
 ]
 
 export function JobSidebar({ className }: JobSidebarProps) {
@@ -33,7 +30,7 @@ export function JobSidebar({ className }: JobSidebarProps) {
   return (
     <aside
       className={cn(
-        'sticky top-0 h-screen w-full max-w-md overflow-y-auto border-r border-border bg-background px-4 py-6 md:py-8',
+        'sticky top-0 h-screen w-full max-w-[300px] overflow-y-auto border-r border-border bg-background px-4 py-6 md:py-8 hidden lg:block',
         className
       )}
     >   

@@ -1,0 +1,175 @@
+"use client";
+
+import { useState } from "react";
+import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+
+type MandatoryExperience = {
+  areas: string[];
+  vulnerableDefinition: string;
+  properCareMeasures: string;
+  nonVerbalChoice: string;
+  abuseAction: string;
+};
+
+type NavProps = {
+  onNext: () => void;
+  onBack: () => void;
+  disableBack?: boolean;
+};
+
+function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
+  return (
+    <div className="flex gap-2 mt-3 justify-between">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onBack}
+        disabled={disableBack}
+      >
+        <IoIosArrowBack />
+        Back
+      </Button>
+
+      <Button type="button" onClick={onNext}>
+        Next
+        <IoIosArrowForward />
+      </Button>
+    </div>
+  );
+}
+
+type Props = {
+  next: () => void;
+  back: () => void;
+};
+export default function Step9({ next, back }: Props) {
+
+  const [mandatoryExperience, setMandatoryExperience] =
+    useState<MandatoryExperience>({
+      areas: [],
+      vulnerableDefinition: "",
+      properCareMeasures: "",
+      nonVerbalChoice: "",
+      abuseAction: "",
+    });
+
+  const areas = [
+    "Mental Health",
+    "Learning Disabilities",
+    "Drug & Alcohol",
+    "Housing",
+    "Elderly",
+    "Children/Young People",
+  ];
+
+  const toggleArea = (area: string) => {
+    setMandatoryExperience((prev) => ({
+      ...prev,
+      areas: prev.areas.includes(area)
+        ? prev.areas.filter((a) => a !== area)
+        : [...prev.areas, area],
+    }));
+  };
+
+  const validateStep = (): boolean => {
+    if (
+      mandatoryExperience.areas.length === 0 ||
+      !mandatoryExperience.vulnerableDefinition ||
+      !mandatoryExperience.properCareMeasures ||
+      !mandatoryExperience.nonVerbalChoice ||
+      !mandatoryExperience.abuseAction
+    ) {
+      toast.error("Please complete all mandatory experience fields");
+      return false;
+    }
+
+    return true;
+  };
+
+  return (
+    <>
+      
+
+      <div className="min-w-full space-y-1 p-1 flex flex-col gap-1">
+        <Label>Select all that apply *</Label>
+        <div className="flex flex-col gap-0.5">
+          {areas.map((area) => (
+            <div key={area} className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={mandatoryExperience.areas.includes(area)}
+                onChange={() => toggleArea(area)}
+                className="h-4 w-4"
+              />
+              <Label>{area}</Label>
+            </div>
+          ))}
+        </div>
+        <div className="grid geid-col2-1 md:grid-cols-2  gap-2">
+          <div>
+            <Label>Definition of vulnerable people *</Label>
+            <Textarea
+              value={mandatoryExperience.vulnerableDefinition}
+              onChange={(e) =>
+                setMandatoryExperience((prev) => ({
+                  ...prev,
+                  vulnerableDefinition: e.target.value,
+                }))
+              }
+            />
+          </div>
+          <div>
+            <Label>Measures to ensure proper care *</Label>
+            <Textarea
+              value={mandatoryExperience.properCareMeasures}
+              onChange={(e) =>
+                setMandatoryExperience((prev) => ({
+                  ...prev,
+                  properCareMeasures: e.target.value,
+                }))
+              }
+            />
+          </div>
+          <div>
+            <Label>Helping a non-verbal client make choices *</Label>
+            <Textarea
+              value={mandatoryExperience.nonVerbalChoice}
+              onChange={(e) =>
+                setMandatoryExperience((prev) => ({
+                  ...prev,
+                  nonVerbalChoice: e.target.value,
+                }))
+              }
+            />
+          </div>
+          <div>
+            <Label>Action if witnessing abuse *</Label>
+            <Textarea
+              value={mandatoryExperience.abuseAction}
+              onChange={(e) =>
+                setMandatoryExperience((prev) => ({
+                  ...prev,
+                  abuseAction: e.target.value,
+                }))
+              }
+            />
+          </div>
+        </div>
+        <SignupNavButtons
+        
+        onBack={back}
+        onNext={() => {
+          if (validateStep()) {
+            next();
+          }
+        }}
+      />
+      </div>
+    </>
+  );
+}

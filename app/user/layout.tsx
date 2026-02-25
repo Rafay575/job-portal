@@ -8,6 +8,8 @@ import Header from "@/components/Header";
 import { Toaster } from "@/components/ui/sonner";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import TopNav from "@/components/TopNav";
+import { JobSidebar } from "@/components/job-sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,23 +26,26 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
-  const hideSidebar = pathname.startsWith("/auth");
-
+ 
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="flex">
+        <div className="">
+          <TopNav/>
           <SidebarProvider>
-          {!hideSidebar && <AppSidebar />}
-          
+
           <main className="flex-1 ">
             <TooltipProvider>
-              {!hideSidebar && <Header />}
-              <div className={`${!hideSidebar ? "p-2" : ""}`}>{children}</div>
-              {/* Change position: top-right, top-left, bottom-right, bottom-left, top-center, bottom-center */}
+               <Header />
+              <div className="flex container mx-auto">
+                
+                <JobSidebar />
+                <div className="flex-1 p-2  ">
+                {children}
+                </div>
+                </div>
               <Toaster position="top-center" richColors />
             </TooltipProvider>
           </main>

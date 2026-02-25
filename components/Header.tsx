@@ -5,17 +5,27 @@ import { Input } from "@/components/ui/input";
 import Profile from "./Profile";
 import Notification from "@/components/Notification";
 import { SidebarTrigger } from "./ui/sidebar";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function Header() {
   return (
-    <header className="h-16 border-b bg-background flex items-center px-2 gap-[10px] justify-between sticky top-0 w-[100%] er z-[1]">
+    <header className=" border-b bg-background flex items-center px-2 gap-[10px] justify-between sticky top-0 w-[100%] er z-[1] py-2">
       <div className="flex items-center gap-2 grow ">
-        <SidebarTrigger />
-        {/* LEFT — Search */}
-        <div className="relative max-w-[300px] flex grow">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground grow" />
-          <Input placeholder="Search..." className="pl-9" />
-        </div>
+        {/* LOGO */}
+        <Link
+          href="/"
+          className="flex items-center gap-2 w-[30%] max-w-45"
+        >
+          <Image
+            src="/logo.png"
+            alt="logo"
+            width={500}
+            height={500}
+            className="w-full "
+            unoptimized
+          />
+        </Link>
       </div>
 
       {/* RIGHT */}
