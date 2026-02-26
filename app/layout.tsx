@@ -34,11 +34,6 @@ export default function RootLayout({
       <body
         className={` antialiased`}
       >
-
-      
-
-       
-
         <QueryProvider>
           <TooltipProvider>
             {!isAdminRoute && (

@@ -1,10 +1,8 @@
 "use client";
 
-import { Search, Settings } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import {  Settings } from "lucide-react";
 import Profile from "./Profile";
 import Notification from "@/components/Notification";
-import { SidebarTrigger } from "./ui/sidebar";
 import Link from "next/link";
 import Image from "next/image";
 

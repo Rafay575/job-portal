@@ -10,6 +10,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import TopNav from "@/components/TopNav";
 import { JobSidebar } from "@/components/job-sidebar";
+import AdminHeader from "@/components/AdminHeader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,24 +29,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <header>
-      
-      </header>
+      <header></header>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className="">
           <SidebarProvider>
-            <div className="flex-1 ">
-              <TooltipProvider>
-                <Header />
-                <div className="flex container mx-auto items-start ">
-                  <JobSidebar />
-                  <div className="flex-1 p-2  ">{children}</div>
-                </div>
-                <Toaster position="top-center" richColors />
-              </TooltipProvider>
-            </div>
+            <TooltipProvider>
+              <AppSidebar />
+              <div className="flex-1  ">
+                <AdminHeader />
+                {children}
+              </div>
+              <Toaster position="top-center" richColors />
+            </TooltipProvider>
           </SidebarProvider>
         </div>
       </body>
