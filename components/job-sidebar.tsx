@@ -30,7 +30,7 @@ export function JobSidebar({ className }: JobSidebarProps) {
   return (
     <aside
       className={cn(
-        'sticky top-0 h-screen w-full max-w-[300px] overflow-y-auto border-r border-border bg-background px-4 py-6 md:py-8 hidden lg:block',
+        'sticky top-0  w-full max-w-[300px] overflow-y-auto border-r border-border bg-background px-4 py-6 md:py-8 hidden lg:block',
         className
       )}
     >   
@@ -38,8 +38,6 @@ export function JobSidebar({ className }: JobSidebarProps) {
       <div className="space-y-4 pb-8">
         <div>
           <h2 className="text-lg font-semibold text-primary">Profile</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Candidate Name</p>
-          <p className="text-sm text-muted-foreground">London, United Kingdom</p>
           <Button
             variant="link"
             className="h-auto p-0 text-sm font-semibold text-primary underline"

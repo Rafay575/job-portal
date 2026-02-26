@@ -26,29 +26,27 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
- 
   return (
     <html lang="en">
+      <header>
+      
+      </header>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className="">
-          <TopNav/>
+          <TopNav />
           <SidebarProvider>
-
-          <main className="flex-1 ">
-            <TooltipProvider>
-               <Header />
-              <div className="flex container mx-auto">
-                
-                <JobSidebar />
-                <div className="flex-1 p-2  ">
-                {children}
+            <div className="flex-1 ">
+              <TooltipProvider>
+                <Header />
+                <div className="flex container mx-auto items-start ">
+                  <JobSidebar />
+                  <div className="flex-1 p-2  ">{children}</div>
                 </div>
-                </div>
-              <Toaster position="top-center" richColors />
-            </TooltipProvider>
-          </main>
+                <Toaster position="top-center" richColors />
+              </TooltipProvider>
+            </div>
           </SidebarProvider>
         </div>
       </body>

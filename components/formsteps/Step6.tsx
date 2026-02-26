@@ -5,8 +5,8 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Reference = {
   name: string;
@@ -100,65 +100,76 @@ export default function Step6({ next, back }: Props) {
 
   return (
     <>
-      
+      <div className="min-w-full grid gap-x-5 gap-y-4 grid-cols-1 md:grid-cols-2 mb-3">
+        <AnimatePresence>
+          {references.map((ref, index) => (
+            <motion.div
+              key={index}
+              layout
+              initial={{ opacity: 0, y: -40, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, y: -40, height: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="border p-4 rounded-lg space-y-3 overflow-hidden"
+            >
+              <Label>Reference {index + 1}</Label>
 
-      <div className="min-w-full space-y-5  grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2  mb-3 ">
-        {references.map((ref, index) => (
-          <div key={index} className="border p-4 rounded-lg space-y-3 mb-0">
-            <Label>Reference {index + 1}</Label>
+              <Input
+                value={ref.name}
+                placeholder="Reference Name"
+                onChange={(e) => updateReference(index, "name", e.target.value)}
+              />
 
-            <Input
-              value={ref.name}
-              placeholder="Reference Name"
-              onChange={(e) => updateReference(index, "name", e.target.value)}
-            />
+              <Input
+                value={ref.position}
+                placeholder="Position"
+                onChange={(e) =>
+                  updateReference(index, "position", e.target.value)
+                }
+              />
 
-            <Input
-              value={ref.position}
-              placeholder="Position"
-              onChange={(e) =>
-                updateReference(index, "position", e.target.value)
-              }
-            />
+              <Input
+                value={ref.relationship}
+                placeholder="Relationship"
+                onChange={(e) =>
+                  updateReference(index, "relationship", e.target.value)
+                }
+              />
 
-            <Input
-              value={ref.relationship}
-              placeholder="Relationship"
-              onChange={(e) =>
-                updateReference(index, "relationship", e.target.value)
-              }
-            />
+              <Input
+                value={ref.phone}
+                placeholder="Contact Number"
+                onChange={(e) =>
+                  updateReference(index, "phone", e.target.value)
+                }
+              />
 
-            <Input
-              value={ref.phone}
-              placeholder="Contact Number"
-              onChange={(e) => updateReference(index, "phone", e.target.value)}
-            />
+              <Input
+                value={ref.email}
+                placeholder="Email"
+                onChange={(e) =>
+                  updateReference(index, "email", e.target.value)
+                }
+              />
 
-            <Input
-              value={ref.email}
-              placeholder="Email"
-              onChange={(e) => updateReference(index, "email", e.target.value)}
-            />
-
-            {references.length > 2 && (
-              <Button
-                variant="destructive"
-                type="button"
-                onClick={() => removeReference(index)}
-              >
-                Remove
-              </Button>
-            )}
-          </div>
-        ))}
+              {references.length > 2 && (
+                <Button
+                  variant="destructive"
+                  type="button"
+                  onClick={() => removeReference(index)}
+                >
+                  Remove
+                </Button>
+              )}
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
       <Button type="button" onClick={addReference}>
         Add Another Reference
       </Button>
 
       <SignupNavButtons
-        
         onBack={back}
         onNext={() => {
           if (validateStep()) {

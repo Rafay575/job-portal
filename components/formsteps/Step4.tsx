@@ -61,8 +61,6 @@ export default function Step4({ next, back }: Props) {
 
   return (
     <>
-      
-
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
         {/* Notice */}
         <div className="md:col-span-2 rounded-lg border p-2 text-sm text-muted-foreground">
@@ -75,7 +73,10 @@ export default function Step4({ next, back }: Props) {
 
         <div>
           <Label>Absent days in last 3 years</Label>
-          <Input value={absentDays} onChange={(e) => setAbsentDays(e.target.value)} />
+          <Input
+            value={absentDays}
+            onChange={(e) => setAbsentDays(e.target.value)}
+          />
         </div>
 
         <div>
@@ -87,96 +88,109 @@ export default function Step4({ next, back }: Props) {
         </div>
 
         {/* Medication */}
-        <div>
-          <Label>Currently taking medication?</Label>
-          <RadioGroup value={onMedication} onValueChange={setOnMedication}>
-            <div className="flex gap-4 mt-2">
-              <RadioGroupItem value="yes" id="medYes" />
-              <Label htmlFor="medYes">Yes</Label>
-              <RadioGroupItem value="no" id="medNo" />
-              <Label htmlFor="medNo">No</Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        {onMedication === "yes" && (
+        <div className="flex flex-col items-stretch gap-4 ">
           <div>
+            <Label>Currently taking medication?</Label>
+            <RadioGroup value={onMedication} onValueChange={setOnMedication}>
+              <div className="flex gap-4 mt-2">
+                <RadioGroupItem value="yes" id="medYes" />
+                <Label htmlFor="medYes">Yes</Label>
+                <RadioGroupItem value="no" id="medNo" />
+                <Label htmlFor="medNo">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div
+            className={`transition-all duration-500 ease-in-out  ${onMedication === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+          >
             <Label>Medication Details</Label>
             <Textarea
               value={medicationDetails}
               onChange={(e) => setMedicationDetails(e.target.value)}
             />
           </div>
-        )}
-
-        {/* Treatment */}
-        <div>
-          <Label>Physical or mental health treatment?</Label>
-          <RadioGroup value={healthTreatment} onValueChange={setHealthTreatment}>
-            <div className="flex gap-4 mt-2">
-              <RadioGroupItem value="yes" id="treatYes" />
-              <Label htmlFor="treatYes">Yes</Label>
-              <RadioGroupItem value="no" id="treatNo" />
-              <Label htmlFor="treatNo">No</Label>
-            </div>
-          </RadioGroup>
         </div>
 
-        {healthTreatment === "yes" && (
+        {/* Treatment */}
+        <div className="flex flex-col items-stretch gap-4 ">
           <div>
+            <Label>Physical or mental health treatment?</Label>
+            <RadioGroup
+              value={healthTreatment}
+              onValueChange={setHealthTreatment}
+            >
+              <div className="flex gap-4 mt-2">
+                <RadioGroupItem value="yes" id="treatYes" />
+                <Label htmlFor="treatYes">Yes</Label>
+                <RadioGroupItem value="no" id="treatNo" />
+                <Label htmlFor="treatNo">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div
+            className={`transition-all duration-500 ease-in-out  ${healthTreatment === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+          >
             <Label>Treatment Details</Label>
             <Textarea
               value={treatmentDetails}
               onChange={(e) => setTreatmentDetails(e.target.value)}
             />
           </div>
-        )}
-
-        {/* Condition */}
-        <div>
-          <Label>Any injury / condition / allergy affecting duties?</Label>
-          <RadioGroup value={medicalCondition} onValueChange={setMedicalCondition}>
-            <div className="flex gap-4 mt-2">
-              <RadioGroupItem value="yes" id="condYes" />
-              <Label htmlFor="condYes">Yes</Label>
-              <RadioGroupItem value="no" id="condNo" />
-              <Label htmlFor="condNo">No</Label>
-            </div>
-          </RadioGroup>
         </div>
-
-        {medicalCondition === "yes" && (
+        {/* Condition */}
+        <div className="flex flex-col items-stretch gap-4 ">
           <div>
+            <Label>Any injury / condition / allergy affecting duties?</Label>
+            <RadioGroup
+              value={medicalCondition}
+              onValueChange={setMedicalCondition}
+            >
+              <div className="flex gap-4 mt-2">
+                <RadioGroupItem value="yes" id="condYes" />
+                <Label htmlFor="condYes">Yes</Label>
+                <RadioGroupItem value="no" id="condNo" />
+                <Label htmlFor="condNo">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div
+            className={`transition-all duration-500 ease-in-out  ${medicalCondition === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+          >
             <Label>Condition Details</Label>
             <Textarea
               value={conditionDetails}
               onChange={(e) => setConditionDetails(e.target.value)}
             />
           </div>
-        )}
-
-        {/* Disability */}
-        <div>
-          <Label>Do you consider yourself disabled?</Label>
-          <RadioGroup value={disabled} onValueChange={setDisabled}>
-            <div className="flex gap-4 mt-2">
-              <RadioGroupItem value="yes" id="disYes" />
-              <Label htmlFor="disYes">Yes</Label>
-              <RadioGroupItem value="no" id="disNo" />
-              <Label htmlFor="disNo">No</Label>
-            </div>
-          </RadioGroup>
         </div>
 
-        {disabled === "yes" && (
+        {/* Disability */}
+        <div className="flex flex-col items-stretch gap-4 ">
           <div>
+            <Label>Do you consider yourself disabled?</Label>
+            <RadioGroup value={disabled} onValueChange={setDisabled}>
+              <div className="flex gap-4 mt-2">
+                <RadioGroupItem value="yes" id="disYes" />
+                <Label htmlFor="disYes">Yes</Label>
+                <RadioGroupItem value="no" id="disNo" />
+                <Label htmlFor="disNo">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div
+            className={`transition-all duration-500 ease-in-out  ${disabled === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+          >
             <Label>Type of Impairment</Label>
             <Input
               value={impairmentType}
               onChange={(e) => setImpairmentType(e.target.value)}
             />
           </div>
-        )}
+        </div>
 
         {/* Night */}
         <div>
@@ -190,10 +204,8 @@ export default function Step4({ next, back }: Props) {
             </div>
           </RadioGroup>
         </div>
-
       </div>
       <SignupNavButtons
-        
         onBack={back}
         onNext={() => {
           if (validateStep()) {

@@ -42,8 +42,6 @@ type Props = {
   back: () => void;
 };
 export default function Step3({ next, back }: Props) {
-
-
   // Criminal & Compliance
   const [hasConvictions, setHasConvictions] = useState("no");
   const [convictionDetails, setConvictionDetails] = useState("");
@@ -75,57 +73,59 @@ export default function Step3({ next, back }: Props) {
 
   return (
     <>
-    
-
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
         {/* Convictions */}
-        <div>
-          <Label>Any convictions?</Label>
-          <RadioGroup value={hasConvictions} onValueChange={setHasConvictions}>
-            <div className="flex gap-4 mt-2">
-              <RadioGroupItem value="yes" id="convictYes" />
-              <Label htmlFor="convictYes">Yes</Label>
-              <RadioGroupItem value="no" id="convictNo" />
-              <Label htmlFor="convictNo">No</Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        {hasConvictions === "yes" && (
+        <div className="flex flex-col items-stretch gap-4 ">
           <div>
+            <Label>Any convictions?</Label>
+            <RadioGroup
+              value={hasConvictions}
+              onValueChange={setHasConvictions}
+            >
+              <div className="flex gap-4 mt-2">
+                <RadioGroupItem value="yes" id="convictYes" />
+                <Label htmlFor="convictYes">Yes</Label>
+                <RadioGroupItem value="no" id="convictNo" />
+                <Label htmlFor="convictNo">No</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div
+            className={`transition-all duration-500 ease-in-out  ${hasConvictions === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+          >
             <Label>Conviction Details *</Label>
             <Textarea
               value={convictionDetails}
               onChange={(e) => setConvictionDetails(e.target.value)}
             />
           </div>
-        )}
-
-        {/* Unspent */}
-        <div>
-          <Label>Any unspent convictions?</Label>
-          <RadioGroup
-            value={hasUnspentConvictions}
-            onValueChange={setHasUnspentConvictions}
-          >
-            <div className="flex gap-4 mt-2">
-              <RadioGroupItem value="yes" id="unspentYes" />
-              <Label htmlFor="unspentYes">Yes</Label>
-              <RadioGroupItem value="no" id="unspentNo" />
-              <Label htmlFor="unspentNo">No</Label>
-            </div>
-          </RadioGroup>
         </div>
-
-        {hasUnspentConvictions === "yes" && (
+        {/* Unspent */}
+        <div className="flex flex-col items-stretch gap-4 ">
           <div>
-            <Label>Unspent Conviction Details *</Label>
-            <Textarea
-              value={unspentDetails}
-              onChange={(e) => setUnspentDetails(e.target.value)}
-            />
+            <Label>Any unspent convictions?</Label>
+            <RadioGroup
+              value={hasUnspentConvictions}
+              onValueChange={setHasUnspentConvictions}
+            >
+              <div className="flex gap-4 mt-2">
+                <RadioGroupItem value="yes" id="unspentYes" />
+                <Label htmlFor="unspentYes">Yes</Label>
+                <RadioGroupItem value="no" id="unspentNo" />
+                <Label htmlFor="unspentNo">No</Label>
+              </div>
+            </RadioGroup>
           </div>
-        )}
+
+            <div className={`transition-all duration-500 ease-in-out  ${hasUnspentConvictions === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}>
+              <Label>Unspent Conviction Details *</Label>
+              <Textarea
+                value={unspentDetails}
+                onChange={(e) => setUnspentDetails(e.target.value)}
+              />
+            </div>
+        </div>
 
         {/* Fitness */}
         <div>
@@ -162,7 +162,10 @@ export default function Step3({ next, back }: Props) {
         {/* DBS */}
         <div>
           <Label>Previous CRB / DBS Number *</Label>
-          <Input value={dbsNumber} onChange={(e) => setDbsNumber(e.target.value)} />
+          <Input
+            value={dbsNumber}
+            onChange={(e) => setDbsNumber(e.target.value)}
+          />
         </div>
 
         <div>
@@ -173,10 +176,8 @@ export default function Step3({ next, back }: Props) {
             onChange={(e) => setDbsExpiry(e.target.value)}
           />
         </div>
-
       </div>
       <SignupNavButtons
-        
         onBack={back}
         onNext={() => {
           if (validateStep()) {

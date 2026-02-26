@@ -15,21 +15,14 @@ import Step9 from "@/components/formsteps/Step9";
 import Step10 from "@/components/formsteps/Step10";
 import Step11 from "@/components/formsteps/Step11";
 
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import Stepper from "./Stepper";
 import RoleSelector from "@/components/RoleSelector";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import Step1FullTime from "@/components/formsteps/Step1FullTime";
 
 export default function Page() {
-  const [step, setStep] = useState(1);
-  const [direction, setDirection] = useState(1); // 1 = next, -1 = back
-  const [open, setOpen] = useState(false);
-  const totalSteps = 11;
-const [roleType, setRoleType] = useState<"full" | "part" | "both">("full");
   const next = () => {
     if (step < totalSteps) {
       setDirection(1);
@@ -44,21 +37,50 @@ const [roleType, setRoleType] = useState<"full" | "part" | "both">("full");
     }
   };
 
-  const steps = [
-    <Step1 next={next} back={back} />,
-    <Step2 next={next} back={back} />,
-    <Step3 next={next} back={back} />,
-    <Step4 next={next} back={back} />,
-    <Step5 next={next} back={back} />,
-    <Step6 next={next} back={back} />,
-    <Step7 next={next} back={back} />,
-    <Step8 next={next} back={back} />,
-    <Step9 next={next} back={back} />,
-    <Step10 next={next} back={back} />,
-    <Step11 back={back} />,
+  const [roleType, setRoleType] = useState<"full-time" | "part-time" | "both">(
+    "full-time",
+  );
+  const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState(1); // 1 = next, -1 = back
+  const [open, setOpen] = useState(false);
+  const steps =
+    roleType === "full-time"
+      ? [<Step1FullTime next={next} back={back} key="step1" roleType={roleType} />]
+      : [
+          <Step1FullTime next={next} back={back} key="step1" roleType={roleType} />,
+          <Step2 next={next} back={back} key="step2" />,
+          <Step3 next={next} back={back} key="step3" />,
+          <Step4 next={next} back={back} key="step4" />,
+          <Step5 next={next} back={back} key="step5" />,
+          <Step6 next={next} back={back} key="step6" />,
+          <Step7 next={next} back={back} key="step7" />,
+          <Step8 next={next} back={back} key="step8" />,
+          <Step9 next={next} back={back} key="step9" />,
+          <Step10 next={next} back={back} key="step10" />,
+          <Step11 back={back} key="step11" />,
+        ];
+  const allStepLabels = [
+    "Basic",
+    "Question",
+    "Criminal",
+    "Health",
+    "Registration",
+    "References",
+    "Training",
+    "Employment",
+    "Experience",
+    "Statement",
+    "Declaration",
   ];
 
-  // Open modal on first render
+  const stepsforStepper =
+    roleType === "full-time" ? [allStepLabels[0]] : allStepLabels;
+
+  const totalSteps = steps.length;
+  useEffect(() => {
+    setStep(1);
+  }, [roleType]);
+
   useEffect(() => {
     setOpen(true);
   }, []);
@@ -66,36 +88,86 @@ const [roleType, setRoleType] = useState<"full" | "part" | "both">("full");
     <div className="p-4 overflow-hidden">
       {/* Shadcn Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[60%] w-[90%]">
-          <RoleSelector />
+        <DialogTitle>.</DialogTitle>
+        <DialogContent className="sm:max-w-[50%] w-[90%]">
+          <RoleSelector
+            value={roleType}
+            onChange={(role) => {
+              setRoleType(role);
+              setOpen(false); // optional: close modal after selection
+            }}
+          />
         </DialogContent>
       </Dialog>
 
-      <div className="flex flex-col items-center gap-4 mb-3">
-      <Label>Choose Role Type</Label>
+      <div className="flex flex-col items-center gap-4 mb-3 w-full">
+        <Label className="text-2xl text-primary">Choose Role Type</Label>
 
-      <RadioGroup
-        value={roleType}
-        onValueChange={(value) => setRoleType(value as "full" | "part" | "both")}
-        className="flex gap-4"
+        <div className="flex gap-4 w-full md:w-[60%] ">
+          {/* Full-time */}
+          <Button
+            type="button"
+            onClick={() => setRoleType("full-time")}
+            className={`flex-1 py-2 border-2 rounded transition-all cursor-pointer
+                ${
+                  roleType === "full-time"
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white text-primary border-primary hover:text-white"
+                }`}
+          >
+            Full-time
+          </Button>
+
+          {/* Part-time */}
+          <Button
+            type="button"
+            onClick={() => setRoleType("part-time")}
+            className={`flex-1 py-2 border-2 rounded transition-all cursor-pointer
+                ${
+                  roleType === "part-time"
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white text-primary border-primary hover:text-white"
+                }`}
+          >
+            Part-time
+          </Button>
+
+          {/* Both */}
+          <Button
+            type="button"
+            onClick={() => setRoleType("both")}
+            className={`flex-1 py-2 border-2 rounded transition-all cursor-pointer
+                ${
+                  roleType === "both"
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white text-primary border-primary hover:text-white"
+                }`}
+          >
+            Both
+          </Button>
+        </div>
+      </div>
+      <hr className="my-5 border-slate-200" />
+      <div
+        className={`
+          overflow-hidden
+          transition-all
+          duration-500
+          ease-in-out
+          ${
+            roleType === "full-time"
+              ? "max-h-0 opacity-0"
+              : "max-h-auto opacity-100"
+          }
+        `}
       >
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="full" id="full" />
-          <Label htmlFor="full">Full-time</Label>
-        </div>
+        <Stepper
+          currentStep={step}
+          setCurrentStep={setStep}
+          steps={stepsforStepper}
+        />
+      </div>
 
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="part" id="part" />
-          <Label htmlFor="part">Part-time</Label>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="both" id="both" />
-          <Label htmlFor="both">Both</Label>
-        </div>
-      </RadioGroup>
-    </div>
-      <Stepper currentStep={step} setCurrentStep={setStep} />
       <div className="relative w-full overflow-hidden">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div

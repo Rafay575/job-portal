@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Employment = {
   employerName: string;
@@ -57,7 +57,6 @@ type Props = {
   back: () => void;
 };
 export default function Step8({ next, back }: Props) {
-
   const [employmentHistory, setEmploymentHistory] = useState<Employment[]>([
     {
       employerName: "",
@@ -140,165 +139,174 @@ export default function Step8({ next, back }: Props) {
 
   return (
     <>
-      
-
       <div className="min-w-full space-y-5 p-1 flex flex-col">
-        {employmentHistory.map((job, index) => (
-          <div key={index} className="border p-4 rounded-lg " >
-            <Label className="mb-3">Employment {index + 1}</Label>
-
-            <div
+        <AnimatePresence>
+          {employmentHistory.map((job, index) => (
+            <motion.div
               key={index}
-              className=" grid gap-x-5 gap-y-3 grid-cols-1 md:grid-cols-2"
+              layout
+              initial={{ opacity: 0, y: -40, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, y: -40, height: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="border p-4 rounded-lg "
             >
-              <div>
-                <Input
-                  placeholder="Employer Name"
-                  value={job.employerName}
-                  onChange={(e) =>
-                    updateEmployment(index, "employerName", e.target.value)
-                  }
-                />
-              </div>
+              <Label className="mb-3">Employment {index + 1}</Label>
+              <div
+                key={index}
+                className=" grid gap-x-5 gap-y-3 grid-cols-1 md:grid-cols-2"
+              >
+                <div>
+                  <Input
+                    placeholder="Employer Name"
+                    value={job.employerName}
+                    onChange={(e) =>
+                      updateEmployment(index, "employerName", e.target.value)
+                    }
+                  />
+                </div>
 
-              <div>
-                <Input
-                  placeholder="Address"
-                  value={job.address}
-                  onChange={(e) =>
-                    updateEmployment(index, "address", e.target.value)
-                  }
-                />
-              </div>
+                <div>
+                  <Input
+                    placeholder="Address"
+                    value={job.address}
+                    onChange={(e) =>
+                      updateEmployment(index, "address", e.target.value)
+                    }
+                  />
+                </div>
 
-              <div>
-                <Input
-                  placeholder="Business Type"
-                  value={job.businessType}
-                  onChange={(e) =>
-                    updateEmployment(index, "businessType", e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <Input
-                  placeholder="Job Title"
-                  value={job.jobTitle}
-                  onChange={(e) =>
-                    updateEmployment(index, "jobTitle", e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <Input
-                  placeholder="Phone"
-                  value={job.phone}
-                  onChange={(e) =>
-                    updateEmployment(index, "phone", e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <Input
-                  type="date"
-                  value={job.startDate}
-                  onChange={(e) =>
-                    updateEmployment(index, "startDate", e.target.value)
-                  }
-                />
-              </div>
+                <div>
+                  <Input
+                    placeholder="Business Type"
+                    value={job.businessType}
+                    onChange={(e) =>
+                      updateEmployment(index, "businessType", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    placeholder="Job Title"
+                    value={job.jobTitle}
+                    onChange={(e) =>
+                      updateEmployment(index, "jobTitle", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    placeholder="Phone"
+                    value={job.phone}
+                    onChange={(e) =>
+                      updateEmployment(index, "phone", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    type="date"
+                    value={job.startDate}
+                    onChange={(e) =>
+                      updateEmployment(index, "startDate", e.target.value)
+                    }
+                  />
+                </div>
 
-              <div>
-                <Input
-                  type="date"
-                  value={job.endDate}
-                  onChange={(e) =>
-                    updateEmployment(index, "endDate", e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <Input
-                  placeholder="Grade"
-                  value={job.grade}
-                  onChange={(e) =>
-                    updateEmployment(index, "grade", e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <Input
-                  placeholder="Salary"
-                  value={job.salary}
-                  onChange={(e) =>
-                    updateEmployment(index, "salary", e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <Input
-                  placeholder="Specialty"
-                  value={job.specialty}
-                  onChange={(e) =>
-                    updateEmployment(index, "specialty", e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <Input
-                  placeholder="Job Type"
-                  value={job.jobType}
-                  onChange={(e) =>
-                    updateEmployment(index, "jobType", e.target.value)
-                  }
-                />
-              </div>
-              <div>
-                <Input
-                  placeholder="Reason For Leaving"
-                  value={job.reasonForLeaving}
-                  onChange={(e) =>
-                    updateEmployment(index, "reasonForLeaving", e.target.value)
-                  }
-                />
-              </div>
+                <div>
+                  <Input
+                    type="date"
+                    value={job.endDate}
+                    onChange={(e) =>
+                      updateEmployment(index, "endDate", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    placeholder="Grade"
+                    value={job.grade}
+                    onChange={(e) =>
+                      updateEmployment(index, "grade", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    placeholder="Salary"
+                    value={job.salary}
+                    onChange={(e) =>
+                      updateEmployment(index, "salary", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    placeholder="Specialty"
+                    value={job.specialty}
+                    onChange={(e) =>
+                      updateEmployment(index, "specialty", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    placeholder="Job Type"
+                    value={job.jobType}
+                    onChange={(e) =>
+                      updateEmployment(index, "jobType", e.target.value)
+                    }
+                  />
+                </div>
+                <div>
+                  <Input
+                    placeholder="Reason For Leaving"
+                    value={job.reasonForLeaving}
+                    onChange={(e) =>
+                      updateEmployment(
+                        index,
+                        "reasonForLeaving",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
 
-              <div>
-                <Textarea
-                  placeholder="Duties & Responsibilities"
-                  value={job.duties}
-                  onChange={(e) =>
-                    updateEmployment(index, "duties", e.target.value)
-                  }
-                />
+                <div>
+                  <Textarea
+                    placeholder="Duties & Responsibilities"
+                    value={job.duties}
+                    onChange={(e) =>
+                      updateEmployment(index, "duties", e.target.value)
+                    }
+                  />
+                </div>
               </div>
-
               {employmentHistory.length > 1 && (
                 <Button
                   variant="destructive"
                   type="button"
                   onClick={() => removeEmployment(index)}
+                  className="mt-4"
                 >
                   Remove
                 </Button>
               )}
-            </div>
-          </div>
-        ))}
-
-        <Button type="button" onClick={addEmployment}>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        <Button type="button" onClick={addEmployment} className="relative z-2">
           Add Another Employment
         </Button>
 
         <SignupNavButtons
-        
-        onBack={back}
-        onNext={() => {
-          if (validateStep()) {
-            next();
-          }
-        }}
-      />
+          onBack={back}
+          onNext={() => {
+            if (validateStep()) {
+              next();
+            }
+          }}
+        />
       </div>
     </>
   );

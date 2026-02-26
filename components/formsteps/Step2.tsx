@@ -42,8 +42,6 @@ type Props = {
   back: () => void;
 };
 export default function Step2({ next, back }: Props) {
-
-
   const [availabilityIssue, setAvailabilityIssue] = useState("no");
   const [workRestrictions, setWorkRestrictions] = useState("no");
   const [restrictionDetails, setRestrictionDetails] = useState("");
@@ -76,7 +74,6 @@ export default function Step2({ next, back }: Props) {
 
   return (
     <>
-      
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 ">
         {/* Availability Issue */}
         <div>
@@ -97,40 +94,6 @@ export default function Step2({ next, back }: Props) {
             </div>
           </RadioGroup>
         </div>
-
-        {/* Work Restrictions */}
-        <div>
-          <Label>Subject to work restrictions / covenants?</Label>
-          <RadioGroup
-            value={workRestrictions}
-            onValueChange={setWorkRestrictions}
-          >
-            <div className="flex gap-4 mt-1">
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="yes" id="restrictYes" />
-                <Label htmlFor="restrictYes">Yes</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="no" id="restrictNo" />
-                <Label htmlFor="restrictNo">No</Label>
-              </div>
-            </div>
-          </RadioGroup>
-        </div>
-
-        {workRestrictions === "yes" && (
-          <>
-            <div>
-              <Label>Restriction Details *</Label>
-              <Textarea
-                value={restrictionDetails}
-                onChange={(e) => setRestrictionDetails(e.target.value)}
-                placeholder="Provide details"
-              />
-            </div>
-          </>
-        )}
-
         {/* Overtime */}
         <div>
           <Label>Willing to work overtime & weekends?</Label>
@@ -170,6 +133,70 @@ export default function Step2({ next, back }: Props) {
           />
         </div>
 
+        {/* Applied Before */}
+        <div className="flex flex-col items-stretch gap-4 ">
+          <div>
+            <Label>Applied before?</Label>
+            <RadioGroup value={appliedBefore} onValueChange={setAppliedBefore}>
+              <div className="flex gap-4 mt-1">
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="yes" id="appliedYes" />
+                  <Label htmlFor="appliedYes">Yes</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="no" id="appliedNo" />
+                  <Label htmlFor="appliedNo">No</Label>
+                </div>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div
+            className={`transition-all duration-500 ease-in-out  ${appliedBefore === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+          >
+            <Label>Application Details *</Label>
+            <Textarea
+              value={appliedDetails}
+              onChange={(e) => setAppliedDetails(e.target.value)}
+              placeholder="Provide details"
+              className=""
+            />
+          </div>
+        </div>
+
+        {/* Work Restrictions */}
+        <div className="flex flex-col items-stretch gap-4 ">
+          <div>
+            <Label>Subject to work restrictions / covenants?</Label>
+            <RadioGroup
+              value={workRestrictions}
+              onValueChange={setWorkRestrictions}
+            >
+              <div className="flex gap-4 mt-1">
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="yes" id="restrictYes" />
+                  <Label htmlFor="restrictYes">Yes</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="no" id="restrictNo" />
+                  <Label htmlFor="restrictNo">No</Label>
+                </div>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div
+            className={`transition-all duration-500 ease-in-out  ${workRestrictions === "yes" ? "max-h-auto!  opacity-100 " : "max-h-0! overflow-hidden!  opacity-0"}`}
+          >
+            <Label>Restriction Details *</Label>
+            <Textarea
+              value={restrictionDetails}
+              onChange={(e) => setRestrictionDetails(e.target.value)}
+              placeholder="Provide details"
+            />
+          </div>
+        </div>
+
         {/* Worked Before */}
         <div>
           <Label>Have you worked for us before?</Label>
@@ -186,39 +213,9 @@ export default function Step2({ next, back }: Props) {
             </div>
           </RadioGroup>
         </div>
-
-        {/* Applied Before */}
-        <div>
-          <Label>Applied before?</Label>
-          <RadioGroup value={appliedBefore} onValueChange={setAppliedBefore}>
-            <div className="flex gap-4 mt-1">
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="yes" id="appliedYes" />
-                <Label htmlFor="appliedYes">Yes</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="no" id="appliedNo" />
-                <Label htmlFor="appliedNo">No</Label>
-              </div>
-            </div>
-          </RadioGroup>
-        </div>
-
-        {appliedBefore === "yes" && (
-          <div>
-            <Label>Application Details *</Label>
-            <Textarea
-              value={appliedDetails}
-              onChange={(e) => setAppliedDetails(e.target.value)}
-              placeholder="Provide details"
-            />
-          </div>
-        )}
-
         {/* Navigation Buttons */}
       </div>
-        <SignupNavButtons
-        
+      <SignupNavButtons
         onBack={back}
         onNext={() => {
           if (validateStep()) {

@@ -5,8 +5,8 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Training = {
   title: string;
@@ -89,54 +89,61 @@ export default function Step7({ next, back }: Props) {
 
   return (
     <>
-      
-
       <div className="min-w-full space-y-5  grid gap-x-5 gap-y-3 grid-cols-1 md:grid-cols-2  mb-3 ">
-        {trainings.map((t, index) => (
-          <div key={index} className="border p-4 rounded-lg space-y-3 mb-0">
-            <Label>Training / Course {index + 1}</Label>
+        <AnimatePresence>
+          {trainings.map((t, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: -40, height: 0 }}
+              animate={{ opacity: 1, x: 0, height: "auto" }}
+              exit={{ opacity: 0, x: -40, height: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="border p-4 rounded-lg space-y-3 mb-0"
+            >
+              <Label>Training / Course {index + 1}</Label>
 
-            <Input
-              value={t.title}
-              placeholder="Course Title"
-              onChange={(e) => updateTraining(index, "title", e.target.value)}
-            />
+              <Input
+                value={t.title}
+                placeholder="Course Title"
+                onChange={(e) => updateTraining(index, "title", e.target.value)}
+              />
 
-            <Input
-              value={t.provider}
-              placeholder="Training Provider"
-              onChange={(e) =>
-                updateTraining(index, "provider", e.target.value)
-              }
-            />
+              <Input
+                value={t.provider}
+                placeholder="Training Provider"
+                onChange={(e) =>
+                  updateTraining(index, "provider", e.target.value)
+                }
+              />
 
-            <Input
-              value={t.duration}
-              placeholder="Duration"
-              onChange={(e) =>
-                updateTraining(index, "duration", e.target.value)
-              }
-            />
+              <Input
+                value={t.duration}
+                placeholder="Duration"
+                onChange={(e) =>
+                  updateTraining(index, "duration", e.target.value)
+                }
+              />
 
-            <Input
-              type="date"
-              value={t.completionDate}
-              onChange={(e) =>
-                updateTraining(index, "completionDate", e.target.value)
-              }
-            />
+              <Input
+                type="date"
+                value={t.completionDate}
+                onChange={(e) =>
+                  updateTraining(index, "completionDate", e.target.value)
+                }
+              />
 
-            {trainings.length > 1 && (
-              <Button
-                variant="destructive"
-                type="button"
-                onClick={() => removeTraining(index)}
-              >
-                Remove
-              </Button>
-            )}
-          </div>
-        ))}
+              {trainings.length > 1 && (
+                <Button
+                  variant="destructive"
+                  type="button"
+                  onClick={() => removeTraining(index)}
+                >
+                  Remove
+                </Button>
+              )}
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
       <Button type="button" onClick={addTraining}>
@@ -144,7 +151,6 @@ export default function Step7({ next, back }: Props) {
       </Button>
 
       <SignupNavButtons
-        
         onBack={back}
         onNext={() => {
           if (validateStep()) {

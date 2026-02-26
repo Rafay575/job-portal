@@ -46,8 +46,9 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 type Props = {
   next: () => void;
   back: () => void;
+  roleType: string;
 };
-export default function Step1({ next, back }: Props) {
+export default function Step1FullTime({ next, back, roleType }: Props) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -60,7 +61,7 @@ export default function Step1({ next, back }: Props) {
   const [nameChanged, setNameChanged] = useState("no");
   const [previousName, setPreviousName] = useState("");
   const [changedTo, setChangedTo] = useState("");
-
+  const [cvFile, setCvFile] = useState<File | null>(null);
   // Validation function
   const validateStep = (): boolean => {
     if (
@@ -90,6 +91,30 @@ export default function Step1({ next, back }: Props) {
     if (nameChanged === "yes") {
       if (!previousName || !changedTo) {
         toast.error("Please provide previous name details");
+        return false;
+      }
+    }
+
+    // ✅ CV validation only for full-time or both
+    if (roleType === "full-time" || roleType === "both") {
+      if (!cvFile) {
+        toast.error("Please upload your CV");
+        return false;
+      }
+
+      const allowedTypes = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ];
+
+      if (!allowedTypes.includes(cvFile.type)) {
+        toast.error("CV must be PDF, DOC, or DOCX");
+        return false;
+      }
+
+      if (cvFile.size > 5 * 1024 * 1024) {
+        toast.error("CV must be less than 5MB");
         return false;
       }
     }
@@ -220,6 +245,31 @@ export default function Step1({ next, back }: Props) {
             value={changedTo}
             onChange={(e) => setChangedTo(e.target.value)}
           />
+        </div>
+
+        <div
+          className={`${roleType === "full-time" || roleType === "both" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"} transition-all duration-500 ease-in-out  md:col-span-2`}
+        >
+          <Label>Upload CV *</Label>
+
+          <div className="mt-2 relative border! border-dashed shadow-0 outline-0 border-primary rounded-xl p-6 text-center  transition">
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx"
+              onChange={(e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                  setCvFile(e.target.files[0]);
+                }
+              }}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+            />
+
+            <p className="text-sm text-muted-foreground">
+              {cvFile
+                ? `Selected: ${cvFile.name}`
+                : "Click or drag your CV here (PDF, DOC, DOCX – Max 5MB)"}
+            </p>
+          </div>
         </div>
       </div>
       <SignupNavButtons

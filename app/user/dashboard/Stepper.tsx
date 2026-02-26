@@ -1,28 +1,14 @@
-"use client";
-
 import clsx from "clsx";
 import { Check } from "lucide-react";
 
-const steps = [
-  "Basic",
-  "Question",
-  "Criminal",
-  "Health",
-  "Registration",
-  "References",
-  "Training",
-  "Employment",
-  "Experience",
-  "Statement",
-  "Declaration",
-];
-
 interface StepperProps {
+  steps: string[]; // <-- dynamic steps
   currentStep: number;
   setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function Stepper({
+  steps,
   currentStep,
   setCurrentStep,
 }: StepperProps) {

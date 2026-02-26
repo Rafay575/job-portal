@@ -10,7 +10,7 @@ import Image from "next/image";
 
 export default function Header() {
   return (
-    <header className=" border-b bg-background flex items-center px-2 gap-[10px] justify-between sticky top-0 w-[100%] er z-[1] py-2">
+    <header className=" border-b border-slate-200 bg-background flex items-center px-2 gap-[10px] justify-between sticky top-0 w-[100%] er z-[1] py-2">
       <div className="flex items-center gap-2 grow ">
         {/* LOGO */}
         <Link
