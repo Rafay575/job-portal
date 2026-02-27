@@ -1,26 +1,12 @@
 "use client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
+import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Eye, Pencil, Trash } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 
 const data = [
   {
-    id:1,
+    id: 1,
     personalInformation: {
       fullName: "Daniel Ahmed",
       email: "daniel.ahmed@example.com",
@@ -29,7 +15,7 @@ const data = [
       postcode: "B15 2TT",
       nationality: "British",
       immigrationStatus: "British Citizen",
-      immigrationExpiryDate: null,
+      immigrationExpiryDate: "2027-06-15",
       needsUkWorkPermit: false,
       changedNameBefore: true,
       previousName: "Daniel Khan",
@@ -172,7 +158,7 @@ const data = [
     },
   },
   {
-    id:2,
+    id: 2,
     personalInformation: {
       fullName: "John Gilbert",
       email: "daniel.ahmed@example.com",
@@ -324,7 +310,7 @@ const data = [
     },
   },
   {
-    id:3,
+    id: 3,
     personalInformation: {
       fullName: "Damon Salvetor",
       email: "daniel.ahmed@example.com",
@@ -477,94 +463,453 @@ const data = [
   },
 ];
 
-export default function UsersTable() {
+export default function UserDetailPage() {
+  const params = useParams();
+  const id = Number(params.id);
+  const user = data.find((u) => u.id === id);
+
+  if (!user) {
+    return <div className="p-6 text-red-500 font-semibold">User not found</div>;
+  }
+
+  const {
+    personalInformation,
+    preQualifying,
+    criminalCompliance,
+    healthInformation,
+    professionalRegistration,
+    references,
+    trainingCourses,
+    employmentHistory,
+    mandatoryExperience,
+    supportingStatement,
+    declaration,
+  } = user;
+
   return (
-    <Card className="border-0 shadow-none">
-      <CardHeader>
-        <CardTitle className="text-primary text-3xl">Compliance</CardTitle>
-      </CardHeader>
+    <div className="p-6 space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-4xl font-bold text-primary">
+          {personalInformation.fullName}
+        </h1>
+        <p className="text-gray-500">{personalInformation.email}</p>
+      </div>
 
-      <CardContent>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-slate-200">
-                <TableHead className="text-gray-600">Name</TableHead>
-                <TableHead className="text-gray-600">Email</TableHead>
-                <TableHead className="text-gray-600">Phone</TableHead>
-                <TableHead className="text-gray-600">Nationality</TableHead>
-                <TableHead className="text-gray-600">Created At</TableHead>
-                <TableHead className="text-gray-600 text-center">Action</TableHead>
-              </TableRow>
-            </TableHeader>
+      {/* SECTION 1 - Personal Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-primary">Personal Information</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3  gap-4 text-sm">
+          <Info label="Full Name" value={personalInformation.fullName} />
+          <Info label="Email" value={personalInformation.email} />
+          <Info label="Phone" value={personalInformation.phoneNumber} />
+          <Info label="Address" value={personalInformation.currentAddress} />
+          <Info label="Postcode" value={personalInformation.postcode} />
+          <Info label="Nationality" value={personalInformation.nationality} />
+          <Info
+            label="Immigration Status"
+            value={personalInformation.immigrationStatus}
+          />
+          <Info
+            label="Immigration Expiry Date"
+            value={personalInformation.immigrationExpiryDate}
+          />
+          <Info
+            label="Needs UK Permit"
+            value={personalInformation.needsUkWorkPermit ? "Yes" : "No"}
+          />
+          <Info
+            label="Changed Name Before"
+            value={personalInformation.changedNameBefore ? "Yes" : "No"}
+          />
+          {personalInformation.changedNameBefore && (
+            <>
+              <Info
+                label="Previous Name"
+                value={personalInformation.previousName}
+              />
+              <Info label="Changed to" value={personalInformation.changedTo} />
+            </>
+          )}
+        </CardContent>
+      </Card>
+      {/* SECTION 2 - Pre Qualifying */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-primary">Pre-Qualifying</CardTitle>
+        </CardHeader>
+        <CardContent className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm">
+          <Info
+            label="Limited Availability Activity"
+            value={preQualifying.limitedAvailabilityActivity ? "Yes" : "No"}
+          />
+          <Info
+            label="Work Restrictions"
+            value={preQualifying.workRestrictions ? "Yes" : "No"}
+          />
+          {preQualifying.workRestrictions && (
+            <Info
+              label="Restriction Details"
+              value={preQualifying.restrictionDetails}
+            />
+          )}
 
-            <TableBody>
-              {data.map((user, index) => (
-                <TableRow
-                  key={index}
-                  className="border-slate-200 hover:bg-gray-50 transition"
-                >
-                  <TableCell className="font-medium text-gray-800 ">
-                    {user.personalInformation.fullName}
-                  </TableCell>
-                  <TableCell className="text-gray-600">
-                    {user.personalInformation.email}
-                  </TableCell>
-                  <TableCell className="text-gray-600">
-                    {user.personalInformation.phoneNumber}
-                  </TableCell>
-                  <TableCell className="text-gray-600">
-                    {user.personalInformation.nationality}{" "}
-                  </TableCell>
-                  <TableCell className="text-gray-500">
-                    {user.declaration.date}
-                  </TableCell>
-                  {/* ✅ Actions Column */}
-                  <TableCell className="text-center">
-                    <ActionsMenu id={user.id} />
-                  </TableCell>
-                </TableRow>
+          <Info
+            label="Willing Overtime"
+            value={preQualifying.willingOvertime ? "Yes" : "No"}
+          />
+          <Info
+            label="Unavailable Hours"
+            value={preQualifying.unavailableHours}
+          />
+          <Info label="Notice Period" value={preQualifying.noticePeriod} />
+          <Info
+            label="Work Restrictions"
+            value={preQualifying.workRestrictions ? "Yes" : "No"}
+          />
+          <Info
+            label="Applied Before"
+            value={preQualifying.appliedBefore ? "Yes" : "No"}
+          />
+          <Info label="Applied Details" value={preQualifying.appliedDetails} />
+        </CardContent>
+      </Card>
+
+      {/* SECTION 3 - Criminal Compliance */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-primary">Criminal & Compliance</CardTitle>
+        </CardHeader>
+        <CardContent className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm">
+          <Info
+            label="Any Convictions"
+            value={criminalCompliance.anyConvictions ? "Yes" : "No"}
+          />
+          {criminalCompliance.anyConvictions && (
+            <Info
+              label="Conviction Details"
+              value={criminalCompliance.convictionDetails}
+            />
+          )}
+          <Info
+            label="Any Unspent Convictions"
+            value={criminalCompliance.anyUnspentConvictions ? "Yes" : "No"}
+          />
+          {criminalCompliance.anyUnspentConvictions && (
+            <Info
+              label="Unspent Details"
+              value={criminalCompliance.unspentDetails}
+            />
+          )}
+          <Info
+            label="Fitness To Practice Investigation"
+            value={
+              criminalCompliance.fitnessToPracticeInvestigation ? "Yes" : "No"
+            }
+          />
+          <Info
+            label="Removed From Register"
+            value={criminalCompliance.removedFromRegister ? "Yes" : "No"}
+          />
+
+          <Info label="DBS Expiry" value={criminalCompliance.dbsExpiryDate} />
+          <Info label="DBS Number" value={criminalCompliance.dbsNumber} />
+        </CardContent>
+      </Card>
+
+      {/* SECTION 4 - Health Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-primary">Health Information</CardTitle>
+        </CardHeader>
+
+        <CardContent className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm">
+          <Info
+            label="Absent Days (Last 3 Years)"
+            value={healthInformation.absentDaysLast3Years}
+          />
+
+          <Info
+            label="Absence Periods (Last 3 Years)"
+            value={healthInformation.absencePeriodsLast3Years}
+          />
+
+          <Info
+            label="Currently Taking Medication"
+            value={healthInformation.takingMedication ? "Yes" : "No"}
+          />
+
+          {healthInformation.takingMedication && (
+            <Info
+              label="Medication Details"
+              value={healthInformation.medicationDetails}
+            />
+          )}
+
+          <Info
+            label="Physical or Mental Health Treatment"
+            value={healthInformation.healthTreatment ? "Yes" : "No"}
+          />
+
+          {healthInformation.healthTreatment && (
+            <Info
+              label="Treatment Details"
+              value={healthInformation.treatmentDetails}
+            />
+          )}
+
+          <Info
+            label="Medical Condition Affecting Duties"
+            value={
+              healthInformation.medicalConditionAffectingDuties ? "Yes" : "No"
+            }
+          />
+
+          {healthInformation.medicalConditionAffectingDuties && (
+            <Info
+              label="Medical Condition Details"
+              value={healthInformation.medicalConditionDetails}
+            />
+          )}
+
+          <Info
+            label="Consider Yourself Disabled"
+            value={healthInformation.considerDisabled ? "Yes" : "No"}
+          />
+
+          {healthInformation.considerDisabled && (
+            <Info
+              label="Type of Impairment"
+              value={healthInformation.impairmentType}
+            />
+          )}
+
+          <Info
+            label="Fit for Night Shift (18:00–07:00)"
+            value={healthInformation.fitForNightShift ? "Yes" : "No"}
+          />
+        </CardContent>
+      </Card>
+
+      {/* SECTION 5 - Professional Registration */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-primary">
+            Professional Registration
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm">
+          <Info
+            label="Body"
+            value={professionalRegistration.professionalBodyName}
+          />
+          <Info
+            label="Type"
+            value={professionalRegistration.registrationType}
+          />
+          <Info label="PIN" value={professionalRegistration.pinNumber} />
+          <Info label="Expiry" value={professionalRegistration.expiryDate} />
+        </CardContent>
+      </Card>
+
+      {/* SECTION 6 - References */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-primary">References</CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          {references.map((ref, index) => (
+            <div
+              key={index}
+              className="border rounded-lg p-4 grid md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm"
+            >
+              <Info label="Reference Name" value={ref.referenceName} />
+
+              <Info label="Position" value={ref.position} />
+
+              <Info label="Relationship" value={ref.relationship} />
+
+              <Info label="Contact Number" value={ref.contactNumber} />
+
+              <Info label="Email Address" value={ref.email} />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* SECTION 7 - Training & Courses */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-primary">Training & Courses</CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          {trainingCourses.map((course, index) => (
+            <div
+              key={index}
+              className="border rounded-lg p-4 grid md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm"
+            >
+              <Info label="Course Title" value={course.courseTitle} />
+
+              <Info label="Training Provider" value={course.trainingProvider} />
+
+              <Info label="Duration" value={course.duration} />
+
+              <Info label="Completion Date" value={course.completionDate} />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* SECTION 8 - Employment History */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-primary">Employment History</CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-8">
+          {employmentHistory.map((job, index) => (
+            <div key={index} className="border rounded-lg p-6 space-y-6">
+              {/* Optional Heading */}
+              <h3 className="text-lg font-semibold text-primary">
+                Employment {index + 1}
+              </h3>
+
+              {/* Grid Information */}
+              <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm">
+                <Info label="Employer Name" value={job.employerName} />
+
+                <Info label="Address" value={job.address} />
+
+                <Info label="Type of Business" value={job.typeOfBusiness} />
+
+                <Info label="Job Title" value={job.jobTitle} />
+
+                <Info label="Phone Number" value={job.phone} />
+
+                <Info label="Start Date" value={job.startDate} />
+
+                <Info label="End Date" value={job.endDate} />
+
+                <Info label="Grade" value={job.grade} />
+
+                <Info label="Salary" value={job.salary} />
+
+                <Info label="Specialty" value={job.specialty} />
+
+                <Info label="Job Type" value={job.jobType} />
+
+                <Info label="Reason for Leaving" value={job.reasonForLeaving} />
+                <div className="col-span-2">
+                  <Info
+                    label="Duties & Responsibilities"
+                    value={job.dutiesResponsibilities}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* SECTION 9 - Mandatory Experience */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-primary">Mandatory Experience</CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-6 text-sm">
+          {/* Experience Areas */}
+          <div>
+            <p className="font-semibold text-xs mb-2">Experience Areas</p>
+
+            <div>
+              {mandatoryExperience.experienceAreas.map((area, index) => (
+                <Badge key={index} className="mr-2 mb-2 bg-primary text-white">
+                  {area}
+                </Badge>
               ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+            </div>
+          </div>
+
+          {/* Question & Answer Grid */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <p className="font-semibold text-xs">
+                Definition of Vulnerable People
+              </p>
+              <p className="text-gray-500  font-medium mt-1">
+                {mandatoryExperience.definitionOfVulnerablePeople}
+              </p>
+            </div>
+
+            <div>
+              <p className="font-semibold text-xs">
+                Measures to Ensure Proper Care
+              </p>
+              <p className="text-gray-500  font-medium mt-1">
+                {mandatoryExperience.measuresToEnsureCare}
+              </p>
+            </div>
+
+            <div>
+              <p className="font-semibold text-xs">
+                Helping a Non-Verbal Client Make Choices
+              </p>
+              <p className="text-gray-500  font-medium mt-1">
+                {mandatoryExperience.helpNonVerbalClient}
+              </p>
+            </div>
+
+            <div>
+              <p className="font-semibold text-xs">
+                Action if Witnessing Abuse
+              </p>
+              <p className="text-gray-500  font-medium mt-1">
+                {mandatoryExperience.actionIfWitnessAbuse}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* SECTION 10 - Supporting Statement */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-primary">Supporting Statement</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm">{supportingStatement.statement}</p>
+        </CardContent>
+      </Card>
+
+      {/* SECTION 11 - Declaration */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-primary">Declaration</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm space-y-4 grid grid-cols-2 md:grid-cols-3 ">
+          <Info
+            label="Confirmed"
+            value={declaration.confirmed ? "Yes" : "No"}
+          />
+          <Info label="Signature" value={declaration.signature} />
+          <Info label="Date" value={declaration.date} />
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
-const ActionsMenu = ({ id }: { id: number }) => {
-  const router = useRouter();
-  const handleView = () => {
-    router.push(`/admin/compliance/${id}`);
-  };
-
+/* Small reusable component */
+function Info({ label, value }: { label: string; value: any }) {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <MoreHorizontal className="w-4 h-4" />
-        </Button>
-      </DropdownMenuTrigger>
-
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={handleView}>
-          <Eye className="w-4 h-4 mr-2" />
-          View
-        </DropdownMenuItem>
-
-        <DropdownMenuItem >
-          <Pencil className="w-4 h-4 mr-2" />
-          Edit
-        </DropdownMenuItem>
-
-        <DropdownMenuItem
-          className="text-red-600"
-        >
-          <Trash className="w-4 h-4 mr-2" />
-          Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div>
+      <p className="font-semibold text-gray-700  text-xs">{label}:</p>
+      <p className="text-gray-500 font-medium">{value || "-"}</p>
+    </div>
   );
-};
+}
