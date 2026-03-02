@@ -12,51 +12,42 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import Link from "next/link";
 import { IoIosArrowForward } from "react-icons/io";
 import { IoIosArrowBack } from "react-icons/io";
 
-type Props = {
-  step: number;
-  validateStep: () => boolean; // pass validation function
+type NavProps = {
+  onNext: () => void;
+  onBack: () => void;
+  disableBack?: boolean;
 };
 
-function SignupNavButtons({ step, validateStep }: Props) {
-  const router = useRouter();
-
-  const handleNext = () => {
-    if (validateStep()) {
-      router.push(`/auth/signup/step${step + 1}`);
-    }
-  };
-
-  const handleBack = () => {
-    router.push(`/auth/signup/step${step - 1}`);
-  };
-
+function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   return (
-    <div className="flex gap-2 mt-3 justify-between ">
+    <div className="flex gap-2 mt-3 justify-between">
       <Button
         type="button"
         variant="outline"
-        onClick={handleBack}
-        disabled={step === 1}
+        onClick={onBack}
+        disabled={disableBack}
       >
-        <IoIosArrowBack />Back
+        <IoIosArrowBack />
+        Back
       </Button>
 
-      <Button type="button" onClick={handleNext}>
-        Next<IoIosArrowForward />
+      <Button type="button" onClick={onNext}>
+        Next
+        <IoIosArrowForward />
       </Button>
     </div>
   );
 }
 
-export default function Step1() {
-  const [step, setStep] = useState(1);
-
+type Props = {
+  next: () => void;
+  back: () => void;
+};
+export default function Step1({ next, back }: Props) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -212,32 +203,34 @@ export default function Step1() {
           </RadioGroup>
         </div>
 
-        {nameChanged === "yes" && (
-          <>
-            <div>
-              <Label>Previous Name *</Label>
-              <Input
-                value={previousName}
-                onChange={(e) => setPreviousName(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Changed To *</Label>
-              <Input
-                value={changedTo}
-                onChange={(e) => setChangedTo(e.target.value)}
-              />
-            </div>
-          </>
-        )}
+        <div
+          className={`transition-all duration-500 ease-in-out  ${nameChanged === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+        >
+          <Label>Previous Name *</Label>
+          <Input
+            value={previousName}
+            onChange={(e) => setPreviousName(e.target.value)}
+          />
+        </div>
+        <div
+          className={`transition-all duration-500 ease-in-out  ${nameChanged === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+        >
+          <Label>Changed To *</Label>
+          <Input
+            value={changedTo}
+            onChange={(e) => setChangedTo(e.target.value)}
+          />
+        </div>
       </div>
-      <SignupNavButtons step={step} validateStep={validateStep} />
-      <p className="text-center text-sm text-gray-600 mt-6">
-        Already have an account?{" "}
-        <Link href="/auth/login" className="text-[var(--primary)] font-[400]">
-          Login
-        </Link>
-      </p>
+      <SignupNavButtons
+        disableBack
+        onBack={back}
+        onNext={() => {
+          if (validateStep()) {
+            next();
+          }
+        }}
+      />
     </>
   );
 }

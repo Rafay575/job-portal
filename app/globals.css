@@ -1,22 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
 @import "tailwindcss";
-/* @import "tw-animate-css"; */
 @import "shadcn/tailwind.css";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
+
 :root {
-<<<<<<< HEAD
-  --primary: #8a07db;
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-=======
   --primary:rgb(92, 73, 216);
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: #585858;
->>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -26,14 +21,10 @@
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(40.54% 0.00005 271.152);
-<<<<<<< HEAD
-  --accent: #f9f1ff;
-=======
   --accent: rgb(247, 246, 255);
->>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
   --accent-foreground: oklch(16.842% 0.00002 271.152);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
+  --border: oklch(94.007% 0.00011 271.152);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
@@ -41,7 +32,7 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
+  --sidebar: white;
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -108,8 +99,6 @@ html{
 input{
   @apply focus-visible:outline-0 
 } 
-<<<<<<< HEAD
-=======
 .container{
   @apply max-w-[95%] md:max-w-[87%]
 }
@@ -132,7 +121,6 @@ p{
 .mar{
   @apply my-[50px] lg:my-[80px]
 }
->>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
 
 @keyframes floatUp {
   0% {
@@ -156,11 +144,10 @@ p{
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
+  
   body {
     @apply bg-background text-foreground;
+     font-family: "Poppins", sans-serif;
   }
 }
 
@@ -173,14 +160,7 @@ button:focus-visible {
   box-shadow: none !important;
   border: none !important;
 }
-
-.dark {
-  --sidebar: hsl(240 5.9% 10%);
-  --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsl(224.3 76.3% 48%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(240 3.7% 15.9%);
-  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-border: hsl(240 3.7% 15.9%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+.border{
+  @apply border-border
 }
+

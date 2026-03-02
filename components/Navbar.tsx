@@ -11,25 +11,24 @@ const navLinks = [
   { name: "Contact", href: "/contact" },
   { name: "Jobs", href: "/jobs" },
   { name: "Blog", href: "/blogs" },
+  { name: "Dashboard", href: "/user/dashboard" },
 ];
 
 export default function Navbar() {
   return (
-    <header className="border-b sticky top-0 left-0 bg-white z-50">
+    <header className="border-b border-slate-200 sticky top-0 left-0 bg-white z-50">
       <div className=" px-4 py-2 flex items-center justify-between relative">
         {/* LOGO */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 w-[30%] max-w-45"
-        >
-          <Image
-            src="/logo.png"
-            alt="logo"
-            width={500}
-            height={500}
-            className="w-full "
-            unoptimized
-          />
+        <Link href="/" className="flex items-center gap-2 w-[30%] max-w-45">
+          <div className="relative w-full aspect-[500/169]">
+            <Image
+              src="/logo.png"
+              alt="logo"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
         </Link>
 
         {/* DESKTOP NAV */}
@@ -60,7 +59,6 @@ export default function Navbar() {
             </Link>
           </div>
           <Link href={"/auth/login"}>
-          
             <Button
               variant="outline"
               className="border-primary text-primary rounded-4xl"

@@ -8,17 +8,38 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { IoIosArrowBack } from "react-icons/io";
 
-export default function Step11() {
+type NavProps = {
+  onBack: () => void;
+  disableBack?: boolean;
+};
+
+function SignupNavButtons({ onBack, disableBack }: NavProps) {
+  return (
+    <div className="flex gap-2  justify-between">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onBack}
+        disabled={disableBack}
+      >
+        <IoIosArrowBack />
+        Back
+      </Button>
+    </div>
+  );
+}
+
+type Props = {
+  back: () => void;
+};
+export default function Step1({ back }: Props) {
   const router = useRouter();
-  const step = 11;
 
   const [declarationConfirmed, setDeclarationConfirmed] = useState(false);
   const [digitalSignature, setDigitalSignature] = useState("");
   const [declarationDate, setDeclarationDate] = useState("");
 
-  const handleBack = () => {
-    router.push(`/auth/signup/step${step - 1}`);
-  };
+ 
 
   const validateStep = (): boolean => {
     if (!declarationConfirmed) {
@@ -57,8 +78,6 @@ export default function Step11() {
 
   return (
     <>
-      
-
       <form
         className="min-w-full space-y-3 p-1 flex flex-col"
         onSubmit={handleSubmit}
@@ -92,14 +111,13 @@ export default function Step11() {
           className="py-3"
         />
 
-        <div className="flex gap-2 mt-5">
-          <Button variant="outline" type="button" onClick={handleBack}>
-            <IoIosArrowBack />Back
-          </Button>
+        <div className="flex items-center justify-between gap-2 mt-5 ">
+          <SignupNavButtons
+            
+            onBack={back}
+          />
 
-          <Button type="submit">
-            Submit
-          </Button>
+          <Button type="submit">Submit</Button>
         </div>
       </form>
     </>

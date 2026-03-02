@@ -17,17 +17,12 @@ export default function Profile() {
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="p-0 rounded-full border focus-visible:ring-0 focus-visible:ring-offset-0" >
                         <div className="relative inline-block">
-<<<<<<< HEAD
-                            <Avatar className="w-[30px] md:w-[35px] h-[35px] md:h-[35px] cursor-pointer">
-=======
                             <Avatar className="w-[35px] h-[35px] cursor-pointer">
->>>>>>> a6b757683708097f235b88f5d0c12b629a7207db
                                 {/* <AvatarImage src="/avatar22.png" className="object-cover"/> */}
                                 <AvatarFallback>AS</AvatarFallback>
                             </Avatar>
 
                             {/* Badge OUTSIDE Avatar */}
-                            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg ring-2 ring-white" />
                         </div>
                     </Button>
                 </DropdownMenuTrigger>
@@ -40,7 +35,6 @@ export default function Profile() {
                             </Avatar>
 
                             {/* Badge OUTSIDE Avatar */}
-                            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg ring-2 ring-white" />
                         </div>
                         <div className="flex flex-col gap-[0px] items-start mt-[5px]  lg:w-[100px]">
                             <p className="text-[16px] md:text-[20px] font-[500] leading-5">Abdullah</p>

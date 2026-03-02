@@ -24,16 +24,16 @@ export default function Hero() {
         src='/boy.png'
         alt="hero-image"
         width={500}
-        height={400}
-        className="w-[13%] mt-auto absolute bottom-7 left-8 hidden xl:block"
+        height={900}
+        className="w-[13%] h-auto mt-auto absolute bottom-7 left-8 hidden xl:block"
         unoptimized
       />
       <Image
         src='/girl.png'
         alt="hero-image"
         width={500}
-        height={400}
-        className="w-[15%] mt-auto absolute  bottom-7  right-8 hidden xl:block"
+        height={900}
+        className="w-[15%] h-auto mt-auto absolute  bottom-7  right-8 hidden xl:block"
         unoptimized
       />
       <div className="w-full max-w-5xl xl:max-w-[65%]   border-white rounded-4xl flex flex-col sm:flex-row md:p-5 sm:p-8 gap-5 md:gap-10">
@@ -54,10 +54,11 @@ export default function Hero() {
               src={card.image}
               alt="hero-image"
               width={500}
-              height={400}
-              className="w-full mt-auto"
+              height={260}
+              className="w-full h-auto mt-auto"
               unoptimized
             />
+            
 
             <Button
               type="button"

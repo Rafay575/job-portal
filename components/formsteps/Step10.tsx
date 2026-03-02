@@ -8,44 +8,38 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
-type Props = {
-  step: number;
-  validateStep: () => boolean;
+type NavProps = {
+  onNext: () => void;
+  onBack: () => void;
+  disableBack?: boolean;
 };
 
-function SignupNavButtons({ step, validateStep }: Props) {
-  const router = useRouter();
-
-  const handleNext = () => {
-    if (validateStep()) {
-      router.push(`/auth/signup/step${step + 1}`);
-    }
-  };
-
-  const handleBack = () => {
-    router.push(`/auth/signup/step${step - 1}`);
-  };
-
+function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   return (
-    <div className="flex gap-2 mt-3 justify-between ">
+    <div className="flex gap-2 mt-3 justify-between">
       <Button
         type="button"
         variant="outline"
-        onClick={handleBack}
-        disabled={step === 1}
+        onClick={onBack}
+        disabled={disableBack}
       >
-        <IoIosArrowBack />Back
+        <IoIosArrowBack />
+        Back
       </Button>
 
-      <Button type="button" onClick={handleNext}>
-        Next<IoIosArrowForward />
+      <Button type="button" onClick={onNext}>
+        Next
+        <IoIosArrowForward />
       </Button>
     </div>
   );
 }
 
-export default function Step10() {
-  const [step] = useState(10);
+type Props = {
+  next: () => void;
+  back: () => void;
+};
+export default function Step10({ next, back }: Props) {
   const [supportingStatement, setSupportingStatement] = useState("");
 
   const validateStep = (): boolean => {
@@ -73,7 +67,15 @@ export default function Step10() {
           className="py-3 min-h-[150px]"
         />
 
-        <SignupNavButtons step={step} validateStep={validateStep} />
+        <SignupNavButtons
+        
+        onBack={back}
+        onNext={() => {
+          if (validateStep()) {
+            next();
+          }
+        }}
+      />
       </div>
     </>
   );
