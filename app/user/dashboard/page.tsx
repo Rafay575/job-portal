@@ -37,14 +37,14 @@ export default function Page() {
     }
   };
 
-  const [roleType, setRoleType] = useState<"full-time" | "part-time" | "both">(
-    "full-time",
+  const [roleType, setRoleType] = useState<"permanent" | "acency-work" | "both">(
+    "permanent",
   );
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1); // 1 = next, -1 = back
   const [open, setOpen] = useState(false);
   const steps =
-    roleType === "full-time"
+    roleType === "permanent"
       ? [<Step1FullTime next={next} back={back} key="step1" roleType={roleType} />]
       : [
           <Step1FullTime next={next} back={back} key="step1" roleType={roleType} />,
@@ -74,7 +74,7 @@ export default function Page() {
   ];
 
   const stepsforStepper =
-    roleType === "full-time" ? [allStepLabels[0]] : allStepLabels;
+    roleType === "permanent" ? [allStepLabels[0]] : allStepLabels;
 
   const totalSteps = steps.length;
   useEffect(() => {
@@ -104,32 +104,32 @@ export default function Page() {
         <Label className="text-2xl text-primary">Choose Role Type</Label>
 
         <div className="flex gap-4 w-full md:w-[60%] ">
-          {/* Full-time */}
+          {/* permanent */}
           <Button
             type="button"
-            onClick={() => setRoleType("full-time")}
+            onClick={() => setRoleType("permanent")}
             className={`flex-1 py-2 border-2 rounded transition-all cursor-pointer
                 ${
-                  roleType === "full-time"
+                  roleType === "permanent"
                     ? "bg-primary text-white border-primary"
                     : "bg-white text-primary border-primary hover:text-white"
                 }`}
           >
-            Full-time
+            Permanent
           </Button>
 
-          {/* Part-time */}
+          {/* acency-work */}
           <Button
             type="button"
-            onClick={() => setRoleType("part-time")}
+            onClick={() => setRoleType("acency-work")}
             className={`flex-1 py-2 border-2 rounded transition-all cursor-pointer
                 ${
-                  roleType === "part-time"
+                  roleType === "acency-work"
                     ? "bg-primary text-white border-primary"
                     : "bg-white text-primary border-primary hover:text-white"
                 }`}
           >
-            Part-time
+            Agency Work
           </Button>
 
           {/* Both */}
@@ -155,7 +155,7 @@ export default function Page() {
           duration-500
           ease-in-out
           ${
-            roleType === "full-time"
+            roleType === "permanent"
               ? "max-h-0 opacity-0"
               : "max-h-auto opacity-100"
           }

@@ -4,27 +4,27 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Role {
-  id: "part-time" | "full-time" | "both";
+  id: "acency-work" | "permanent" | "both";
   title: string;
   description: string;
   image: string;
 }
 
 interface RoleSelectorProps {
-  value: "part-time" | "full-time" | "both";
-  onChange: (role: "part-time" | "full-time" | "both") => void;
+  value: "acency-work" | "permanent" | "both";
+  onChange: (role: "acency-work" | "permanent" | "both") => void;
 }
 
 const roles: Role[] = [
   {
-    id: "full-time",
-    title: "Full Time Role",
+    id: "permanent",
+    title: "Permanent Role",
     description: "Flexible hours, work part of the day",
     image: "/role-icon2.png",
   },
   {
-    id: "part-time",
-    title: "Part Time Role",
+    id: "acency-work",
+    title: "Acency Work Role",
     description: "Flexible hours, work part of the day",
     image: "/role-icon1.png",
   },
