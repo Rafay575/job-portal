@@ -49,8 +49,10 @@ export default function Step3({ next, back }: Props) {
   const [unspentDetails, setUnspentDetails] = useState("");
   const [fitnessInvestigation, setFitnessInvestigation] = useState("no");
   const [removedFromRegister, setRemovedFromRegister] = useState("no");
-  const [dbsNumber, setDbsNumber] = useState("");
-  const [dbsExpiry, setDbsExpiry] = useState("");
+  const [crb, setCrb] = useState<"yes" | "no">("no");
+  const [surname, setSurname] = useState("");
+  const [dob, setDob] = useState("");
+  const [crbFile, setCrbFile] = useState<File | null>(null);
 
   const validateStep = (): boolean => {
     if (hasConvictions === "yes" && !convictionDetails) {
@@ -63,9 +65,21 @@ export default function Step3({ next, back }: Props) {
       return false;
     }
 
-    if (!dbsNumber || !dbsExpiry) {
-      toast.error("DBS number and expiry date are required");
-      return false;
+    if (crb === "yes") {
+      if (!surname) {
+        toast.error("Surname is required");
+        return false;
+      }
+
+      if (!dob) {
+        toast.error("Date of birth is required");
+        return false;
+      }
+
+      if (!crbFile) {
+        toast.error("Please upload CRB document");
+        return false;
+      }
     }
 
     return true;
@@ -118,13 +132,15 @@ export default function Step3({ next, back }: Props) {
             </RadioGroup>
           </div>
 
-            <div className={`transition-all duration-500 ease-in-out  ${hasUnspentConvictions === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}>
-              <Label>Unspent Conviction Details *</Label>
-              <Textarea
-                value={unspentDetails}
-                onChange={(e) => setUnspentDetails(e.target.value)}
-              />
-            </div>
+          <div
+            className={`transition-all duration-500 ease-in-out  ${hasUnspentConvictions === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+          >
+            <Label>Unspent Conviction Details *</Label>
+            <Textarea
+              value={unspentDetails}
+              onChange={(e) => setUnspentDetails(e.target.value)}
+            />
+          </div>
         </div>
 
         {/* Fitness */}
@@ -158,23 +174,68 @@ export default function Step3({ next, back }: Props) {
             </div>
           </RadioGroup>
         </div>
+        {/* CRB Section */}
+        <div className="flex flex-col items-stretch gap-4 md:col-span-2">
+          {/* Radio */}
+          <div>
+            <Label>Any CRB?</Label>
+            <RadioGroup value={crb} onValueChange={(val: any) => setCrb(val)}>
+              <div className="flex gap-4 mt-2 items-center">
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="yes" id="crbYes" />
+                  <Label htmlFor="crbYes">Yes</Label>
+                </div>
 
-        {/* DBS */}
-        <div>
-          <Label>Previous CRB / DBS Number *</Label>
-          <Input
-            value={dbsNumber}
-            onChange={(e) => setDbsNumber(e.target.value)}
-          />
-        </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="no" id="crbNo" />
+                  <Label htmlFor="crbNo">No</Label>
+                </div>
+              </div>
+            </RadioGroup>
+          </div>
 
-        <div>
-          <Label>CRB / DBS Expiry Date *</Label>
-          <Input
-            type="date"
-            value={dbsExpiry}
-            onChange={(e) => setDbsExpiry(e.target.value)}
-          />
+          {/* Conditional Fields */}
+          <div
+            className={`transition-all duration-500 ease-in-out ${
+              crb === "yes"
+                ? "opacity-100 max-h-[500px]"
+                : "opacity-0 max-h-0 overflow-hidden"
+            }`}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
+              {/* Surname */}
+              <div>
+                <Label>Surname *</Label>
+                <Input
+                  value={surname}
+                  onChange={(e) => setSurname(e.target.value)}
+                  placeholder="Enter surname"
+                />
+              </div>
+
+              {/* Date of Birth */}
+              <div>
+                <Label>Date of Birth *</Label>
+                <Input
+                  type="date"
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
+                />
+              </div>
+
+              {/* File Upload */}
+              <div>
+                <Label>Upload CRB *</Label>
+                <Input
+                  type="file"
+                  accept=".pdf,.jpg,.png"
+                  onChange={(e) =>
+                    setCrbFile(e.target.files ? e.target.files[0] : null)
+                  }
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <SignupNavButtons

@@ -244,11 +244,7 @@ export default function Step9({ next, back }: Props) {
 
   const validateStep = (): boolean => {
     if (
-      mandatoryExperience.areas.length === 0 ||
-      !mandatoryExperience.vulnerableDefinition.trim() ||
-      !mandatoryExperience.properCareMeasures.trim() ||
-      !mandatoryExperience.nonVerbalChoice.trim() ||
-      !mandatoryExperience.abuseAction.trim()
+      mandatoryExperience.areas.length === 0
     ) {
       toast.error("Please complete all mandatory experience fields");
       return false;
@@ -283,66 +279,7 @@ export default function Step9({ next, back }: Props) {
         </div>
       </div>
 
-      {/* Mandatory textareas */}
-      <div className="rounded-xl border bg-white p-4">
-        <div className="grid md:grid-cols-2 gap-3">
-          <div>
-            <Label className="text-sm">Definition of vulnerable people *</Label>
-            <Textarea
-              className="mt-2 min-h-[110px]"
-              value={mandatoryExperience.vulnerableDefinition}
-              onChange={(e) =>
-                setMandatoryExperience((prev) => ({
-                  ...prev,
-                  vulnerableDefinition: e.target.value,
-                }))
-              }
-            />
-          </div>
-
-          <div>
-            <Label className="text-sm">Measures to ensure proper care *</Label>
-            <Textarea
-              className="mt-2 min-h-[110px]"
-              value={mandatoryExperience.properCareMeasures}
-              onChange={(e) =>
-                setMandatoryExperience((prev) => ({
-                  ...prev,
-                  properCareMeasures: e.target.value,
-                }))
-              }
-            />
-          </div>
-
-          <div>
-            <Label className="text-sm">Helping a non-verbal client make choices *</Label>
-            <Textarea
-              className="mt-2 min-h-[110px]"
-              value={mandatoryExperience.nonVerbalChoice}
-              onChange={(e) =>
-                setMandatoryExperience((prev) => ({
-                  ...prev,
-                  nonVerbalChoice: e.target.value,
-                }))
-              }
-            />
-          </div>
-
-          <div>
-            <Label className="text-sm">Action if witnessing abuse *</Label>
-            <Textarea
-              className="mt-2 min-h-[110px]"
-              value={mandatoryExperience.abuseAction}
-              onChange={(e) =>
-                setMandatoryExperience((prev) => ({
-                  ...prev,
-                  abuseAction: e.target.value,
-                }))
-              }
-            />
-          </div>
-        </div>
-      </div>
+    
 
       {/* Experience Section */}
       <div className="rounded-xl border bg-white p-4">
