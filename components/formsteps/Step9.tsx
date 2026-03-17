@@ -381,7 +381,7 @@ export default function Step9({ next, back }: Props) {
       <div className="rounded-xl border bg-white p-4">
         <p className="text-base font-semibold">Employment Gaps</p>
         <p className="text-xs text-muted-foreground mt-1">
-          In the UK, employers may ask you to explain gaps longer than 3 months.
+          Employers may ask you to explain gaps longer than 3 months.
         </p>
 
         <div className="mt-3 flex gap-4">

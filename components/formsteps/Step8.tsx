@@ -8,6 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
+type GapItem = {
+  gapFrom: string;
+  gapTo: string;
+  reason: string;
+};
 
 type Education = {
   qualificationType: string; // GCSE, A Level, NVQ, Degree, etc
@@ -28,6 +33,10 @@ type Education = {
   registrationExpiry: string;
 
   certificateFile: File | null;
+  // NEW GAP SECTION
+  hasEducationGaps: "yes" | "no";
+  gapExplanation: string;
+  gaps: GapItem[];
 };
 
 type NavProps = {
@@ -62,6 +71,11 @@ type Props = {
   next: () => void;
   back: () => void;
 };
+const emptyGap = (): GapItem => ({
+  gapFrom: "",
+  gapTo: "",
+  reason: "",
+});
 
 const emptyEducation = (): Education => ({
   qualificationType: "",
@@ -81,6 +95,9 @@ const emptyEducation = (): Education => ({
   registrationExpiry: "",
 
   certificateFile: null,
+  hasEducationGaps: "no",
+  gapExplanation: "",
+  gaps: [emptyGap()],
 });
 
 export default function Step8({ next, back }: Props) {
@@ -134,14 +151,14 @@ export default function Step8({ next, back }: Props) {
         !e.startDate ||
         !e.endDate
       ) {
-        toast.error(`Please complete all required fields for Education ${i + 1}`);
+        toast.error(
+          `Please complete all required fields for Education ${i + 1}`,
+        );
         return false;
       }
 
       if (new Date(e.startDate) > new Date(e.endDate)) {
-        toast.error(
-          `Education ${i + 1}: Start Date cannot be after End Date`,
-        );
+        toast.error(`Education ${i + 1}: Start Date cannot be after End Date`);
         return false;
       }
 
@@ -157,9 +174,56 @@ export default function Step8({ next, back }: Props) {
           return false;
         }
       }
+      if (e.hasEducationGaps === "yes") {
+        if (!e.gapExplanation.trim()) {
+          toast.error(`Education ${i + 1}: Please explain your education gap`);
+          return false;
+        }
+
+        for (let g = 0; g < e.gaps.length; g++) {
+          const gap = e.gaps[g];
+
+          if (!gap.gapFrom || !gap.gapTo || !gap.reason.trim()) {
+            toast.error(`Education ${i + 1} Gap ${g + 1}: complete all fields`);
+            return false;
+          }
+
+          if (new Date(gap.gapFrom) > new Date(gap.gapTo)) {
+            toast.error(`Education ${i + 1} Gap ${g + 1}: invalid dates`);
+            return false;
+          }
+        }
+      }
     }
 
     return true;
+  };
+  const addGap = (eduIndex: number) => {
+    const updated = [...educationHistory];
+    updated[eduIndex].gaps.push(emptyGap());
+    setEducationHistory(updated);
+  };
+
+  const removeGap = (eduIndex: number, gapIndex: number) => {
+    const updated = [...educationHistory];
+    updated[eduIndex].gaps.splice(gapIndex, 1);
+
+    if (updated[eduIndex].gaps.length === 0) {
+      updated[eduIndex].gaps = [emptyGap()];
+    }
+
+    setEducationHistory(updated);
+  };
+
+  const updateGap = (
+    eduIndex: number,
+    gapIndex: number,
+    field: keyof GapItem,
+    value: string,
+  ) => {
+    const updated = [...educationHistory];
+    updated[eduIndex].gaps[gapIndex][field] = value;
+    setEducationHistory(updated);
   };
 
   return (
@@ -174,16 +238,16 @@ export default function Step8({ next, back }: Props) {
           </p>
         </div>
 
-        <AnimatePresence>
+        <AnimatePresence mode="popLayout">
           {educationHistory.map((edu, index) => (
             <motion.div
               key={index}
               layout
-              initial={{ opacity: 0, y: -40, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: "auto" }}
-              exit={{ opacity: 0, y: -40, height: 0 }}
-              transition={{ duration: 0.35, ease: "easeInOut" }}
-              className="border bg-white p-4 rounded-2xl"
+              initial={{ opacity: 0, y: -30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -30 }}
+              transition={{ duration: 0.3 }}
+              className="border bg-white p-4 rounded-2xl overflow-hidden"
             >
               <div className="flex items-center justify-between mb-3">
                 <Label className="text-base font-semibold">
@@ -209,7 +273,11 @@ export default function Step8({ next, back }: Props) {
                   <select
                     value={edu.qualificationType}
                     onChange={(e) =>
-                      updateEducation(index, "qualificationType", e.target.value)
+                      updateEducation(
+                        index,
+                        "qualificationType",
+                        e.target.value,
+                      )
                     }
                     className="mt-2 w-full border rounded-xl p-2 text-sm bg-white"
                   >
@@ -224,13 +292,19 @@ export default function Step8({ next, back }: Props) {
 
                 {/* Qualification Title */}
                 <div>
-                  <Label className="text-sm">Qualification Title / Subject *</Label>
+                  <Label className="text-sm">
+                    Qualification Title / Subject *
+                  </Label>
                   <Input
                     className="mt-2"
                     placeholder="e.g., BSc Computer Science"
                     value={edu.qualificationTitle}
                     onChange={(e) =>
-                      updateEducation(index, "qualificationTitle", e.target.value)
+                      updateEducation(
+                        index,
+                        "qualificationTitle",
+                        e.target.value,
+                      )
                     }
                   />
                 </div>
@@ -256,7 +330,11 @@ export default function Step8({ next, back }: Props) {
                     placeholder="e.g., United Kingdom"
                     value={edu.institutionCountry}
                     onChange={(e) =>
-                      updateEducation(index, "institutionCountry", e.target.value)
+                      updateEducation(
+                        index,
+                        "institutionCountry",
+                        e.target.value,
+                      )
                     }
                   />
                 </div>
@@ -321,7 +399,9 @@ export default function Step8({ next, back }: Props) {
                         type="radio"
                         name={`completed-${index}`}
                         checked={edu.completed === "yes"}
-                        onChange={() => updateEducation(index, "completed", "yes")}
+                        onChange={() =>
+                          updateEducation(index, "completed", "yes")
+                        }
                       />
                       Yes
                     </label>
@@ -330,7 +410,9 @@ export default function Step8({ next, back }: Props) {
                         type="radio"
                         name={`completed-${index}`}
                         checked={edu.completed === "no"}
-                        onChange={() => updateEducation(index, "completed", "no")}
+                        onChange={() =>
+                          updateEducation(index, "completed", "no")
+                        }
                       />
                       No
                     </label>
@@ -339,7 +421,9 @@ export default function Step8({ next, back }: Props) {
 
                 {/* Professional Registration */}
                 <div>
-                  <Label className="text-sm">Professional Registration / Licence?</Label>
+                  <Label className="text-sm">
+                    Professional Registration / Licence?
+                  </Label>
                   <div className="mt-2 flex gap-3">
                     <label className="flex items-center gap-2 text-sm">
                       <input
@@ -347,7 +431,11 @@ export default function Step8({ next, back }: Props) {
                         name={`reg-${index}`}
                         checked={edu.hasProfessionalRegistration === "yes"}
                         onChange={() =>
-                          updateEducation(index, "hasProfessionalRegistration", "yes")
+                          updateEducation(
+                            index,
+                            "hasProfessionalRegistration",
+                            "yes",
+                          )
                         }
                       />
                       Yes
@@ -358,7 +446,11 @@ export default function Step8({ next, back }: Props) {
                         name={`reg-${index}`}
                         checked={edu.hasProfessionalRegistration === "no"}
                         onChange={() =>
-                          updateEducation(index, "hasProfessionalRegistration", "no")
+                          updateEducation(
+                            index,
+                            "hasProfessionalRegistration",
+                            "no",
+                          )
                         }
                       />
                       No
@@ -375,7 +467,11 @@ export default function Step8({ next, back }: Props) {
                         placeholder="e.g., NMC / HCPC / GMC"
                         value={edu.registrationBody}
                         onChange={(e) =>
-                          updateEducation(index, "registrationBody", e.target.value)
+                          updateEducation(
+                            index,
+                            "registrationBody",
+                            e.target.value,
+                          )
                         }
                       />
                     </div>
@@ -387,7 +483,11 @@ export default function Step8({ next, back }: Props) {
                         placeholder="e.g., PIN / Licence No"
                         value={edu.registrationNumber}
                         onChange={(e) =>
-                          updateEducation(index, "registrationNumber", e.target.value)
+                          updateEducation(
+                            index,
+                            "registrationNumber",
+                            e.target.value,
+                          )
                         }
                       />
                     </div>
@@ -399,7 +499,11 @@ export default function Step8({ next, back }: Props) {
                         type="date"
                         value={edu.registrationExpiry}
                         onChange={(e) =>
-                          updateEducation(index, "registrationExpiry", e.target.value)
+                          updateEducation(
+                            index,
+                            "registrationExpiry",
+                            e.target.value,
+                          )
                         }
                       />
                     </div>
@@ -408,7 +512,9 @@ export default function Step8({ next, back }: Props) {
 
                 {/* Certificate Upload */}
                 <div className="md:col-span-2">
-                  <Label className="text-sm">Upload Certificate (optional)</Label>
+                  <Label className="text-sm">
+                    Upload Certificate (optional)
+                  </Label>
                   <div className="mt-2 border rounded-xl p-3">
                     <input
                       type="file"
@@ -437,6 +543,150 @@ export default function Step8({ next, back }: Props) {
                       updateEducation(index, "additionalNotes", e.target.value)
                     }
                   />
+                </div>
+
+                {/* Education Gap Section */}
+                <div className="rounded-xl border bg-white p-4 md:col-span-2">
+                  <p className="text-base font-semibold">Education Gaps</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Explain any gaps between your education periods.
+                  </p>
+
+                  <div className="mt-3 flex gap-4">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        name={`edu-gap-${index}`}
+                        checked={edu.hasEducationGaps === "no"}
+                        onChange={() =>
+                          updateEducation(index, "hasEducationGaps", "no")
+                        }
+                      />
+                      No
+                    </label>
+
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        name={`edu-gap-${index}`}
+                        checked={edu.hasEducationGaps === "yes"}
+                        onChange={() =>
+                          updateEducation(index, "hasEducationGaps", "yes")
+                        }
+                      />
+                      Yes
+                    </label>
+                  </div>
+
+                  {edu.hasEducationGaps === "yes" && (
+                    <div className="mt-4 space-y-4">
+                      <div>
+                        <Label className="text-sm">Gap Explanation *</Label>
+                        <Textarea
+                          className="mt-2"
+                          value={edu.gapExplanation}
+                          onChange={(e) =>
+                            updateEducation(
+                              index,
+                              "gapExplanation",
+                              e.target.value,
+                            )
+                          }
+                        />
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm font-semibold">Gap Records</p>
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => addGap(index)}
+                        >
+                          Add Gap
+                        </Button>
+                      </div>
+                      <AnimatePresence mode="popLayout">
+                        {edu.gaps.map((g, gapIndex) => (
+                          <motion.div
+                            key={gapIndex}
+                            layout
+                            initial={{ opacity: 0, y: -10, height: 0 }}
+                            animate={{ opacity: 1, y: 0, height: "auto" }}
+                            exit={{ opacity: 0, y: -10, height: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="border rounded-xl p-4"
+                          >
+                            <div className="flex justify-between">
+                              <p className="text-sm font-semibold">
+                                Gap #{gapIndex + 1}
+                              </p>
+
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => removeGap(index, gapIndex)}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                              <div>
+                                <Label className="text-sm">Gap From *</Label>
+                                <Input
+                                  type="date"
+                                  className="mt-2"
+                                  value={g.gapFrom}
+                                  onChange={(e) =>
+                                    updateGap(
+                                      index,
+                                      gapIndex,
+                                      "gapFrom",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </div>
+
+                              <div>
+                                <Label className="text-sm">Gap To *</Label>
+                                <Input
+                                  type="date"
+                                  className="mt-2"
+                                  value={g.gapTo}
+                                  onChange={(e) =>
+                                    updateGap(
+                                      index,
+                                      gapIndex,
+                                      "gapTo",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </div>
+
+                              <div className="md:col-span-2">
+                                <Label className="text-sm">Reason *</Label>
+                                <Textarea
+                                  className="mt-2"
+                                  value={g.reason}
+                                  onChange={(e) =>
+                                    updateGap(
+                                      index,
+                                      gapIndex,
+                                      "reason",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>

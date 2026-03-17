@@ -88,7 +88,7 @@ export default function Page() {
     <div className="p-4 overflow-hidden">
       {/* Shadcn Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTitle>.</DialogTitle>
+        <DialogTitle className="text-white">.</DialogTitle>
         <DialogContent className="sm:max-w-[50%] w-[90%]">
           <RoleSelector
             value={roleType}

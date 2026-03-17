@@ -30,7 +30,7 @@ export function JobSidebar({ className }: JobSidebarProps) {
   return (
     <aside
       className={cn(
-        'sticky top-0  w-full max-w-[300px] overflow-y-auto border-r border-border bg-background px-4 py-6 md:py-8 hidden lg:block',
+        'sticky top-20  w-full max-w-[300px] overflow-y-auto border-r border-border bg-background px-4 py-6 md:py-8 hidden lg:block',
         className
       )}
     >   
