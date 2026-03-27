@@ -7,13 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
-
-type Training = {
-  title: string;
-  provider: string;
-  duration: string;
-  completionDate: string;
-};
+import { Step7Type } from "@/types/Form";
 
 type NavProps = {
   onNext: () => void;
@@ -49,13 +43,13 @@ type Props = {
 export default function Step7({ next, back }: Props) {
   const [step] = useState(7);
 
-  const [trainings, setTrainings] = useState<Training[]>([
+  const [trainings, setTrainings] = useState<Step7Type[]>([
     { title: "", provider: "", duration: "", completionDate: "" },
   ]);
 
   const updateTraining = (
     index: number,
-    field: keyof Training,
+    field: keyof Step7Type,
     value: string,
   ) => {
     const updated = [...trainings];
@@ -154,6 +148,7 @@ export default function Step7({ next, back }: Props) {
         onBack={back}
         onNext={() => {
           if (validateStep()) {
+            console.log("Step7 Data:", trainings); // ✅ log here
             next();
           }
         }}

@@ -7,21 +7,23 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { IoIosArrowBack } from "react-icons/io";
+import { Step11Type } from "@/types/Form";
+
 
 type NavProps = {
   onBack: () => void;
   disableBack?: boolean;
 };
 
+type Props = {
+  back: () => void;
+};
+
+// ------------------ Navigation ------------------
 function SignupNavButtons({ onBack, disableBack }: NavProps) {
   return (
     <div className="flex gap-2 justify-between">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onBack}
-        disabled={disableBack}
-      >
+      <Button type="button" variant="outline" onClick={onBack} disabled={disableBack}>
         <IoIosArrowBack />
         Back
       </Button>
@@ -29,27 +31,33 @@ function SignupNavButtons({ onBack, disableBack }: NavProps) {
   );
 }
 
-type Props = {
-  back: () => void;
-};
-
+// ------------------ Step6 Component ------------------
 export default function Step1({ back }: Props) {
   const router = useRouter();
 
-  const [declarationConfirmed, setDeclarationConfirmed] = useState(false);
-  const [declarationDate, setDeclarationDate] = useState("");
-  const [signatureFile, setSignatureFile] = useState<File | null>(null);
+  const [formData, setFormData] = useState<Step11Type>({
+    declarationConfirmed: false,
+    declarationDate: "",
+    signatureFile: null,
+  });
+
+  const handleChange = <K extends keyof Step11Type>(key: K, value: Step11Type[K]) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
   const validateStep = (): boolean => {
-    if (!declarationConfirmed) {
+    if (!formData.declarationConfirmed) {
       toast.error("You must confirm the declaration");
       return false;
     }
-    if (!signatureFile) {
+    if (!formData.signatureFile) {
       toast.error("Please upload the signed document");
       return false;
     }
-    if (!declarationDate) {
+    if (!formData.declarationDate) {
       toast.error("Please select a date");
       return false;
     }
@@ -58,32 +66,19 @@ export default function Step1({ back }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateStep()) return;
-
-    const payload = {
-      declarationConfirmed,
-      declarationDate,
-      signatureFile,
-    };
-
-    console.log("FINAL SUBMISSION:", payload);
-
+    console.log("FINAL SUBMISSION:", formData);
     toast.success("Application submitted successfully!");
-    router.push("/");
   };
 
   return (
-    <form
-      className="min-w-full space-y-3 p-1 flex flex-col"
-      onSubmit={handleSubmit}
-    >
+    <form className="min-w-full space-y-3 p-1 flex flex-col" onSubmit={handleSubmit}>
       {/* Declaration */}
       <div className="flex items-center gap-2">
         <input
           type="checkbox"
-          checked={declarationConfirmed}
-          onChange={(e) => setDeclarationConfirmed(e.target.checked)}
+          checked={formData.declarationConfirmed}
+          onChange={(e) => handleChange("declarationConfirmed", e.target.checked)}
           id="declaration"
           className="h-4 w-4"
         />
@@ -91,11 +86,13 @@ export default function Step1({ back }: Props) {
           I confirm the information provided is true and complete
         </Label>
       </div>
+
       {/* Instructions */}
       <div className="bg-gray-50 border rounded-md p-3 text-sm text-gray-600">
         Please download the signature document, sign it, and upload the signed
         file below before submitting the form.
       </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Download Document */}
         <div className="mt-3">
@@ -121,17 +118,18 @@ export default function Step1({ back }: Props) {
           <Input
             type="file"
             accept=".doc,.docx,.pdf"
-            onChange={(e) => setSignatureFile(e.target.files?.[0] || null)}
+            onChange={(e) => handleChange("signatureFile", e.target.files?.[0] || null)}
             className="py-1"
           />
         </div>
       </div>
+
       {/* Date */}
       <Label className="mt-3">Date *</Label>
       <Input
         type="date"
-        value={declarationDate}
-        onChange={(e) => setDeclarationDate(e.target.value)}
+        value={formData.declarationDate}
+        onChange={(e) => handleChange("declarationDate", e.target.value)}
         className="py-3"
       />
 

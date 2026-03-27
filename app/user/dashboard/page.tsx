@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
-import Step1 from "@/components/formsteps/Step1";
 import Step2 from "@/components/formsteps/Step2";
 import Step3 from "@/components/formsteps/Step3";
 import Step4 from "@/components/formsteps/Step4";
@@ -22,7 +20,28 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Step1FullTime from "@/components/formsteps/Step1FullTime";
 
+const allStepLabels = [
+  "Basic",
+  "Question",
+  "Background",
+  "Health",
+  "Registration",
+  "Documents",
+  "Training",
+  "Qualification",
+  "Experience",
+  "Statement",
+  "Declaration",
+];
+
 export default function Page() {
+  const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState(1); // 1 = next, -1 = back
+  const [open, setOpen] = useState(false);
+  
+
+
+
   const next = () => {
     if (step < totalSteps) {
       setDirection(1);
@@ -37,17 +56,27 @@ export default function Page() {
     }
   };
 
-  const [roleType, setRoleType] = useState<"permanent" | "acency-work" | "both">(
-    "permanent",
-  );
-  const [step, setStep] = useState(1);
-  const [direction, setDirection] = useState(1); // 1 = next, -1 = back
-  const [open, setOpen] = useState(false);
+  const [roleType, setRoleType] = useState<
+    "permanent" | "acency-work" | "both"
+  >("permanent");
+
   const steps =
     roleType === "permanent"
-      ? [<Step1FullTime next={next} back={back} key="step1" roleType={roleType} />]
+      ? [
+          <Step1FullTime
+            next={next}
+            back={back}
+            key="step1"
+            roleType={roleType}
+          />,
+        ]
       : [
-          <Step1FullTime next={next} back={back} key="step1" roleType={roleType} />,
+          <Step1FullTime
+            next={next}
+            back={back}
+            key="step1"
+            roleType={roleType}
+          />,
           <Step2 next={next} back={back} key="step2" />,
           <Step3 next={next} back={back} key="step3" />,
           <Step4 next={next} back={back} key="step4" />,
@@ -59,31 +88,19 @@ export default function Page() {
           <Step10 next={next} back={back} key="step10" />,
           <Step11 back={back} key="step11" />,
         ];
-  const allStepLabels = [
-    "Basic",
-    "Question",
-    "Background",
-    "Health",
-    "Registration",
-    "Documents",
-    "Training",
-    "Qualification",
-    "Experience",
-    "Statement",
-    "Declaration",
-  ];
 
   const stepsforStepper =
     roleType === "permanent" ? [allStepLabels[0]] : allStepLabels;
 
   const totalSteps = steps.length;
+
   useEffect(() => {
     setStep(1);
   }, [roleType]);
-
   useEffect(() => {
     setOpen(true);
   }, []);
+
   return (
     <div className="p-4 overflow-hidden">
       {/* Shadcn Modal */}

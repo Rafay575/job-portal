@@ -1,15 +1,14 @@
 "use client";
-
 import { useState } from "react";
-import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import { GoAlert } from "react-icons/go";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { Step4Type } from "@/types/Form";
+
 
 type NavProps = {
   onNext: () => void;
@@ -17,15 +16,16 @@ type NavProps = {
   disableBack?: boolean;
 };
 
+type Props = {
+  next: () => void;
+  back: () => void;
+};
+
+// ------------------ Navigation Buttons ------------------
 function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   return (
     <div className="flex gap-2 mt-3 justify-between">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onBack}
-        disabled={disableBack}
-      >
+      <Button type="button" variant="outline" onClick={onBack} disabled={disableBack}>
         <IoIosArrowBack />
         Back
       </Button>
@@ -38,24 +38,31 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   );
 }
 
-type Props = {
-  next: () => void;
-  back: () => void;
-};
+// ------------------ Step 4 Component ------------------
 export default function Step4({ next, back }: Props) {
-  const [absentDays, setAbsentDays] = useState("");
-  const [absencePeriods, setAbsencePeriods] = useState("");
-  const [onMedication, setOnMedication] = useState("no");
-  const [medicationDetails, setMedicationDetails] = useState("");
-  const [healthTreatment, setHealthTreatment] = useState("no");
-  const [treatmentDetails, setTreatmentDetails] = useState("");
-  const [medicalCondition, setMedicalCondition] = useState("no");
-  const [conditionDetails, setConditionDetails] = useState("");
-  const [disabled, setDisabled] = useState("no");
-  const [impairmentType, setImpairmentType] = useState("");
-  const [nightShiftFit, setNightShiftFit] = useState("yes");
+  const [formData, setFormData] = useState<Step4Type>({
+    absentDays: "",
+    absencePeriods: "",
+    onMedication: "no",
+    medicationDetails: "",
+    healthTreatment: "no",
+    treatmentDetails: "",
+    medicalCondition: "no",
+    conditionDetails: "",
+    disabled: "no",
+    impairmentType: "",
+    nightShiftFit: "yes",
+  });
+
+  const handleChange = <K extends keyof Step4Type>(key: K, value: Step4Type[K]) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
   const validateStep = (): boolean => {
+    // Placeholder: health info is optional, so always true
     return true;
   };
 
@@ -66,32 +73,35 @@ export default function Step4({ next, back }: Props) {
         <div className="md:col-span-2 rounded-lg border p-2 text-sm text-muted-foreground">
           <p className="flex gap-1 font-medium">
             <GoAlert className="text-primary text-[15px] mt-0.5" />
-            Health information is optional and processed under data protection
-            regulations.
+            Health information is optional and processed under data protection regulations.
           </p>
         </div>
 
+        {/* Absent Days */}
         <div>
           <Label>Absent days in last 3 years</Label>
           <Input
-            value={absentDays}
-            onChange={(e) => setAbsentDays(e.target.value)}
+            value={formData.absentDays}
+            onChange={(e) => handleChange("absentDays", e.target.value)}
           />
         </div>
 
         <div>
           <Label>Number of absence periods in last 3 years</Label>
           <Input
-            value={absencePeriods}
-            onChange={(e) => setAbsencePeriods(e.target.value)}
+            value={formData.absencePeriods}
+            onChange={(e) => handleChange("absencePeriods", e.target.value)}
           />
         </div>
 
         {/* Medication */}
-        <div className="flex flex-col items-stretch gap-4 ">
+        <div className="flex flex-col items-stretch gap-4">
           <div>
             <Label>Currently taking medication?</Label>
-            <RadioGroup value={onMedication} onValueChange={setOnMedication}>
+            <RadioGroup
+              value={formData.onMedication}
+              onValueChange={(v) => handleChange("onMedication", v as "yes" | "no")}
+            >
               <div className="flex gap-4 mt-2">
                 <RadioGroupItem value="yes" id="medYes" />
                 <Label htmlFor="medYes">Yes</Label>
@@ -102,23 +112,25 @@ export default function Step4({ next, back }: Props) {
           </div>
 
           <div
-            className={`transition-all duration-500 ease-in-out  ${onMedication === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+            className={`transition-all duration-500 ease-in-out ${
+              formData.onMedication === "yes" ? "h-auto! opacity-100" : "h-0! overflow-hidden! opacity-0"
+            }`}
           >
             <Label>Medication Details</Label>
             <Textarea
-              value={medicationDetails}
-              onChange={(e) => setMedicationDetails(e.target.value)}
+              value={formData.medicationDetails}
+              onChange={(e) => handleChange("medicationDetails", e.target.value)}
             />
           </div>
         </div>
 
         {/* Treatment */}
-        <div className="flex flex-col items-stretch gap-4 ">
+        <div className="flex flex-col items-stretch gap-4">
           <div>
             <Label>Physical or mental health treatment?</Label>
             <RadioGroup
-              value={healthTreatment}
-              onValueChange={setHealthTreatment}
+              value={formData.healthTreatment}
+              onValueChange={(v) => handleChange("healthTreatment", v as "yes" | "no")}
             >
               <div className="flex gap-4 mt-2">
                 <RadioGroupItem value="yes" id="treatYes" />
@@ -130,22 +142,25 @@ export default function Step4({ next, back }: Props) {
           </div>
 
           <div
-            className={`transition-all duration-500 ease-in-out  ${healthTreatment === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+            className={`transition-all duration-500 ease-in-out ${
+              formData.healthTreatment === "yes" ? "h-auto! opacity-100" : "h-0! overflow-hidden! opacity-0"
+            }`}
           >
             <Label>Treatment Details</Label>
             <Textarea
-              value={treatmentDetails}
-              onChange={(e) => setTreatmentDetails(e.target.value)}
+              value={formData.treatmentDetails}
+              onChange={(e) => handleChange("treatmentDetails", e.target.value)}
             />
           </div>
         </div>
+
         {/* Condition */}
-        <div className="flex flex-col items-stretch gap-4 ">
+        <div className="flex flex-col items-stretch gap-4">
           <div>
             <Label>Any injury / condition / allergy affecting duties?</Label>
             <RadioGroup
-              value={medicalCondition}
-              onValueChange={setMedicalCondition}
+              value={formData.medicalCondition}
+              onValueChange={(v) => handleChange("medicalCondition", v as "yes" | "no")}
             >
               <div className="flex gap-4 mt-2">
                 <RadioGroupItem value="yes" id="condYes" />
@@ -157,21 +172,26 @@ export default function Step4({ next, back }: Props) {
           </div>
 
           <div
-            className={`transition-all duration-500 ease-in-out  ${medicalCondition === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+            className={`transition-all duration-500 ease-in-out ${
+              formData.medicalCondition === "yes" ? "h-auto! opacity-100" : "h-0! overflow-hidden! opacity-0"
+            }`}
           >
             <Label>Condition Details</Label>
             <Textarea
-              value={conditionDetails}
-              onChange={(e) => setConditionDetails(e.target.value)}
+              value={formData.conditionDetails}
+              onChange={(e) => handleChange("conditionDetails", e.target.value)}
             />
           </div>
         </div>
 
         {/* Disability */}
-        <div className="flex flex-col items-stretch gap-4 ">
+        <div className="flex flex-col items-stretch gap-4">
           <div>
             <Label>Do you consider yourself disabled?</Label>
-            <RadioGroup value={disabled} onValueChange={setDisabled}>
+            <RadioGroup
+              value={formData.disabled}
+              onValueChange={(v) => handleChange("disabled", v as "yes" | "no")}
+            >
               <div className="flex gap-4 mt-2">
                 <RadioGroupItem value="yes" id="disYes" />
                 <Label htmlFor="disYes">Yes</Label>
@@ -182,20 +202,25 @@ export default function Step4({ next, back }: Props) {
           </div>
 
           <div
-            className={`transition-all duration-500 ease-in-out  ${disabled === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+            className={`transition-all duration-500 ease-in-out ${
+              formData.disabled === "yes" ? "h-auto! opacity-100" : "h-0! overflow-hidden! opacity-0"
+            }`}
           >
             <Label>Type of Impairment</Label>
             <Input
-              value={impairmentType}
-              onChange={(e) => setImpairmentType(e.target.value)}
+              value={formData.impairmentType}
+              onChange={(e) => handleChange("impairmentType", e.target.value)}
             />
           </div>
         </div>
 
-        {/* Night */}
+        {/* Night Shift */}
         <div>
           <Label>Medical fit for Night Shift?</Label>
-          <RadioGroup value={nightShiftFit} onValueChange={setNightShiftFit}>
+          <RadioGroup
+            value={formData.nightShiftFit}
+            onValueChange={(v) => handleChange("nightShiftFit", v as "yes" | "no")}
+          >
             <div className="flex gap-4 mt-2">
               <RadioGroupItem value="yes" id="nightYes" />
               <Label htmlFor="nightYes">Yes</Label>
@@ -205,10 +230,12 @@ export default function Step4({ next, back }: Props) {
           </RadioGroup>
         </div>
       </div>
+
       <SignupNavButtons
         onBack={back}
         onNext={() => {
           if (validateStep()) {
+            console.log("Step4 Data:", formData); // ✅ log here
             next();
           }
         }}

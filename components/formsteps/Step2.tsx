@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,12 +9,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
+// ------------------ Types ------------------
+import { Step2Type } from "@/types/Form";
+
 type NavProps = {
   onNext: () => void;
   onBack: () => void;
   disableBack?: boolean;
 };
 
+type Props = {
+  next: () => void;
+  back: () => void;
+};
+
+// ------------------ Navigation Buttons ------------------
 function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   return (
     <div className="flex gap-2 mt-3 justify-between">
@@ -37,23 +45,42 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   );
 }
 
-type Props = {
-  next: () => void;
-  back: () => void;
-};
+// ------------------ Step 2 Component ------------------
 export default function Step2({ next, back }: Props) {
-  const [availabilityIssue, setAvailabilityIssue] = useState("no");
-  const [workRestrictions, setWorkRestrictions] = useState("no");
-  const [restrictionDetails, setRestrictionDetails] = useState("");
-  const [overtime, setOvertime] = useState("yes");
-  const [hoursAvoid, setHoursAvoid] = useState("");
-  const [noticePeriod, setNoticePeriod] = useState("");
-  const [workedBefore, setWorkedBefore] = useState("no");
-  const [appliedBefore, setAppliedBefore] = useState("no");
-  const [appliedDetails, setAppliedDetails] = useState("");
+  const [formData, setFormData] = useState<Step2Type>({
+    availabilityIssue: "no",
+    workRestrictions: "no",
+    restrictionDetails: "",
+    overtime: "yes",
+    hoursAvoid: "",
+    noticePeriod: "",
+    workedBefore: "no",
+    appliedBefore: "no",
+    appliedDetails: "",
+  });
 
-  // Validation for Step 2
+  // Generic handler for all fields
+  const handleChange = <K extends keyof Step2Type>(
+    key: K,
+    value: Step2Type[K],
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  // Validation
   const validateStep = (): boolean => {
+    const {
+      hoursAvoid,
+      noticePeriod,
+      workRestrictions,
+      restrictionDetails,
+      appliedBefore,
+      appliedDetails,
+    } = formData;
+
     if (!hoursAvoid || !noticePeriod) {
       toast.error("Please complete all required fields");
       return false;
@@ -74,13 +101,15 @@ export default function Step2({ next, back }: Props) {
 
   return (
     <>
-      <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 ">
+      <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
         {/* Availability Issue */}
         <div>
           <Label>Involved in activity limiting availability?</Label>
           <RadioGroup
-            value={availabilityIssue}
-            onValueChange={setAvailabilityIssue}
+            value={formData.availabilityIssue}
+            onValueChange={(v) =>
+              handleChange("availabilityIssue", v as "yes" | "no")
+            }
           >
             <div className="flex gap-4 mt-2">
               <div className="flex items-center gap-2">
@@ -94,10 +123,14 @@ export default function Step2({ next, back }: Props) {
             </div>
           </RadioGroup>
         </div>
+
         {/* Overtime */}
         <div>
           <Label>Willing to work overtime & weekends?</Label>
-          <RadioGroup value={overtime} onValueChange={setOvertime}>
+          <RadioGroup
+            value={formData.overtime}
+            onValueChange={(v) => handleChange("overtime", v as "yes" | "no")}
+          >
             <div className="flex gap-4 mt-1">
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="yes" id="overtimeYes" />
@@ -115,8 +148,8 @@ export default function Step2({ next, back }: Props) {
         <div>
           <Label>Hours you do not wish to work *</Label>
           <Input
-            value={hoursAvoid}
-            onChange={(e) => setHoursAvoid(e.target.value)}
+            value={formData.hoursAvoid}
+            onChange={(e) => handleChange("hoursAvoid", e.target.value)}
             placeholder="e.g. Nights"
             className="py-5"
           />
@@ -126,18 +159,23 @@ export default function Step2({ next, back }: Props) {
         <div>
           <Label>Notice period required *</Label>
           <Input
-            value={noticePeriod}
-            onChange={(e) => setNoticePeriod(e.target.value)}
+            value={formData.noticePeriod}
+            onChange={(e) => handleChange("noticePeriod", e.target.value)}
             placeholder="e.g. 2 weeks"
             className="py-5"
           />
         </div>
 
         {/* Applied Before */}
-        <div className="flex flex-col items-stretch gap-4 ">
+        <div className="flex flex-col items-stretch gap-4">
           <div>
             <Label>Applied before?</Label>
-            <RadioGroup value={appliedBefore} onValueChange={setAppliedBefore}>
+            <RadioGroup
+              value={formData.appliedBefore}
+              onValueChange={(v) =>
+                handleChange("appliedBefore", v as "yes" | "no")
+              }
+            >
               <div className="flex gap-4 mt-1">
                 <div className="flex items-center gap-2">
                   <RadioGroupItem value="yes" id="appliedYes" />
@@ -152,25 +190,30 @@ export default function Step2({ next, back }: Props) {
           </div>
 
           <div
-            className={`transition-all duration-500 ease-in-out  ${appliedBefore === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+            className={`transition-all duration-500 ease-in-out ${
+              formData.appliedBefore === "yes"
+                ? "h-auto! opacity-100"
+                : "h-0! overflow-hidden! opacity-0"
+            }`}
           >
             <Label>Application Details *</Label>
             <Textarea
-              value={appliedDetails}
-              onChange={(e) => setAppliedDetails(e.target.value)}
+              value={formData.appliedDetails}
+              onChange={(e) => handleChange("appliedDetails", e.target.value)}
               placeholder="Provide details"
-              className=""
             />
           </div>
         </div>
 
         {/* Work Restrictions */}
-        <div className="flex flex-col items-stretch gap-4 ">
+        <div className="flex flex-col items-stretch gap-4">
           <div>
             <Label>Subject to work restrictions / covenants?</Label>
             <RadioGroup
-              value={workRestrictions}
-              onValueChange={setWorkRestrictions}
+              value={formData.workRestrictions}
+              onValueChange={(v) =>
+                handleChange("workRestrictions", v as "yes" | "no")
+              }
             >
               <div className="flex gap-4 mt-1">
                 <div className="flex items-center gap-2">
@@ -186,12 +229,18 @@ export default function Step2({ next, back }: Props) {
           </div>
 
           <div
-            className={`transition-all duration-500 ease-in-out  ${workRestrictions === "yes" ? "max-h-auto!  opacity-100 " : "max-h-0! overflow-hidden!  opacity-0"}`}
+            className={`transition-all duration-500 ease-in-out ${
+              formData.workRestrictions === "yes"
+                ? "max-h-auto! opacity-100"
+                : "max-h-0! overflow-hidden! opacity-0"
+            }`}
           >
             <Label>Restriction Details *</Label>
             <Textarea
-              value={restrictionDetails}
-              onChange={(e) => setRestrictionDetails(e.target.value)}
+              value={formData.restrictionDetails}
+              onChange={(e) =>
+                handleChange("restrictionDetails", e.target.value)
+              }
               placeholder="Provide details"
             />
           </div>
@@ -200,7 +249,12 @@ export default function Step2({ next, back }: Props) {
         {/* Worked Before */}
         <div>
           <Label>Have you worked for us before?</Label>
-          <RadioGroup value={workedBefore} onValueChange={setWorkedBefore}>
+          <RadioGroup
+            value={formData.workedBefore}
+            onValueChange={(v) =>
+              handleChange("workedBefore", v as "yes" | "no")
+            }
+          >
             <div className="flex gap-4 mt-1">
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="yes" id="workedYes" />
@@ -213,12 +267,13 @@ export default function Step2({ next, back }: Props) {
             </div>
           </RadioGroup>
         </div>
-        {/* Navigation Buttons */}
       </div>
+
       <SignupNavButtons
         onBack={back}
         onNext={() => {
           if (validateStep()) {
+            console.log("Step2 Data:", formData); // ✅ log here
             next();
           }
         }}

@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { Step3Type } from "@/types/Form";
+// ------------------ Types ------------------
+
 
 type NavProps = {
   onNext: () => void;
@@ -16,15 +18,16 @@ type NavProps = {
   disableBack?: boolean;
 };
 
+type Props = {
+  next: () => void;
+  back: () => void;
+};
+
+// ------------------ Navigation Buttons ------------------
 function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   return (
     <div className="flex gap-2 mt-3 justify-between">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onBack}
-        disabled={disableBack}
-      >
+      <Button type="button" variant="outline" onClick={onBack} disabled={disableBack}>
         <IoIosArrowBack />
         Back
       </Button>
@@ -37,46 +40,51 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   );
 }
 
-type Props = {
-  next: () => void;
-  back: () => void;
-};
+// ------------------ Step 3 Component ------------------
 export default function Step3({ next, back }: Props) {
-  // Criminal & Compliance
-  const [hasConvictions, setHasConvictions] = useState("no");
-  const [convictionDetails, setConvictionDetails] = useState("");
-  const [hasUnspentConvictions, setHasUnspentConvictions] = useState("no");
-  const [unspentDetails, setUnspentDetails] = useState("");
-  const [fitnessInvestigation, setFitnessInvestigation] = useState("no");
-  const [removedFromRegister, setRemovedFromRegister] = useState("no");
-  const [crb, setCrb] = useState<"yes" | "no">("no");
-  const [surname, setSurname] = useState("");
-  const [dob, setDob] = useState("");
-  const [crbFile, setCrbFile] = useState<File | null>(null);
+  const [formData, setFormData] = useState<Step3Type>({
+    hasConvictions: "no",
+    convictionDetails: "",
+    hasUnspentConvictions: "no",
+    unspentDetails: "",
+    fitnessInvestigation: "no",
+    removedFromRegister: "no",
+    crb: "no",
+    surname: "",
+    dob: "",
+    crbFile: null,
+  });
+
+  const handleChange = <K extends keyof Step3Type>(key: K, value: Step3Type[K]) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
   const validateStep = (): boolean => {
-    if (hasConvictions === "yes" && !convictionDetails) {
+    if (formData.hasConvictions === "yes" && !formData.convictionDetails) {
       toast.error("Please provide conviction details");
       return false;
     }
 
-    if (hasUnspentConvictions === "yes" && !unspentDetails) {
+    if (formData.hasUnspentConvictions === "yes" && !formData.unspentDetails) {
       toast.error("Please provide unspent conviction details");
       return false;
     }
 
-    if (crb === "yes") {
-      if (!surname) {
+    if (formData.crb === "yes") {
+      if (!formData.surname) {
         toast.error("Surname is required");
         return false;
       }
 
-      if (!dob) {
+      if (!formData.dob) {
         toast.error("Date of birth is required");
         return false;
       }
 
-      if (!crbFile) {
+      if (!formData.crbFile) {
         toast.error("Please upload CRB document");
         return false;
       }
@@ -89,12 +97,12 @@ export default function Step3({ next, back }: Props) {
     <>
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
         {/* Convictions */}
-        <div className="flex flex-col items-stretch gap-4 ">
+        <div className="flex flex-col items-stretch gap-4">
           <div>
             <Label>Any convictions?</Label>
             <RadioGroup
-              value={hasConvictions}
-              onValueChange={setHasConvictions}
+              value={formData.hasConvictions}
+              onValueChange={(v) => handleChange("hasConvictions", v as "yes" | "no")}
             >
               <div className="flex gap-4 mt-2">
                 <RadioGroupItem value="yes" id="convictYes" />
@@ -106,22 +114,25 @@ export default function Step3({ next, back }: Props) {
           </div>
 
           <div
-            className={`transition-all duration-500 ease-in-out  ${hasConvictions === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+            className={`transition-all duration-500 ease-in-out ${
+              formData.hasConvictions === "yes" ? "h-auto! opacity-100" : "h-0! overflow-hidden! opacity-0"
+            }`}
           >
             <Label>Conviction Details *</Label>
             <Textarea
-              value={convictionDetails}
-              onChange={(e) => setConvictionDetails(e.target.value)}
+              value={formData.convictionDetails}
+              onChange={(e) => handleChange("convictionDetails", e.target.value)}
             />
           </div>
         </div>
-        {/* Unspent */}
-        <div className="flex flex-col items-stretch gap-4 ">
+
+        {/* Unspent Convictions */}
+        <div className="flex flex-col items-stretch gap-4">
           <div>
             <Label>Any unspent convictions?</Label>
             <RadioGroup
-              value={hasUnspentConvictions}
-              onValueChange={setHasUnspentConvictions}
+              value={formData.hasUnspentConvictions}
+              onValueChange={(v) => handleChange("hasUnspentConvictions", v as "yes" | "no")}
             >
               <div className="flex gap-4 mt-2">
                 <RadioGroupItem value="yes" id="unspentYes" />
@@ -133,22 +144,24 @@ export default function Step3({ next, back }: Props) {
           </div>
 
           <div
-            className={`transition-all duration-500 ease-in-out  ${hasUnspentConvictions === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+            className={`transition-all duration-500 ease-in-out ${
+              formData.hasUnspentConvictions === "yes" ? "h-auto! opacity-100" : "h-0! overflow-hidden! opacity-0"
+            }`}
           >
             <Label>Unspent Conviction Details *</Label>
             <Textarea
-              value={unspentDetails}
-              onChange={(e) => setUnspentDetails(e.target.value)}
+              value={formData.unspentDetails}
+              onChange={(e) => handleChange("unspentDetails", e.target.value)}
             />
           </div>
         </div>
 
-        {/* Fitness */}
+        {/* Fitness Investigation */}
         <div>
           <Label>Currently under fitness to practice investigation?</Label>
           <RadioGroup
-            value={fitnessInvestigation}
-            onValueChange={setFitnessInvestigation}
+            value={formData.fitnessInvestigation}
+            onValueChange={(v) => handleChange("fitnessInvestigation", v as "yes" | "no")}
           >
             <div className="flex gap-4 mt-2">
               <RadioGroupItem value="yes" id="fitnessYes" />
@@ -159,12 +172,12 @@ export default function Step3({ next, back }: Props) {
           </RadioGroup>
         </div>
 
-        {/* Removed */}
+        {/* Removed From Register */}
         <div>
           <Label>Removed from professional register before?</Label>
           <RadioGroup
-            value={removedFromRegister}
-            onValueChange={setRemovedFromRegister}
+            value={formData.removedFromRegister}
+            onValueChange={(v) => handleChange("removedFromRegister", v as "yes" | "no")}
           >
             <div className="flex gap-4 mt-2">
               <RadioGroupItem value="yes" id="removedYes" />
@@ -174,12 +187,15 @@ export default function Step3({ next, back }: Props) {
             </div>
           </RadioGroup>
         </div>
-        {/* CRB Section */}
+
+        {/* CRB */}
         <div className="flex flex-col items-stretch gap-4 md:col-span-2">
-          {/* Radio */}
           <div>
             <Label>Any CRB?</Label>
-            <RadioGroup value={crb} onValueChange={(val: any) => setCrb(val)}>
+            <RadioGroup
+              value={formData.crb}
+              onValueChange={(v) => handleChange("crb", v as "yes" | "no")}
+            >
               <div className="flex gap-4 mt-2 items-center">
                 <div className="flex items-center gap-2">
                   <RadioGroupItem value="yes" id="crbYes" />
@@ -197,40 +213,37 @@ export default function Step3({ next, back }: Props) {
           {/* Conditional Fields */}
           <div
             className={`transition-all duration-500 ease-in-out ${
-              crb === "yes"
+              formData.crb === "yes"
                 ? "opacity-100 max-h-[500px]"
                 : "opacity-0 max-h-0 overflow-hidden"
             }`}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
-              {/* Surname */}
               <div>
                 <Label>Surname *</Label>
                 <Input
-                  value={surname}
-                  onChange={(e) => setSurname(e.target.value)}
+                  value={formData.surname}
+                  onChange={(e) => handleChange("surname", e.target.value)}
                   placeholder="Enter surname"
                 />
               </div>
 
-              {/* Date of Birth */}
               <div>
                 <Label>Date of Birth *</Label>
                 <Input
                   type="date"
-                  value={dob}
-                  onChange={(e) => setDob(e.target.value)}
+                  value={formData.dob}
+                  onChange={(e) => handleChange("dob", e.target.value)}
                 />
               </div>
 
-              {/* File Upload */}
               <div>
                 <Label>Upload CRB *</Label>
                 <Input
                   type="file"
                   accept=".pdf,.jpg,.png"
                   onChange={(e) =>
-                    setCrbFile(e.target.files ? e.target.files[0] : null)
+                    handleChange("crbFile", e.target.files ? e.target.files[0] : null)
                   }
                 />
               </div>
@@ -238,10 +251,12 @@ export default function Step3({ next, back }: Props) {
           </div>
         </div>
       </div>
+
       <SignupNavButtons
         onBack={back}
         onNext={() => {
           if (validateStep()) {
+            console.log("Step3 Data:", formData); // ✅ log here
             next();
           }
         }}

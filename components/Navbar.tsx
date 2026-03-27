@@ -26,6 +26,8 @@ export default function Navbar() {
               src="/logo.png"
               alt="logo"
               fill
+              sizes="1"
+              loading="eager"
               className="object-contain"
               priority
             />

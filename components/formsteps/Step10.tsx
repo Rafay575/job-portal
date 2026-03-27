@@ -1,12 +1,11 @@
 "use client";
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { Step10Type } from "@/types/Form";
 
 type NavProps = {
   onNext: () => void;
@@ -39,13 +38,16 @@ type Props = {
   next: () => void;
   back: () => void;
 };
+
 export default function Step10({ next, back }: Props) {
-  const [supportingStatement, setSupportingStatement] = useState("");
+  const [formData, setFormData] = useState<Step10Type>({
+    supportingStatement: "",
+  });
 
   const validateStep = (): boolean => {
-    const wordCount = supportingStatement.trim().split(/\s+/).length;
+    const wordCount = formData.supportingStatement.trim().split(/\s+/).length;
 
-    if (!supportingStatement || wordCount > 150) {
+    if (!formData.supportingStatement || wordCount > 150) {
       toast.error("Please provide a supporting statement (max 150 words)");
       return false;
     }
@@ -54,29 +56,25 @@ export default function Step10({ next, back }: Props) {
   };
 
   return (
-    <>
-      
-
-      <div className="min-w-full space-y-3 p-1 flex flex-col">
-        <Label>Supporting Statement (Max 150 words)</Label>
-
-        <Textarea
-          value={supportingStatement}
-          onChange={(e) => setSupportingStatement(e.target.value)}
-          placeholder="Why are you applying & how do you match the role?"
-          className="py-3 min-h-[150px]"
-        />
-
-        <SignupNavButtons
-        
+    <div className="min-w-full space-y-3 p-1 flex flex-col">
+      <Label>Supporting Statement (Max 150 words)</Label>
+      <Textarea
+        value={formData.supportingStatement}
+        onChange={(e) =>
+          setFormData({ ...formData, supportingStatement: e.target.value })
+        }
+        placeholder="Why are you applying & how do you match the role?"
+        className="py-3 min-h-[150px]"
+      />
+      <SignupNavButtons
         onBack={back}
-        onNext={() => {
+         onNext={() => {
           if (validateStep()) {
+            console.log("Step7 Data:", formData); // ✅ log here
             next();
           }
         }}
       />
-      </div>
-    </>
+    </div>
   );
 }

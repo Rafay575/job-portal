@@ -7,58 +7,43 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { motion, AnimatePresence } from "framer-motion";
-type GapItem = {
-  gapFrom: string;
-  gapTo: string;
-  reason: string;
-};
+import { Trash2, GraduationCap, CalendarOff, GripVertical } from "lucide-react";
 
-type Education = {
-  qualificationType: string; // GCSE, A Level, NVQ, Degree, etc
-  qualificationTitle: string; // subject / course title
-  institutionName: string;
-  institutionCountry: string; // UK, Pakistan, etc
-  awardingBody: string; // e.g., Pearson, City & Guilds, University name
-  gradeOrResult: string; // e.g., A*, 2:1, Distinction
-  startDate: string;
-  endDate: string;
-  completed: "yes" | "no";
-  additionalNotes: string;
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  UniqueIdentifier,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
-  // Optional extras (common for UK onboarding)
-  hasProfessionalRegistration: "yes" | "no";
-  registrationBody: string;
-  registrationNumber: string;
-  registrationExpiry: string;
+import { EducationEntry } from "@/types/Form";
+import { GapEntry8 } from "@/types/Form";
+import { Step8Type } from "@/types/Form";
 
-  certificateFile: File | null;
-  // NEW GAP SECTION
-  hasEducationGaps: "yes" | "no";
-  gapExplanation: string;
-  gaps: GapItem[];
-};
 
-type NavProps = {
-  onNext: () => void;
-  onBack: () => void;
-  disableBack?: boolean;
-};
+// ─── Nav Buttons ──────────────────────────────────────────────────────────────
+
+type NavProps = { onNext: () => void; onBack: () => void; disableBack?: boolean };
 
 function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   return (
     <div className="flex gap-2 mt-3 justify-between">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onBack}
-        disabled={disableBack}
-        className="gap-2"
-      >
+      <Button type="button" variant="outline" onClick={onBack} disabled={disableBack} className="gap-2">
         <IoIosArrowBack />
         Back
       </Button>
-
       <Button type="button" onClick={onNext} className="gap-2">
         Next
         <IoIosArrowForward />
@@ -67,17 +52,26 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   );
 }
 
-type Props = {
-  next: () => void;
-  back: () => void;
-};
-const emptyGap = (): GapItem => ({
-  gapFrom: "",
-  gapTo: "",
-  reason: "",
-});
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const emptyEducation = (): Education => ({
+let _id = 0;
+const nextId = () => ++_id;
+
+const qualificationTypes = [
+  "GCSE / O-Level",
+  "A-Level",
+  "NVQ",
+  "BTEC / Diploma",
+  "Foundation Degree",
+  "Bachelor's Degree",
+  "Master's Degree",
+  "PhD",
+  "Other",
+];
+
+const emptyEducation = (): EducationEntry => ({
+  kind: "education",
+  id: nextId(),
   qualificationType: "",
   qualificationTitle: "",
   institutionName: "",
@@ -88,622 +82,534 @@ const emptyEducation = (): Education => ({
   endDate: "",
   completed: "yes",
   additionalNotes: "",
-
   hasProfessionalRegistration: "no",
   registrationBody: "",
   registrationNumber: "",
   registrationExpiry: "",
-
   certificateFile: null,
-  hasEducationGaps: "no",
-  gapExplanation: "",
-  gaps: [emptyGap()],
 });
 
+const emptyGap = (): GapEntry8 => ({
+  kind: "gap",
+  id: nextId(),
+  gapFrom: "",
+  gapTo: "",
+  reason: "",
+});
+
+// ─── Sortable Card ────────────────────────────────────────────────────────────
+
+type CardProps = {
+  entry: Step8Type;
+  label: string;
+  isDragOverlay?: boolean;
+  onRemove: (id: number) => void;
+  onUpdateEducation: (id: number, key: keyof Omit<EducationEntry, "kind" | "id">, value: any) => void;
+  onUpdateGap: (id: number, key: keyof Omit<GapEntry8, "kind" | "id">, value: string) => void;
+};
+
+function SortableCard(props: CardProps) {
+  const { entry, label, isDragOverlay, onRemove, onUpdateEducation, onUpdateGap } = props;
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: entry.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={isDragOverlay ? undefined : style}
+      className={`rounded-xl border p-4 ${
+        entry.kind === "gap" ? "border-primary bg-amber-50/40" : "bg-white"
+      } ${isDragOverlay ? "shadow-2xl rotate-1 scale-[1.02] opacity-95" : ""}`}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing touch-none p-1 rounded hover:bg-muted/60 text-muted-foreground"
+            aria-label="Drag to reorder"
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+
+          {entry.kind === "education" ? (
+            <GraduationCap className="h-4 w-4 text-primary" />
+          ) : (
+            <CalendarOff className="h-4 w-4 text-primary" />
+          )}
+
+          <p className={`text-sm font-semibold ${entry.kind === "gap" ? "text-primary" : "text-primary"}`}>
+            {label}
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => onRemove(entry.id)}
+          className="gap-1 text-destructive hover:text-destructive h-8 px-2"
+        >
+          <Trash2 className="h-4 w-4" />
+          Remove
+        </Button>
+      </div>
+
+      {/* ── Education fields ── */}
+      {entry.kind === "education" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Qualification Type */}
+          <div>
+            <Label className="text-sm">Qualification Type *</Label>
+            <select
+              value={entry.qualificationType}
+              onChange={(e) => onUpdateEducation(entry.id, "qualificationType", e.target.value)}
+              className="mt-2 w-full border rounded-xl p-2 text-sm bg-white"
+            >
+              <option value="">Select</option>
+              {qualificationTypes.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Qualification Title */}
+          <div>
+            <Label className="text-sm">Qualification Title / Subject *</Label>
+            <Input
+              className="mt-2"
+              placeholder="e.g., BSc Computer Science"
+              value={entry.qualificationTitle}
+              onChange={(e) => onUpdateEducation(entry.id, "qualificationTitle", e.target.value)}
+            />
+          </div>
+
+          {/* Institution Name */}
+          <div>
+            <Label className="text-sm">Institution Name *</Label>
+            <Input
+              className="mt-2"
+              placeholder="e.g., University of Manchester"
+              value={entry.institutionName}
+              onChange={(e) => onUpdateEducation(entry.id, "institutionName", e.target.value)}
+            />
+          </div>
+
+          {/* Institution Country */}
+          <div>
+            <Label className="text-sm">Institution Country *</Label>
+            <Input
+              className="mt-2"
+              placeholder="e.g., United Kingdom"
+              value={entry.institutionCountry}
+              onChange={(e) => onUpdateEducation(entry.id, "institutionCountry", e.target.value)}
+            />
+          </div>
+
+          {/* Awarding Body */}
+          <div>
+            <Label className="text-sm">Awarding Body *</Label>
+            <Input
+              className="mt-2"
+              placeholder="e.g., Pearson / City & Guilds / University"
+              value={entry.awardingBody}
+              onChange={(e) => onUpdateEducation(entry.id, "awardingBody", e.target.value)}
+            />
+          </div>
+
+          {/* Grade */}
+          <div>
+            <Label className="text-sm">Grade / Result *</Label>
+            <Input
+              className="mt-2"
+              placeholder="e.g., 2:1 / Distinction / A*"
+              value={entry.gradeOrResult}
+              onChange={(e) => onUpdateEducation(entry.id, "gradeOrResult", e.target.value)}
+            />
+          </div>
+
+          {/* Start / End Date */}
+          <div>
+            <Label className="text-sm">Start Date *</Label>
+            <Input
+              className="mt-2"
+              type="date"
+              value={entry.startDate}
+              onChange={(e) => onUpdateEducation(entry.id, "startDate", e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm">End Date *</Label>
+            <Input
+              className="mt-2"
+              type="date"
+              value={entry.endDate}
+              onChange={(e) => onUpdateEducation(entry.id, "endDate", e.target.value)}
+            />
+          </div>
+
+          {/* Completed */}
+          <div>
+            <Label className="text-sm">Completed? *</Label>
+            <div className="mt-2 flex gap-3">
+              {(["yes", "no"] as const).map((v) => (
+                <label key={v} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name={`completed-${entry.id}`}
+                    checked={entry.completed === v}
+                    onChange={() => onUpdateEducation(entry.id, "completed", v)}
+                  />
+                  {v.charAt(0).toUpperCase() + v.slice(1)}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Professional Registration */}
+          <div>
+            <Label className="text-sm">Professional Registration / Licence?</Label>
+            <div className="mt-2 flex gap-3">
+              {(["yes", "no"] as const).map((v) => (
+                <label key={v} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name={`reg-${entry.id}`}
+                    checked={entry.hasProfessionalRegistration === v}
+                    onChange={() => onUpdateEducation(entry.id, "hasProfessionalRegistration", v)}
+                  />
+                  {v.charAt(0).toUpperCase() + v.slice(1)}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {entry.hasProfessionalRegistration === "yes" && (
+            <>
+              <div>
+                <Label className="text-sm">Registration Body *</Label>
+                <Input
+                  className="mt-2"
+                  placeholder="e.g., NMC / HCPC / GMC"
+                  value={entry.registrationBody}
+                  onChange={(e) => onUpdateEducation(entry.id, "registrationBody", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="text-sm">Registration Number *</Label>
+                <Input
+                  className="mt-2"
+                  placeholder="e.g., PIN / Licence No"
+                  value={entry.registrationNumber}
+                  onChange={(e) => onUpdateEducation(entry.id, "registrationNumber", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="text-sm">Registration Expiry *</Label>
+                <Input
+                  className="mt-2"
+                  type="date"
+                  value={entry.registrationExpiry}
+                  onChange={(e) => onUpdateEducation(entry.id, "registrationExpiry", e.target.value)}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Certificate Upload */}
+          <div className="md:col-span-2">
+            <Label className="text-sm">Upload Certificate (optional)</Label>
+            <div className="mt-2 border rounded-xl p-3">
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  onUpdateEducation(entry.id, "certificateFile", file);
+                }}
+              />
+              {entry.certificateFile && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Uploaded: {entry.certificateFile.name}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div className="md:col-span-2">
+            <Label className="text-sm">Additional Notes (optional)</Label>
+            <Textarea
+              className="mt-2"
+              placeholder="Any extra details about this qualification..."
+              value={entry.additionalNotes}
+              onChange={(e) => onUpdateEducation(entry.id, "additionalNotes", e.target.value)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── Gap fields ── */}
+      {entry.kind === "gap" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <Label className="text-sm">Gap From *</Label>
+            <Input
+              type="date"
+              className="mt-2"
+              value={entry.gapFrom}
+              onChange={(e) => onUpdateGap(entry.id, "gapFrom", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label className="text-sm">Gap To *</Label>
+            <Input
+              type="date"
+              className="mt-2"
+              value={entry.gapTo}
+              onChange={(e) => onUpdateGap(entry.id, "gapTo", e.target.value)}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Label className="text-sm">Reason *</Label>
+            <Textarea
+              className="mt-2 min-h-[90px]"
+              value={entry.reason}
+              onChange={(e) => onUpdateGap(entry.id, "reason", e.target.value)}
+              placeholder="e.g., travelling, caring for family, health recovery, gap year, etc."
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Props ────────────────────────────────────────────────────────────────────
+
+type Props = { next: () => void; back: () => void };
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 export default function Step8({ next, back }: Props) {
-  const [educationHistory, setEducationHistory] = useState<Education[]>([
-    emptyEducation(),
-  ]);
+  const [timeline, setTimeline] = useState<Step8Type[]>([]);
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
 
-  const qualificationTypes = [
-    "GCSE / O-Level",
-    "A-Level",
-    "NVQ",
-    "BTEC / Diploma",
-    "Foundation Degree",
-    "Bachelor's Degree",
-    "Master's Degree",
-    "PhD",
-    "Other",
-  ];
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
 
+  // ── Add / Remove ────────────────────────────────────────────────────────────
+  const addEducation = () =>
+    setTimeline((prev) => [...prev, emptyEducation()]);
+
+  const addGap = () =>
+    setTimeline((prev) => [...prev, emptyGap()]);
+
+  const removeEntry = (id: number) =>
+    setTimeline((prev) => prev.filter((e) => e.id !== id));
+
+  // ── Update ──────────────────────────────────────────────────────────────────
   const updateEducation = (
-    index: number,
-    field: keyof Education,
+    id: number,
+    key: keyof Omit<EducationEntry, "kind" | "id">,
     value: any,
-  ) => {
-    const updated = [...educationHistory];
-    (updated[index] as any)[field] = value;
-    setEducationHistory(updated);
+  ) =>
+    setTimeline((prev) =>
+      prev.map((e) =>
+        e.id === id && e.kind === "education" ? { ...e, [key]: value } : e
+      )
+    );
+
+  const updateGap = (
+    id: number,
+    key: keyof Omit<GapEntry8, "kind" | "id">,
+    value: string,
+  ) =>
+    setTimeline((prev) =>
+      prev.map((e) =>
+        e.id === id && e.kind === "gap" ? { ...e, [key]: value } : e
+      )
+    );
+
+  // ── DnD ─────────────────────────────────────────────────────────────────────
+  const handleDragStart = (event: DragStartEvent) => setActiveId(event.active.id);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+    if (!over || active.id === over.id) return;
+    setTimeline((prev) => {
+      const oldIndex = prev.findIndex((e) => e.id === active.id);
+      const newIndex = prev.findIndex((e) => e.id === over.id);
+      return arrayMove(prev, oldIndex, newIndex);
+    });
   };
 
-  const addEducation = () => {
-    setEducationHistory([...educationHistory, emptyEducation()]);
+  // ── Label ───────────────────────────────────────────────────────────────────
+  const getLabel = (entry: Step8Type, tl: Step8Type[]) => {
+    let count = 0;
+    for (const e of tl) {
+      if (e.kind === entry.kind) count++;
+      if (e.id === entry.id) break;
+    }
+    return entry.kind === "education" ? `Education #${count}` : `Gap #${count}`;
   };
 
-  const removeEducation = (index: number) => {
-    const nextList = educationHistory.filter((_, i) => i !== index);
-    setEducationHistory(nextList.length ? nextList : [emptyEducation()]);
-  };
-
+  // ── Validation ───────────────────────────────────────────────────────────────
   const validateStep = (): boolean => {
-    // Require at least one education record fully filled
-    for (let i = 0; i < educationHistory.length; i++) {
-      const e = educationHistory[i];
+    const educations = timeline.filter((e): e is EducationEntry => e.kind === "education");
 
-      if (
-        !e.qualificationType ||
-        !e.qualificationTitle.trim() ||
-        !e.institutionName.trim() ||
-        !e.institutionCountry.trim() ||
-        !e.awardingBody.trim() ||
-        !e.gradeOrResult.trim() ||
-        !e.startDate ||
-        !e.endDate
-      ) {
-        toast.error(
-          `Please complete all required fields for Education ${i + 1}`,
-        );
-        return false;
-      }
+    if (educations.length === 0) {
+      toast.error("Please add at least one education record");
+      return false;
+    }
 
-      if (new Date(e.startDate) > new Date(e.endDate)) {
-        toast.error(`Education ${i + 1}: Start Date cannot be after End Date`);
-        return false;
-      }
+    for (const entry of timeline) {
+      const label = getLabel(entry, timeline);
 
-      if (e.hasProfessionalRegistration === "yes") {
+      if (entry.kind === "education") {
+        const {
+          qualificationType, qualificationTitle, institutionName,
+          institutionCountry, awardingBody, gradeOrResult, startDate, endDate,
+          hasProfessionalRegistration, registrationBody, registrationNumber, registrationExpiry,
+        } = entry;
+
         if (
-          !e.registrationBody.trim() ||
-          !e.registrationNumber.trim() ||
-          !e.registrationExpiry
+          !qualificationType || !qualificationTitle.trim() || !institutionName.trim() ||
+          !institutionCountry.trim() || !awardingBody.trim() || !gradeOrResult.trim() ||
+          !startDate || !endDate
         ) {
-          toast.error(
-            `Education ${i + 1}: Please complete registration details`,
-          );
+          toast.error(`Please complete all required fields for ${label}`);
           return false;
+        }
+
+        if (new Date(startDate) > new Date(endDate)) {
+          toast.error(`${label}: Start Date cannot be after End Date`);
+          return false;
+        }
+
+        if (hasProfessionalRegistration === "yes") {
+          if (!registrationBody.trim() || !registrationNumber.trim() || !registrationExpiry) {
+            toast.error(`${label}: Please complete all registration details`);
+            return false;
+          }
         }
       }
-      if (e.hasEducationGaps === "yes") {
-        if (!e.gapExplanation.trim()) {
-          toast.error(`Education ${i + 1}: Please explain your education gap`);
+
+      if (entry.kind === "gap") {
+        const { gapFrom, gapTo, reason } = entry;
+        const anyFilled = [gapFrom, gapTo, reason].some((v) => v.trim());
+        if (!anyFilled) continue;
+
+        if (!gapFrom || !gapTo || !reason.trim()) {
+          toast.error(`Please complete all fields in ${label}`);
           return false;
         }
-
-        for (let g = 0; g < e.gaps.length; g++) {
-          const gap = e.gaps[g];
-
-          if (!gap.gapFrom || !gap.gapTo || !gap.reason.trim()) {
-            toast.error(`Education ${i + 1} Gap ${g + 1}: complete all fields`);
-            return false;
-          }
-
-          if (new Date(gap.gapFrom) > new Date(gap.gapTo)) {
-            toast.error(`Education ${i + 1} Gap ${g + 1}: invalid dates`);
-            return false;
-          }
+        if (new Date(gapFrom) > new Date(gapTo)) {
+          toast.error(`${label}: "Gap From" cannot be after "Gap To"`);
+          return false;
         }
       }
     }
 
     return true;
   };
-  const addGap = (eduIndex: number) => {
-    const updated = [...educationHistory];
-    updated[eduIndex].gaps.push(emptyGap());
-    setEducationHistory(updated);
-  };
 
-  const removeGap = (eduIndex: number, gapIndex: number) => {
-    const updated = [...educationHistory];
-    updated[eduIndex].gaps.splice(gapIndex, 1);
+  const activeEntry = activeId != null ? timeline.find((e) => e.id === activeId) ?? null : null;
 
-    if (updated[eduIndex].gaps.length === 0) {
-      updated[eduIndex].gaps = [emptyGap()];
-    }
-
-    setEducationHistory(updated);
-  };
-
-  const updateGap = (
-    eduIndex: number,
-    gapIndex: number,
-    field: keyof GapItem,
-    value: string,
-  ) => {
-    const updated = [...educationHistory];
-    updated[eduIndex].gaps[gapIndex][field] = value;
-    setEducationHistory(updated);
-  };
-
+  // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <>
-      <div className="min-w-full space-y-5 p-1 flex flex-col">
-        <div className="rounded-2xl border bg-white p-5">
-          <h2 className="text-lg font-semibold mb-1">
-            Qualifications & Education (UK)
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Add your education and qualifications. You can add multiple entries.
-          </p>
-        </div>
+    <div className="min-w-full space-y-4 p-1 flex flex-col">
 
-        <AnimatePresence mode="popLayout">
-          {educationHistory.map((edu, index) => (
-            <motion.div
-              key={index}
-              layout
-              initial={{ opacity: 0, y: -30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30 }}
-              transition={{ duration: 0.3 }}
-              className="border bg-white p-4 rounded-2xl overflow-hidden"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <Label className="text-base font-semibold">
-                  Education {index + 1}
-                </Label>
-
-                {educationHistory.length > 1 && (
-                  <Button
-                    variant="destructive"
-                    type="button"
-                    onClick={() => removeEducation(index)}
-                    className="gap-2"
-                  >
-                    Remove
-                  </Button>
-                )}
-              </div>
-
-              <div className="grid gap-x-5 gap-y-3 grid-cols-1 md:grid-cols-2">
-                {/* Qualification Type */}
-                <div>
-                  <Label className="text-sm">Qualification Type *</Label>
-                  <select
-                    value={edu.qualificationType}
-                    onChange={(e) =>
-                      updateEducation(
-                        index,
-                        "qualificationType",
-                        e.target.value,
-                      )
-                    }
-                    className="mt-2 w-full border rounded-xl p-2 text-sm bg-white"
-                  >
-                    <option value="">Select</option>
-                    {qualificationTypes.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Qualification Title */}
-                <div>
-                  <Label className="text-sm">
-                    Qualification Title / Subject *
-                  </Label>
-                  <Input
-                    className="mt-2"
-                    placeholder="e.g., BSc Computer Science"
-                    value={edu.qualificationTitle}
-                    onChange={(e) =>
-                      updateEducation(
-                        index,
-                        "qualificationTitle",
-                        e.target.value,
-                      )
-                    }
-                  />
-                </div>
-
-                {/* Institution Name */}
-                <div>
-                  <Label className="text-sm">Institution Name *</Label>
-                  <Input
-                    className="mt-2"
-                    placeholder="e.g., University of Manchester"
-                    value={edu.institutionName}
-                    onChange={(e) =>
-                      updateEducation(index, "institutionName", e.target.value)
-                    }
-                  />
-                </div>
-
-                {/* Institution Country */}
-                <div>
-                  <Label className="text-sm">Institution Country *</Label>
-                  <Input
-                    className="mt-2"
-                    placeholder="e.g., United Kingdom"
-                    value={edu.institutionCountry}
-                    onChange={(e) =>
-                      updateEducation(
-                        index,
-                        "institutionCountry",
-                        e.target.value,
-                      )
-                    }
-                  />
-                </div>
-
-                {/* Awarding Body */}
-                <div>
-                  <Label className="text-sm">Awarding Body *</Label>
-                  <Input
-                    className="mt-2"
-                    placeholder="e.g., Pearson / City & Guilds / University"
-                    value={edu.awardingBody}
-                    onChange={(e) =>
-                      updateEducation(index, "awardingBody", e.target.value)
-                    }
-                  />
-                </div>
-
-                {/* Grade/Result */}
-                <div>
-                  <Label className="text-sm">Grade / Result *</Label>
-                  <Input
-                    className="mt-2"
-                    placeholder="e.g., 2:1 / Distinction / A*"
-                    value={edu.gradeOrResult}
-                    onChange={(e) =>
-                      updateEducation(index, "gradeOrResult", e.target.value)
-                    }
-                  />
-                </div>
-
-                {/* Start/End */}
-                <div>
-                  <Label className="text-sm">Start Date *</Label>
-                  <Input
-                    className="mt-2"
-                    type="date"
-                    value={edu.startDate}
-                    onChange={(e) =>
-                      updateEducation(index, "startDate", e.target.value)
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-sm">End Date *</Label>
-                  <Input
-                    className="mt-2"
-                    type="date"
-                    value={edu.endDate}
-                    onChange={(e) =>
-                      updateEducation(index, "endDate", e.target.value)
-                    }
-                  />
-                </div>
-
-                {/* Completed */}
-                <div>
-                  <Label className="text-sm">Completed? *</Label>
-                  <div className="mt-2 flex gap-3">
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="radio"
-                        name={`completed-${index}`}
-                        checked={edu.completed === "yes"}
-                        onChange={() =>
-                          updateEducation(index, "completed", "yes")
-                        }
-                      />
-                      Yes
-                    </label>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="radio"
-                        name={`completed-${index}`}
-                        checked={edu.completed === "no"}
-                        onChange={() =>
-                          updateEducation(index, "completed", "no")
-                        }
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
-
-                {/* Professional Registration */}
-                <div>
-                  <Label className="text-sm">
-                    Professional Registration / Licence?
-                  </Label>
-                  <div className="mt-2 flex gap-3">
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="radio"
-                        name={`reg-${index}`}
-                        checked={edu.hasProfessionalRegistration === "yes"}
-                        onChange={() =>
-                          updateEducation(
-                            index,
-                            "hasProfessionalRegistration",
-                            "yes",
-                          )
-                        }
-                      />
-                      Yes
-                    </label>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="radio"
-                        name={`reg-${index}`}
-                        checked={edu.hasProfessionalRegistration === "no"}
-                        onChange={() =>
-                          updateEducation(
-                            index,
-                            "hasProfessionalRegistration",
-                            "no",
-                          )
-                        }
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
-
-                {edu.hasProfessionalRegistration === "yes" && (
-                  <>
-                    <div>
-                      <Label className="text-sm">Registration Body *</Label>
-                      <Input
-                        className="mt-2"
-                        placeholder="e.g., NMC / HCPC / GMC"
-                        value={edu.registrationBody}
-                        onChange={(e) =>
-                          updateEducation(
-                            index,
-                            "registrationBody",
-                            e.target.value,
-                          )
-                        }
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-sm">Registration Number *</Label>
-                      <Input
-                        className="mt-2"
-                        placeholder="e.g., PIN / Licence No"
-                        value={edu.registrationNumber}
-                        onChange={(e) =>
-                          updateEducation(
-                            index,
-                            "registrationNumber",
-                            e.target.value,
-                          )
-                        }
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-sm">Registration Expiry *</Label>
-                      <Input
-                        className="mt-2"
-                        type="date"
-                        value={edu.registrationExpiry}
-                        onChange={(e) =>
-                          updateEducation(
-                            index,
-                            "registrationExpiry",
-                            e.target.value,
-                          )
-                        }
-                      />
-                    </div>
-                  </>
-                )}
-
-                {/* Certificate Upload */}
-                <div className="md:col-span-2">
-                  <Label className="text-sm">
-                    Upload Certificate (optional)
-                  </Label>
-                  <div className="mt-2 border rounded-xl p-3">
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0] ?? null;
-                        updateEducation(index, "certificateFile", file);
-                      }}
-                    />
-                    {edu.certificateFile && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Uploaded: {edu.certificateFile.name}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Notes */}
-                <div className="md:col-span-2">
-                  <Label className="text-sm">Additional Notes (optional)</Label>
-                  <Textarea
-                    className="mt-2"
-                    placeholder="Any extra details about this qualification..."
-                    value={edu.additionalNotes}
-                    onChange={(e) =>
-                      updateEducation(index, "additionalNotes", e.target.value)
-                    }
-                  />
-                </div>
-
-                {/* Education Gap Section */}
-                <div className="rounded-xl border bg-white p-4 md:col-span-2">
-                  <p className="text-base font-semibold">Education Gaps</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Explain any gaps between your education periods.
-                  </p>
-
-                  <div className="mt-3 flex gap-4">
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="radio"
-                        name={`edu-gap-${index}`}
-                        checked={edu.hasEducationGaps === "no"}
-                        onChange={() =>
-                          updateEducation(index, "hasEducationGaps", "no")
-                        }
-                      />
-                      No
-                    </label>
-
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="radio"
-                        name={`edu-gap-${index}`}
-                        checked={edu.hasEducationGaps === "yes"}
-                        onChange={() =>
-                          updateEducation(index, "hasEducationGaps", "yes")
-                        }
-                      />
-                      Yes
-                    </label>
-                  </div>
-
-                  {edu.hasEducationGaps === "yes" && (
-                    <div className="mt-4 space-y-4">
-                      <div>
-                        <Label className="text-sm">Gap Explanation *</Label>
-                        <Textarea
-                          className="mt-2"
-                          value={edu.gapExplanation}
-                          onChange={(e) =>
-                            updateEducation(
-                              index,
-                              "gapExplanation",
-                              e.target.value,
-                            )
-                          }
-                        />
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <p className="text-sm font-semibold">Gap Records</p>
-
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => addGap(index)}
-                        >
-                          Add Gap
-                        </Button>
-                      </div>
-                      <AnimatePresence mode="popLayout">
-                        {edu.gaps.map((g, gapIndex) => (
-                          <motion.div
-                            key={gapIndex}
-                            layout
-                            initial={{ opacity: 0, y: -10, height: 0 }}
-                            animate={{ opacity: 1, y: 0, height: "auto" }}
-                            exit={{ opacity: 0, y: -10, height: 0 }}
-                            transition={{ duration: 0.25 }}
-                            className="border rounded-xl p-4"
-                          >
-                            <div className="flex justify-between">
-                              <p className="text-sm font-semibold">
-                                Gap #{gapIndex + 1}
-                              </p>
-
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() => removeGap(index, gapIndex)}
-                              >
-                                Remove
-                              </Button>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                              <div>
-                                <Label className="text-sm">Gap From *</Label>
-                                <Input
-                                  type="date"
-                                  className="mt-2"
-                                  value={g.gapFrom}
-                                  onChange={(e) =>
-                                    updateGap(
-                                      index,
-                                      gapIndex,
-                                      "gapFrom",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-
-                              <div>
-                                <Label className="text-sm">Gap To *</Label>
-                                <Input
-                                  type="date"
-                                  className="mt-2"
-                                  value={g.gapTo}
-                                  onChange={(e) =>
-                                    updateGap(
-                                      index,
-                                      gapIndex,
-                                      "gapTo",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-
-                              <div className="md:col-span-2">
-                                <Label className="text-sm">Reason *</Label>
-                                <Textarea
-                                  className="mt-2"
-                                  value={g.reason}
-                                  onChange={(e) =>
-                                    updateGap(
-                                      index,
-                                      gapIndex,
-                                      "reason",
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              </div>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-
-        <Button type="button" onClick={addEducation}>
-          Add Another Qualification
-        </Button>
-
-        <SignupNavButtons
-          onBack={back}
-          onNext={() => {
-            if (validateStep()) next();
-          }}
-        />
+      {/* Header card */}
+      <div className="rounded-2xl border bg-white p-5">
+        <h2 className="text-lg font-semibold mb-1">Qualifications &amp; Education (UK)</h2>
+        <p className="text-sm text-muted-foreground">
+          Add your education history and any gaps between study periods. Drag the ⠿ handle to reorder entries.
+        </p>
       </div>
-    </>
+
+      {/* Action buttons */}
+      <div className="flex flex-wrap gap-3">
+        <Button type="button" variant="outline" onClick={addEducation} className="gap-2 text-primary">
+          <GraduationCap className="h-4 w-4" />
+          + Add Education
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={addGap}
+          className="gap-2 border-primary text-primary hover:bg-amber-50"
+        >
+          <CalendarOff className="h-4 w-4" />
+          + Add Gap
+        </Button>
+      </div>
+
+      {/* Timeline */}
+      {timeline.length === 0 ? (
+        <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+          No entries yet. Use the buttons above to add your education or any education gaps.
+        </div>
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={timeline.map((e) => e.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-3">
+              {timeline.map((entry) => (
+                <SortableCard
+                  key={entry.id}
+                  entry={entry}
+                  label={getLabel(entry, timeline)}
+                  onRemove={removeEntry}
+                  onUpdateEducation={updateEducation}
+                  onUpdateGap={updateGap}
+                />
+              ))}
+            </div>
+          </SortableContext>
+
+          <DragOverlay>
+            {activeEntry ? (
+              <SortableCard
+                entry={activeEntry}
+                label={getLabel(activeEntry, timeline)}
+                isDragOverlay
+                onRemove={() => {}}
+                onUpdateEducation={() => {}}
+                onUpdateGap={() => {}}
+              />
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      )}
+
+      <SignupNavButtons
+        onBack={back}
+         onNext={() => {
+          if (validateStep()) {
+            console.log("Step8 Data:", timeline); // ✅ log here
+            next();
+          }
+        }}
+      />
+    </div>
   );
 }

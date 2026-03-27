@@ -13,8 +13,8 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { IoIosArrowForward } from "react-icons/io";
-import { IoIosArrowBack } from "react-icons/io";
+import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
+import { Step1FullTimeType } from "@/types/Form";
 
 type NavProps = {
   onNext: () => void;
@@ -48,22 +48,50 @@ type Props = {
   back: () => void;
   roleType: string;
 };
+
 export default function Step1FullTime({ next, back, roleType }: Props) {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [postcode, setPostcode] = useState("");
-  const [nationality, setNationality] = useState("");
-  const [immigrationStatus, setImmigrationStatus] = useState("");
-  const [immigrationExpiry, setImmigrationExpiry] = useState("");
-  const [workPermit, setWorkPermit] = useState("no");
-  const [nameChanged, setNameChanged] = useState("no");
-  const [previousName, setPreviousName] = useState("");
-  const [changedTo, setChangedTo] = useState("");
-  const [cvFile, setCvFile] = useState<File | null>(null);
-  // Validation function
+  const [formData, setFormData] = useState<Step1FullTimeType>({
+    fullName: "",
+    email: "",
+    phone: "",
+    address: "",
+    postcode: "",
+    nationality: "",
+    immigrationStatus: "",
+    immigrationExpiry: "",
+    workPermit: "no",
+    nameChanged: "no",
+    previousName: "",
+    changedTo: "",
+    cvFile: null,
+  });
+
+  const handleChange = <K extends keyof Step1FullTimeType>(
+    key: K,
+    value: Step1FullTimeType[K],
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
   const validateStep = (): boolean => {
+    const {
+      fullName,
+      email,
+      phone,
+      address,
+      postcode,
+      nationality,
+      immigrationStatus,
+      immigrationExpiry,
+      nameChanged,
+      previousName,
+      changedTo,
+      cvFile,
+    } = formData;
+
     if (
       !fullName ||
       !email ||
@@ -95,8 +123,7 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
       }
     }
 
-    // ✅ CV validation only for full-time or both
-    if (roleType === "full-time" || roleType === "both") {
+    if (roleType === "permanent" || roleType === "both") {
       if (!cvFile) {
         toast.error("Please upload your CV");
         return false;
@@ -128,52 +155,56 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
         <div>
           <Label>Full Name *</Label>
           <Input
-            value={fullName}
-            placeholder="John Smith"
-            onChange={(e) => setFullName(e.target.value)}
+            value={formData.fullName}
+            onChange={(e) => handleChange("fullName", e.target.value)}
           />
         </div>
 
         <div>
           <Label>Email Address *</Label>
           <Input
-            value={email}
-            placeholder="example@gmail.com"
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={(e) => handleChange("email", e.target.value)}
           />
         </div>
+
         <div>
           <Label>Phone Number *</Label>
           <Input
-            value={phone}
-            placeholder="923254412292"
-            onChange={(e) => setPhone(e.target.value)}
+            value={formData.phone}
+            onChange={(e) => handleChange("phone", e.target.value)}
           />
         </div>
+
         <div>
           <Label>Current Address *</Label>
-          <Input value={address} onChange={(e) => setAddress(e.target.value)} />
+          <Input
+            value={formData.address}
+            onChange={(e) => handleChange("address", e.target.value)}
+          />
         </div>
+
         <div>
           <Label>Postcode *</Label>
           <Input
-            value={postcode}
-            onChange={(e) => setPostcode(e.target.value)}
+            value={formData.postcode}
+            onChange={(e) => handleChange("postcode", e.target.value)}
           />
         </div>
+
         <div>
           <Label>Nationality *</Label>
           <Input
-            value={nationality}
-            onChange={(e) => setNationality(e.target.value)}
+            value={formData.nationality}
+            onChange={(e) => handleChange("nationality", e.target.value)}
           />
         </div>
 
         <div>
           <Label>Immigration Status *</Label>
           <Select
-            value={immigrationStatus}
-            onValueChange={setImmigrationStatus}
+            value={formData.immigrationStatus}
+            onValueChange={(value) => handleChange("immigrationStatus", value)}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select status" />
@@ -187,18 +218,24 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
             </SelectContent>
           </Select>
         </div>
+
         <div>
           <Label>Immigration Expiry Date *</Label>
           <Input
             type="date"
-            value={immigrationExpiry}
-            onChange={(e) => setImmigrationExpiry(e.target.value)}
+            value={formData.immigrationExpiry}
+            onChange={(e) => handleChange("immigrationExpiry", e.target.value)}
           />
         </div>
 
         <div>
           <Label>Do you need a UK Work Permit?</Label>
-          <RadioGroup value={workPermit} onValueChange={setWorkPermit}>
+          <RadioGroup
+            value={formData.workPermit}
+            onValueChange={(value) =>
+              handleChange("workPermit", value as "yes" | "no")
+            }
+          >
             <div className="flex gap-4 mt-2">
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="yes" id="permitYes" />
@@ -214,7 +251,12 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
 
         <div>
           <Label>Have you changed your name before?</Label>
-          <RadioGroup value={nameChanged} onValueChange={setNameChanged}>
+          <RadioGroup
+            value={formData.nameChanged}
+            onValueChange={(value) =>
+              handleChange("nameChanged", value as "yes" | "no")
+            }
+          >
             <div className="flex gap-4 mt-2">
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="yes" id="nameYes" />
@@ -229,54 +271,73 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
         </div>
 
         <div
-          className={`transition-all duration-500 ease-in-out  ${nameChanged === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+          className={`transition-all duration-500 ease-in-out  ${
+            formData.nameChanged === "yes"
+              ? "h-auto!  opacity-100 "
+              : "h-0! overflow-hidden!  opacity-0"
+          }`}
         >
           <Label>Previous Name *</Label>
           <Input
-            value={previousName}
-            onChange={(e) => setPreviousName(e.target.value)}
+            value={formData.previousName}
+            onChange={(e) => handleChange("previousName", e.target.value)}
           />
         </div>
+
         <div
-          className={`transition-all duration-500 ease-in-out  ${nameChanged === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+          className={`transition-all duration-500 ease-in-out  ${
+            formData.nameChanged === "yes"
+              ? "h-auto!  opacity-100 "
+              : "h-0! overflow-hidden!  opacity-0"
+          }`}
         >
           <Label>Changed To *</Label>
           <Input
-            value={changedTo}
-            onChange={(e) => setChangedTo(e.target.value)}
+            value={formData.changedTo}
+            onChange={(e) => handleChange("changedTo", e.target.value)}
           />
         </div>
 
         <div
-          className={`${roleType === "full-time" || roleType === "both" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"} transition-all duration-500 ease-in-out  md:col-span-2`}
+          className={`${
+            roleType === "permanent" || roleType === "both"
+              ? "h-auto!  opacity-100 "
+              : "h-0! overflow-hidden!  opacity-0"
+          } transition-all duration-500 ease-in-out  md:col-span-2`}
         >
           <Label>Upload CV *</Label>
 
-          <div className="mt-2 relative border! border-dashed shadow-0 outline-0 border-primary rounded-xl p-6 text-center  transition">
+          <div className="mt-2 relative border! border-dashed shadow-0 outline-0 border-primary rounded-xl p-6 text-center transition">
             <input
               type="file"
               accept=".pdf,.doc,.docx"
               onChange={(e) => {
                 if (e.target.files && e.target.files.length > 0) {
-                  setCvFile(e.target.files[0]);
+                  handleChange("cvFile", e.target.files[0]);
                 }
               }}
               className="absolute inset-0 opacity-0 cursor-pointer"
             />
 
             <p className="text-sm text-muted-foreground">
-              {cvFile
-                ? `Selected: ${cvFile.name}`
+              {formData.cvFile
+                ? `Selected: ${formData.cvFile.name}`
                 : "Click or drag your CV here (PDF, DOC, DOCX – Max 5MB)"}
             </p>
           </div>
         </div>
       </div>
+
       <SignupNavButtons
         disableBack
         onBack={back}
         onNext={() => {
           if (validateStep()) {
+            console.log("Type",roleType)
+            console.log("Step1 Data:", formData); // ✅ log here
+            if(roleType == "permanent"){
+              toast.success("Application submitted successfully!.")
+            }
             next();
           }
         }}

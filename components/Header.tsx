@@ -21,6 +21,7 @@ export default function Header() {
             width={500}
             height={500}
             className="w-full "
+            loading="eager"
             unoptimized
           />
         </Link>

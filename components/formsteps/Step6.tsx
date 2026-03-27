@@ -6,13 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { UploadCloud, Trash2, Eye } from "lucide-react";
-
-type Documents = {
-  passport: File | null;
-  drivingLicence: File | null;
-  proofId1: File | null;
-  proofId2: File | null;
-};
+import { Step6Type } from "@/types/Form";
 
 type Props = {
   next: () => void;
@@ -37,7 +31,7 @@ function isPdf(file: File) {
 }
 
 export default function Step6({ next, back }: Props) {
-  const [documents, setDocuments] = useState<Documents>({
+  const [documents, setDocuments] = useState<Step6Type>({
     passport: null,
     drivingLicence: null,
     proofId1: null,
@@ -57,7 +51,7 @@ export default function Step6({ next, back }: Props) {
     return true;
   };
 
-  const updateDoc = (key: keyof Documents, file: File | null) => {
+  const updateDoc = (key: keyof Step6Type, file: File | null) => {
     setDocuments((prev) => ({ ...prev, [key]: file }));
   };
 
@@ -84,7 +78,7 @@ export default function Step6({ next, back }: Props) {
     hint,
   }: {
     title: string;
-    fieldKey: keyof Documents;
+    fieldKey: keyof Step6Type;
     hint?: string;
   }) => {
     const file = documents[fieldKey];
@@ -284,7 +278,12 @@ export default function Step6({ next, back }: Props) {
       </div>
 
       <div className="flex gap-2 mt-3 justify-between">
-        <Button type="button" variant="outline" onClick={back} className="gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={back}
+          className="gap-2"
+        >
           <IoIosArrowBack />
           Back
         </Button>
@@ -292,7 +291,10 @@ export default function Step6({ next, back }: Props) {
         <Button
           type="button"
           onClick={() => {
-            if (validateStep()) next();
+            if (validateStep()) {
+               console.log("Step6 Data:", documents); // ✅ log here
+              next();
+            }
           }}
           className="gap-2"
         >

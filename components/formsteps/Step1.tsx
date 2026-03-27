@@ -13,8 +13,8 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { IoIosArrowForward } from "react-icons/io";
-import { IoIosArrowBack } from "react-icons/io";
+import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
+import { Step1FullTimeType } from "@/types/Form";
 
 type NavProps = {
   onNext: () => void;
@@ -47,22 +47,48 @@ type Props = {
   next: () => void;
   back: () => void;
 };
-export default function Step1({ next, back }: Props) {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [postcode, setPostcode] = useState("");
-  const [nationality, setNationality] = useState("");
-  const [immigrationStatus, setImmigrationStatus] = useState("");
-  const [immigrationExpiry, setImmigrationExpiry] = useState("");
-  const [workPermit, setWorkPermit] = useState("no");
-  const [nameChanged, setNameChanged] = useState("no");
-  const [previousName, setPreviousName] = useState("");
-  const [changedTo, setChangedTo] = useState("");
 
-  // Validation function
+export default function Step1({ next, back }: Props) {
+  const [formData, setFormData] = useState<Step1FullTimeType>({
+    fullName: "",
+    email: "",
+    phone: "",
+    address: "",
+    postcode: "",
+    nationality: "",
+    immigrationStatus: "",
+    immigrationExpiry: "",
+    workPermit: "no",
+    nameChanged: "no",
+    previousName: "",
+    changedTo: "",
+  });
+
+  const handleChange = <K extends keyof Step1FullTimeType>(
+    key: K,
+    value: Step1FullTimeType[K]
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
   const validateStep = (): boolean => {
+    const {
+      fullName,
+      email,
+      phone,
+      address,
+      postcode,
+      nationality,
+      immigrationStatus,
+      immigrationExpiry,
+      nameChanged,
+      previousName,
+      changedTo,
+    } = formData;
+
     if (
       !fullName ||
       !email ||
@@ -99,56 +125,65 @@ export default function Step1({ next, back }: Props) {
 
   return (
     <>
-      <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 ">
+      <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
         <div>
           <Label>Full Name *</Label>
           <Input
-            value={fullName}
+            value={formData.fullName}
             placeholder="John Smith"
-            onChange={(e) => setFullName(e.target.value)}
+            onChange={(e) => handleChange("fullName", e.target.value)}
           />
         </div>
 
         <div>
           <Label>Email Address *</Label>
           <Input
-            value={email}
+            value={formData.email}
             placeholder="example@gmail.com"
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => handleChange("email", e.target.value)}
           />
         </div>
+
         <div>
           <Label>Phone Number *</Label>
           <Input
-            value={phone}
+            value={formData.phone}
             placeholder="923254412292"
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => handleChange("phone", e.target.value)}
           />
         </div>
+
         <div>
           <Label>Current Address *</Label>
-          <Input value={address} onChange={(e) => setAddress(e.target.value)} />
+          <Input
+            value={formData.address}
+            onChange={(e) => handleChange("address", e.target.value)}
+          />
         </div>
+
         <div>
           <Label>Postcode *</Label>
           <Input
-            value={postcode}
-            onChange={(e) => setPostcode(e.target.value)}
+            value={formData.postcode}
+            onChange={(e) => handleChange("postcode", e.target.value)}
           />
         </div>
+
         <div>
           <Label>Nationality *</Label>
           <Input
-            value={nationality}
-            onChange={(e) => setNationality(e.target.value)}
+            value={formData.nationality}
+            onChange={(e) => handleChange("nationality", e.target.value)}
           />
         </div>
 
         <div>
           <Label>Immigration Status *</Label>
           <Select
-            value={immigrationStatus}
-            onValueChange={setImmigrationStatus}
+            value={formData.immigrationStatus}
+            onValueChange={(value) =>
+              handleChange("immigrationStatus", value)
+            }
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select status" />
@@ -162,18 +197,26 @@ export default function Step1({ next, back }: Props) {
             </SelectContent>
           </Select>
         </div>
+
         <div>
           <Label>Immigration Expiry Date *</Label>
           <Input
             type="date"
-            value={immigrationExpiry}
-            onChange={(e) => setImmigrationExpiry(e.target.value)}
+            value={formData.immigrationExpiry}
+            onChange={(e) =>
+              handleChange("immigrationExpiry", e.target.value)
+            }
           />
         </div>
 
         <div>
           <Label>Do you need a UK Work Permit?</Label>
-          <RadioGroup value={workPermit} onValueChange={setWorkPermit}>
+          <RadioGroup
+            value={formData.workPermit}
+            onValueChange={(value) =>
+              handleChange("workPermit", value as "yes" | "no")
+            }
+          >
             <div className="flex gap-4 mt-2">
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="yes" id="permitYes" />
@@ -189,7 +232,12 @@ export default function Step1({ next, back }: Props) {
 
         <div>
           <Label>Have you changed your name before?</Label>
-          <RadioGroup value={nameChanged} onValueChange={setNameChanged}>
+          <RadioGroup
+            value={formData.nameChanged}
+            onValueChange={(value) =>
+              handleChange("nameChanged", value as "yes" | "no")
+            }
+          >
             <div className="flex gap-4 mt-2">
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="yes" id="nameYes" />
@@ -204,24 +252,38 @@ export default function Step1({ next, back }: Props) {
         </div>
 
         <div
-          className={`transition-all duration-500 ease-in-out  ${nameChanged === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+          className={`transition-all duration-500 ease-in-out ${
+            formData.nameChanged === "yes"
+              ? "h-auto! opacity-100"
+              : "h-0! overflow-hidden! opacity-0"
+          }`}
         >
           <Label>Previous Name *</Label>
           <Input
-            value={previousName}
-            onChange={(e) => setPreviousName(e.target.value)}
+            value={formData.previousName}
+            onChange={(e) =>
+              handleChange("previousName", e.target.value)
+            }
           />
         </div>
+
         <div
-          className={`transition-all duration-500 ease-in-out  ${nameChanged === "yes" ? "h-auto!  opacity-100 " : "h-0! overflow-hidden!  opacity-0"}`}
+          className={`transition-all duration-500 ease-in-out ${
+            formData.nameChanged === "yes"
+              ? "h-auto! opacity-100"
+              : "h-0! overflow-hidden! opacity-0"
+          }`}
         >
           <Label>Changed To *</Label>
           <Input
-            value={changedTo}
-            onChange={(e) => setChangedTo(e.target.value)}
+            value={formData.changedTo}
+            onChange={(e) =>
+              handleChange("changedTo", e.target.value)
+            }
           />
         </div>
       </div>
+
       <SignupNavButtons
         disableBack
         onBack={back}

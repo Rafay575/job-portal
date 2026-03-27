@@ -7,57 +7,43 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { Plus, Trash2 } from "lucide-react";
+import { Trash2, Briefcase, CalendarOff, GripVertical } from "lucide-react";
 
-type ExperienceItem = {
-  employerName: string;
-  dateFrom: string; // yyyy-mm-dd
-  dateTo: string; // yyyy-mm-dd
-  jobTitle: string;
-  duties: string;
-};
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  UniqueIdentifier,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { ExperienceEntry } from "@/types/Form";
+import { GapEntry9 } from "@/types/Form";
+import { TimelineEntry9 } from "@/types/Form";
+import { Step9Type } from "@/types/Form";
 
-type GapItem = {
-  gapFrom: string; // yyyy-mm-dd
-  gapTo: string; // yyyy-mm-dd
-  reason: string;
-};
 
-type MandatoryExperience = {
-  areas: string[];
-  vulnerableDefinition: string;
-  properCareMeasures: string;
-  nonVerbalChoice: string;
-  abuseAction: string;
+// ─── Nav Buttons ─────────────────────────────────────────────────────────────
 
-  experiences: ExperienceItem[];
-
-  // Employment gaps
-  hasEmploymentGaps: "yes" | "no";
-  gapExplanation: string;
-  gaps: GapItem[];
-};
-
-type NavProps = {
-  onNext: () => void;
-  onBack: () => void;
-  disableBack?: boolean;
-};
+type NavProps = { onNext: () => void; onBack: () => void; disableBack?: boolean };
 
 function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   return (
     <div className="flex gap-2 mt-4 justify-between">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onBack}
-        disabled={disableBack}
-        className="gap-2"
-      >
+      <Button type="button" variant="outline" onClick={onBack} disabled={disableBack} className="gap-2">
         <IoIosArrowBack />
         Back
       </Button>
-
       <Button type="button" onClick={onNext} className="gap-2">
         Next
         <IoIosArrowForward />
@@ -66,12 +52,14 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   );
 }
 
-type Props = {
-  next: () => void;
-  back: () => void;
-};
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const emptyExperience = (): ExperienceItem => ({
+let _id = 0;
+const nextId = () => ++_id;
+
+const emptyExperience = (): ExperienceEntry => ({
+  kind: "experience",
+  id: nextId(),
   employerName: "",
   dateFrom: "",
   dateTo: "",
@@ -79,26 +67,195 @@ const emptyExperience = (): ExperienceItem => ({
   duties: "",
 });
 
-const emptyGap = (): GapItem => ({
+const emptyGap = (): GapEntry9 => ({
+  kind: "gap",
+  id: nextId(),
   gapFrom: "",
   gapTo: "",
   reason: "",
 });
 
-export default function Step9({ next, back }: Props) {
-  const [mandatoryExperience, setMandatoryExperience] =
-    useState<MandatoryExperience>({
-      areas: [],
-      vulnerableDefinition: "",
-      properCareMeasures: "",
-      nonVerbalChoice: "",
-      abuseAction: "",
-      experiences: [emptyExperience()],
+// ─── Sortable Card ────────────────────────────────────────────────────────────
 
-      hasEmploymentGaps: "no",
-      gapExplanation: "",
-      gaps: [emptyGap()],
-    });
+type CardProps = {
+  entry: TimelineEntry9;
+  label: string;
+  isDragOverlay?: boolean;
+  onRemove: (id: number) => void;
+  onUpdateExperience: (id: number, key: keyof Omit<ExperienceEntry, "kind" | "id">, value: string) => void;
+  onUpdateGap: (id: number, key: keyof Omit<GapEntry9, "kind" | "id">, value: string) => void;
+};
+
+function SortableCard(props: CardProps) {
+  const { entry, label, isDragOverlay, onRemove, onUpdateExperience, onUpdateGap } = props;
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: entry.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={isDragOverlay ? undefined : style}
+      className={`rounded-xl border p-4 ${
+        entry.kind === "gap"
+          ? "border-amber-200 bg-amber-50/40"
+          : "bg-white"
+      } ${isDragOverlay ? "shadow-2xl rotate-1 scale-[1.02] opacity-95" : ""}`}
+    >
+      {/* Card header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          {/* Drag handle */}
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing touch-none p-1 rounded hover:bg-muted/60 text-muted-foreground"
+            aria-label="Drag to reorder"
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+
+          {entry.kind === "experience" ? (
+            <Briefcase className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <CalendarOff className="h-4 w-4 text-primary" />
+          )}
+          <p className={`text-sm font-semibold ${entry.kind === "gap" ? "text-primary" : ""}`}>
+            {label}
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => onRemove(entry.id)}
+          className="gap-1 text-destructive hover:text-destructive h-8 px-2"
+        >
+          <Trash2 className="h-4 w-4" />
+          Remove
+        </Button>
+      </div>
+
+      {/* Experience fields */}
+      {entry.kind === "experience" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <Label className="text-sm">Name of Employer</Label>
+            <Input
+              className="mt-2"
+              value={entry.employerName}
+              onChange={(e) => onUpdateExperience(entry.id, "employerName", e.target.value)}
+              placeholder="e.g., ABC Care Services"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-sm">Date From</Label>
+              <Input
+                type="date"
+                className="mt-2"
+                value={entry.dateFrom}
+                onChange={(e) => onUpdateExperience(entry.id, "dateFrom", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="text-sm">Date To</Label>
+              <Input
+                type="date"
+                className="mt-2"
+                value={entry.dateTo}
+                onChange={(e) => onUpdateExperience(entry.id, "dateTo", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm">Job Title</Label>
+            <Input
+              className="mt-2"
+              value={entry.jobTitle}
+              onChange={(e) => onUpdateExperience(entry.id, "jobTitle", e.target.value)}
+              placeholder="e.g., Support Worker"
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <Label className="text-sm">Brief Description of Duties</Label>
+            <Textarea
+              className="mt-2 min-h-[110px]"
+              value={entry.duties}
+              onChange={(e) => onUpdateExperience(entry.id, "duties", e.target.value)}
+              placeholder="Describe what you did in this role..."
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Gap fields */}
+      {entry.kind === "gap" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <Label className="text-sm">Gap From *</Label>
+            <Input
+              type="date"
+              className="mt-2"
+              value={entry.gapFrom}
+              onChange={(e) => onUpdateGap(entry.id, "gapFrom", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label className="text-sm">Gap To *</Label>
+            <Input
+              type="date"
+              className="mt-2"
+              value={entry.gapTo}
+              onChange={(e) => onUpdateGap(entry.id, "gapTo", e.target.value)}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Label className="text-sm">Reason *</Label>
+            <Textarea
+              className="mt-2 min-h-[90px]"
+              value={entry.reason}
+              onChange={(e) => onUpdateGap(entry.id, "reason", e.target.value)}
+              placeholder="e.g., studying, maternity leave, caring for family, health recovery, relocation, etc."
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Props ────────────────────────────────────────────────────────────────────
+
+type Props = { next: () => void; back: () => void };
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
+export default function Step9({ next, back }: Props) {
+  const [data, setData] = useState<Step9Type>({ areas: [], timeline: [] });
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 }, // prevents accidental drags on input click
+    })
+  );
 
   const areas = [
     "Mental Health",
@@ -109,155 +266,103 @@ export default function Step9({ next, back }: Props) {
     "Children/Young People",
   ];
 
-  const toggleArea = (area: string) => {
-    setMandatoryExperience((prev) => ({
+  const toggleArea = (area: string) =>
+    setData((prev) => ({
       ...prev,
       areas: prev.areas.includes(area)
         ? prev.areas.filter((a) => a !== area)
         : [...prev.areas, area],
     }));
-  };
 
-  // Experience handlers
-  const addExperience = () => {
-    setMandatoryExperience((prev) => ({
+  const addExperience = () =>
+    setData((prev) => ({ ...prev, timeline: [...prev.timeline, emptyExperience()] }));
+
+  const addGap = () =>
+    setData((prev) => ({ ...prev, timeline: [...prev.timeline, emptyGap()] }));
+
+  const removeEntry = (id: number) =>
+    setData((prev) => ({ ...prev, timeline: prev.timeline.filter((e) => e.id !== id) }));
+
+  const updateExperience = (id: number, key: keyof Omit<ExperienceEntry, "kind" | "id">, value: string) =>
+    setData((prev) => ({
       ...prev,
-      experiences: [...prev.experiences, emptyExperience()],
-    }));
-  };
-
-  const removeExperience = (index: number) => {
-    setMandatoryExperience((prev) => {
-      const nextList = prev.experiences.filter((_, i) => i !== index);
-      return { ...prev, experiences: nextList.length ? nextList : [emptyExperience()] };
-    });
-  };
-
-  const updateExperience = (
-    index: number,
-    key: keyof ExperienceItem,
-    value: string,
-  ) => {
-    setMandatoryExperience((prev) => ({
-      ...prev,
-      experiences: prev.experiences.map((item, i) =>
-        i === index ? { ...item, [key]: value } : item,
+      timeline: prev.timeline.map((e) =>
+        e.id === id && e.kind === "experience" ? { ...e, [key]: value } : e
       ),
     }));
-  };
 
-  // Gap handlers
-  const addGap = () => {
-    setMandatoryExperience((prev) => ({
+  const updateGap = (id: number, key: keyof Omit<GapEntry9, "kind" | "id">, value: string) =>
+    setData((prev) => ({
       ...prev,
-      gaps: [...prev.gaps, emptyGap()],
+      timeline: prev.timeline.map((e) =>
+        e.id === id && e.kind === "gap" ? { ...e, [key]: value } : e
+      ),
     }));
-  };
 
-  const removeGap = (index: number) => {
-    setMandatoryExperience((prev) => {
-      const nextList = prev.gaps.filter((_, i) => i !== index);
-      return { ...prev, gaps: nextList.length ? nextList : [emptyGap()] };
+  const handleDragStart = (event: DragStartEvent) => setActiveId(event.active.id);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+    if (!over || active.id === over.id) return;
+    setData((prev) => {
+      const oldIndex = prev.timeline.findIndex((e) => e.id === active.id);
+      const newIndex = prev.timeline.findIndex((e) => e.id === over.id);
+      return { ...prev, timeline: arrayMove(prev.timeline, oldIndex, newIndex) };
     });
   };
 
-  const updateGap = (index: number, key: keyof GapItem, value: string) => {
-    setMandatoryExperience((prev) => ({
-      ...prev,
-      gaps: prev.gaps.map((g, i) => (i === index ? { ...g, [key]: value } : g)),
-    }));
-  };
-
-  const validateExperiences = (): boolean => {
-    const hasAnyFilled = mandatoryExperience.experiences.some((x) =>
-      Object.values(x).some((v) => v.trim() !== ""),
-    );
-
-    // optional section: if nothing filled, let it pass
-    if (!hasAnyFilled) return true;
-
-    for (let i = 0; i < mandatoryExperience.experiences.length; i++) {
-      const x = mandatoryExperience.experiences[i];
-
-      const anyFieldFilled = Object.values(x).some((v) => v.trim() !== "");
-      if (!anyFieldFilled) continue;
-
-      if (
-        !x.employerName.trim() ||
-        !x.dateFrom ||
-        !x.dateTo ||
-        !x.jobTitle.trim() ||
-        !x.duties.trim()
-      ) {
-        toast.error(`Please complete all fields in Experience #${i + 1}`);
-        return false;
-      }
-
-      if (x.dateFrom && x.dateTo && new Date(x.dateFrom) > new Date(x.dateTo)) {
-        toast.error(`Experience #${i + 1}: "Date From" cannot be after "Date To"`);
-        return false;
-      }
+  const getLabel = (entry: TimelineEntry9, timeline: TimelineEntry9[]) => {
+    let count = 0;
+    for (const e of timeline) {
+      if (e.kind === entry.kind) count++;
+      if (e.id === entry.id) break;
     }
-
-    return true;
-  };
-
-  const validateGaps = (): boolean => {
-    if (mandatoryExperience.hasEmploymentGaps === "no") return true;
-
-    // If they said Yes, then we require either:
-    // (a) gapExplanation, and
-    // (b) at least one gap row properly filled (UK-friendly)
-    if (!mandatoryExperience.gapExplanation.trim()) {
-      toast.error("Please explain your employment gap(s)");
-      return false;
-    }
-
-    const hasAnyGapFilled = mandatoryExperience.gaps.some((g) =>
-      Object.values(g).some((v) => v.trim() !== ""),
-    );
-
-    if (!hasAnyGapFilled) {
-      toast.error("Please add at least one employment gap record");
-      return false;
-    }
-
-    for (let i = 0; i < mandatoryExperience.gaps.length; i++) {
-      const g = mandatoryExperience.gaps[i];
-
-      const anyFieldFilled = Object.values(g).some((v) => v.trim() !== "");
-      if (!anyFieldFilled) continue; // allow empty row
-
-      if (!g.gapFrom || !g.gapTo || !g.reason.trim()) {
-        toast.error(`Please complete all fields in Gap #${i + 1}`);
-        return false;
-      }
-
-      if (new Date(g.gapFrom) > new Date(g.gapTo)) {
-        toast.error(`Gap #${i + 1}: "Gap From" cannot be after "Gap To"`);
-        return false;
-      }
-    }
-
-    return true;
+    return entry.kind === "experience" ? `Experience #${count}` : `Gap #${count}`;
   };
 
   const validateStep = (): boolean => {
-    if (
-      mandatoryExperience.areas.length === 0
-    ) {
-      toast.error("Please complete all mandatory experience fields");
+    if (data.areas.length === 0) {
+      toast.error("Please select at least one area of experience");
       return false;
     }
-
-    if (!validateExperiences()) return false;
-    if (!validateGaps()) return false;
-
+    for (const entry of data.timeline) {
+      const label = getLabel(entry, data.timeline);
+      if (entry.kind === "experience") {
+        const { employerName, dateFrom, dateTo, jobTitle, duties } = entry;
+        const anyFilled = [employerName, dateFrom, dateTo, jobTitle, duties].some((v) => v.trim());
+        if (!anyFilled) continue;
+        if (!employerName.trim() || !dateFrom || !dateTo || !jobTitle.trim() || !duties.trim()) {
+          toast.error(`Please complete all fields in ${label}`);
+          return false;
+        }
+        if (new Date(dateFrom) > new Date(dateTo)) {
+          toast.error(`${label}: "Date From" cannot be after "Date To"`);
+          return false;
+        }
+      }
+      if (entry.kind === "gap") {
+        const { gapFrom, gapTo, reason } = entry;
+        const anyFilled = [gapFrom, gapTo, reason].some((v) => v.trim());
+        if (!anyFilled) continue;
+        if (!gapFrom || !gapTo || !reason.trim()) {
+          toast.error(`Please complete all fields in ${label}`);
+          return false;
+        }
+        if (new Date(gapFrom) > new Date(gapTo)) {
+          toast.error(`${label}: "Gap From" cannot be after "Gap To"`);
+          return false;
+        }
+      }
+    }
     return true;
   };
 
+  const activeEntry = activeId != null ? data.timeline.find((e) => e.id === activeId) ?? null : null;
+
   return (
     <div className="min-w-full space-y-4 p-2 flex flex-col">
+
       {/* Areas */}
       <div className="rounded-xl border bg-white p-4">
         <Label className="text-base font-semibold">Select all that apply *</Label>
@@ -269,7 +374,7 @@ export default function Step9({ next, back }: Props) {
             >
               <input
                 type="checkbox"
-                checked={mandatoryExperience.areas.includes(area)}
+                checked={data.areas.includes(area)}
                 onChange={() => toggleArea(area)}
                 className="h-4 w-4"
               />
@@ -279,235 +384,81 @@ export default function Step9({ next, back }: Props) {
         </div>
       </div>
 
-    
-
-      {/* Experience Section */}
+      {/* Timeline section */}
       <div className="rounded-xl border bg-white p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-base font-semibold">Experience</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Add as many as you want. If you start filling one entry, please complete all fields.
-            </p>
-          </div>
+        <p className="text-base font-semibold mb-1">Experience &amp; Employment Gaps</p>
+        <p className="text-xs text-muted-foreground mb-4">
+          Add your work history and any employment gaps. Drag the ⠿ handle on each card to reorder entries.
+        </p>
 
-          <Button type="button" variant="outline" onClick={addExperience} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Experience
+        {/* Action buttons */}
+        <div className="flex flex-wrap gap-3 mb-5">
+          <Button type="button" variant="outline" onClick={addExperience} className="gap-2 text-primary">
+            <Briefcase className="h-4 w-4 " />
+            + Add Experience
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addGap}
+            className="gap-2 border-primary text-primary hover:bg-amber-50"
+          >
+            <CalendarOff className="h-4 w-4" />
+            + Add Gap
           </Button>
         </div>
 
-        <div className="mt-4 space-y-3">
-          {mandatoryExperience.experiences.map((exp, index) => (
-            <div key={index} className="rounded-xl border p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Experience #{index + 1}</p>
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => removeExperience(index)}
-                  className="gap-2 text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Remove
-                </Button>
-              </div>
-
-              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-sm">Name of Employer</Label>
-                  <Input
-                    className="mt-2"
-                    value={exp.employerName}
-                    onChange={(e) =>
-                      updateExperience(index, "employerName", e.target.value)
-                    }
-                    placeholder="e.g., ABC Care Services"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-sm">Date From</Label>
-                    <Input
-                      type="date"
-                      className="mt-2"
-                      value={exp.dateFrom}
-                      onChange={(e) =>
-                        updateExperience(index, "dateFrom", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm">Date To</Label>
-                    <Input
-                      type="date"
-                      className="mt-2"
-                      value={exp.dateTo}
-                      onChange={(e) =>
-                        updateExperience(index, "dateTo", e.target.value)
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-sm">Job Title</Label>
-                  <Input
-                    className="mt-2"
-                    value={exp.jobTitle}
-                    onChange={(e) => updateExperience(index, "jobTitle", e.target.value)}
-                    placeholder="e.g., Support Worker"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <Label className="text-sm">Brief Description of Duties</Label>
-                  <Textarea
-                    className="mt-2 min-h-[110px]"
-                    value={exp.duties}
-                    onChange={(e) => updateExperience(index, "duties", e.target.value)}
-                    placeholder="Describe what you did in this role..."
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Employment Gap Section */}
-      <div className="rounded-xl border bg-white p-4">
-        <p className="text-base font-semibold">Employment Gaps</p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Employers may ask you to explain gaps longer than 3 months.
-        </p>
-
-        <div className="mt-3 flex gap-4">
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="radio"
-              name="hasEmploymentGaps"
-              checked={mandatoryExperience.hasEmploymentGaps === "no"}
-              onChange={() =>
-                setMandatoryExperience((prev) => ({
-                  ...prev,
-                  hasEmploymentGaps: "no",
-                  gapExplanation: "",
-                  gaps: [emptyGap()],
-                }))
-              }
-            />
-            No
-          </label>
-
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="radio"
-              name="hasEmploymentGaps"
-              checked={mandatoryExperience.hasEmploymentGaps === "yes"}
-              onChange={() =>
-                setMandatoryExperience((prev) => ({
-                  ...prev,
-                  hasEmploymentGaps: "yes",
-                }))
-              }
-            />
-            Yes
-          </label>
-        </div>
-
-        {mandatoryExperience.hasEmploymentGaps === "yes" && (
-          <div className="mt-4 space-y-4">
-            <div>
-              <Label className="text-sm">Gap Explanation *</Label>
-              <Textarea
-                className="mt-2 min-h-[110px]"
-                value={mandatoryExperience.gapExplanation}
-                onChange={(e) =>
-                  setMandatoryExperience((prev) => ({
-                    ...prev,
-                    gapExplanation: e.target.value,
-                  }))
-                }
-                placeholder="Briefly explain why there was a gap (e.g., study, travel, family care, illness, visa processing, etc.)"
-              />
-            </div>
-
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold">Gap Records</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Add your gap period(s) and reason.
-                </p>
-              </div>
-
-              <Button type="button" variant="outline" onClick={addGap} className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add Gap
-              </Button>
-            </div>
-
-            <div className="space-y-3">
-              {mandatoryExperience.gaps.map((g, index) => (
-                <div key={index} className="rounded-xl border p-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold">Gap #{index + 1}</p>
-
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => removeGap(index)}
-                      className="gap-2 text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Remove
-                    </Button>
-                  </div>
-
-                  <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-sm">Gap From *</Label>
-                      <Input
-                        type="date"
-                        className="mt-2"
-                        value={g.gapFrom}
-                        onChange={(e) => updateGap(index, "gapFrom", e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-sm">Gap To *</Label>
-                      <Input
-                        type="date"
-                        className="mt-2"
-                        value={g.gapTo}
-                        onChange={(e) => updateGap(index, "gapTo", e.target.value)}
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <Label className="text-sm">Reason *</Label>
-                      <Textarea
-                        className="mt-2 min-h-[90px]"
-                        value={g.reason}
-                        onChange={(e) => updateGap(index, "reason", e.target.value)}
-                        placeholder="e.g., studying, maternity leave, caring for family, health recovery, relocation, etc."
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Drag-and-drop list */}
+        {data.timeline.length === 0 ? (
+          <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+            No entries yet. Use the buttons above to add your experience or employment gaps.
           </div>
+        ) : (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={data.timeline.map((e) => e.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-3 ">
+                {data.timeline.map((entry) => (
+                  <SortableCard
+                    key={entry.id}
+                    entry={entry}
+                    label={getLabel(entry, data.timeline)}
+                    onRemove={removeEntry}
+                    onUpdateExperience={updateExperience}
+                    onUpdateGap={updateGap}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+
+            <DragOverlay>
+              {activeEntry ? (
+                <SortableCard
+                  entry={activeEntry}
+                  label={getLabel(activeEntry, data.timeline)}
+                  isDragOverlay
+                  onRemove={() => {}}
+                  onUpdateExperience={() => {}}
+                  onUpdateGap={() => {}}
+                />
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         )}
       </div>
 
       <SignupNavButtons
         onBack={back}
-        onNext={() => {
+         onNext={() => {
           if (validateStep()) {
+            console.log("Step9 Data:", data); 
             next();
           }
         }}
