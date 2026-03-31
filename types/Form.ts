@@ -3,58 +3,59 @@ export type Step1FullTimeType = {
   email: string;
   phone: string;
   address: string;
-  postcode: string; 
+  postcode: string;
   nationality: string;
   immigrationStatus: string;
   immigrationExpiry: string;
-  workPermit: "yes" | "no";
-  nameChanged: "yes" | "no";
+  workPermit: boolean;
+  nameChanged: boolean;
   previousName: string;
   changedTo: string;
-  cvFile?: File | null;
+  userId?: number;
+  cvFile?: any;
 };
 
 export type Step2Type = {
-  availabilityIssue: "yes" | "no";
-  workRestrictions: "yes" | "no";
+  availabilityIssue: boolean;
+  workRestrictions: boolean;
   restrictionDetails: string;
-  overtime: "yes" | "no";
+  overtime: boolean;
   hoursAvoid: string;
   noticePeriod: string;
-  workedBefore: "yes" | "no";
-  appliedBefore: "yes" | "no";
+  workedBefore: boolean;
+  appliedBefore: boolean;
   appliedDetails: string;
 };
 
 export type Step3Type = {
-  hasConvictions: "yes" | "no";
+  hasConvictions: boolean;
   convictionDetails: string;
-  hasUnspentConvictions: "yes" | "no";
+  hasUnspentConvictions: boolean;
   unspentDetails: string;
-  fitnessInvestigation: "yes" | "no";
-  removedFromRegister: "yes" | "no";
-  crb: "yes" | "no";
+  fitnessInvestigation: boolean;
+  removedFromRegister: boolean;
+  crb: boolean;
   surname: string;
   dob: string;
-  crbFile: File | null;
+  crbFile: any;
 };
 
 export type Step4Type = {
   absentDays: string;
   absencePeriods: string;
-  onMedication: "yes" | "no";
+  onMedication: boolean;
   medicationDetails: string;
-  healthTreatment: "yes" | "no";
+  healthTreatment: boolean;
   treatmentDetails: string;
-  medicalCondition: "yes" | "no";
+  medicalCondition: boolean;
   conditionDetails: string;
-  disabled: "yes" | "no";
+  disabled: boolean;
   impairmentType: string;
-  nightShiftFit: "yes" | "no";
+  nightShiftFit: boolean;
 };
 
 export type Step5Type = {
-  isNurse: "yes" | "no";
+  isNurse: boolean;
   professionalBody: string;
   registrationType: string;
   registrationNumber: string;
@@ -62,11 +63,11 @@ export type Step5Type = {
 };
 
 export type Step6Type = {
-  passport: File | null;
-  drivingLicence: File | null;
-  proofId1: File | null;
-  proofId2: File | null;
-}
+  passport: File | string | null;
+  drivingLicence: File | string | null;
+  proofId1: File | string | null;
+  proofId2: File | string | null;
+};
 export type Step7Type = {
   title: string;
   provider: string;
@@ -75,7 +76,7 @@ export type Step7Type = {
 };
 
 export type EducationEntry = {
-  kind?: "education";
+  kind: "education";
   id: number;
   qualificationType: string;
   qualificationTitle: string;
@@ -91,11 +92,11 @@ export type EducationEntry = {
   registrationBody: string;
   registrationNumber: string;
   registrationExpiry: string;
-  certificateFile: File | null;
+  certificateFile: File | string | null;
 };
 
- export type GapEntry8 = {
-  kind?: "gap";
+export type GapEntry8 = {
+  kind: "gap";
   id: number;
   gapFrom: string;
   gapTo: string;
@@ -114,12 +115,38 @@ export type ExperienceEntry = {
   duties: string;
 };
 
- export type GapEntry9 = {
+export type GapEntry9 = {
   kind?: "gap";
   id: number;
   gapFrom: string;
   gapTo: string;
   reason: string;
+};
+export type TimelineItem = {
+  id?: number;  // Add id for tracking
+  kind: "education" | "gap";
+
+  // education
+  qualificationType?: string;
+  qualificationTitle?: string;
+  institutionName?: string;
+  institutionCountry?: string;
+  awardingBody?: string;
+  gradeOrResult?: string;
+  startDate?: string;
+  endDate?: string;
+  completed?: "yes" | "no";  // Change to "yes" | "no"
+  hasProfessionalRegistration?: "yes" | "no";  // Change to "yes" | "no"
+  registrationBody?: string;
+  registrationNumber?: string;
+  registrationExpiry?: string;
+  certificateFile?: string | File | null;  // Allow File or string
+  additionalNotes?: string;
+
+  // gap
+  gapFrom?: string;
+  gapTo?: string;
+  reason?: string;
 };
 
 export type TimelineEntry9 = ExperienceEntry | GapEntry9;
@@ -129,25 +156,25 @@ export type Step9Type = {
   timeline: TimelineEntry9[];
 };
 
-export type Step10Type ={
- supportingStatement: string;
+export type Step10Type = {
+  supportingStatement: string;
 };
-export type Step11Type ={
+export type Step11Type = {
   declarationConfirmed: boolean;
   declarationDate: string;
   signatureFile: File | null;
 };
 
-export type Form={
-    Step1:Step1FullTimeType,
-    Step2:Step2Type,
-    Step3:Step3Type,
-    Step4:Step4Type,
-    Step5:Step5Type,
-    Step6:Step6Type,
-    Step7:Step7Type,
-    Step8:Step8Type[],
-    Step9:Step9Type,
-    Step10:Step10Type,
-    Step11:Step11Type,
-}
+export type Form = {
+  Step1: Step1FullTimeType;
+  Step2: Step2Type;
+  Step3: Step3Type;
+  Step4: Step4Type;
+  Step5: Step5Type;
+  Step6: Step6Type;
+  Step7: Step7Type;
+  Step8: Step8Type[];
+  Step9: Step9Type;
+  Step10: Step10Type;
+  Step11: Step11Type;
+};

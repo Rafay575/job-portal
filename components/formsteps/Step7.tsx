@@ -1,29 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
+
 import { Step7Type } from "@/types/Form";
+import { getTrainings, saveTrainings } from "@/lib/api/step7";
+import { user_id } from "@/lib/id";
 
-type NavProps = {
-  onNext: () => void;
-  onBack: () => void;
-  disableBack?: boolean;
-};
-
-function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
+// ================= NAV BUTTONS =================
+function SignupNavButtons({ onNext, onBack }: any) {
   return (
-    <div className="flex gap-2 mt-3 justify-between">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onBack}
-        disabled={disableBack}
-      >
+    <div className="flex justify-between mt-4">
+      <Button type="button" variant="outline" onClick={onBack}>
         <IoIosArrowBack />
         Back
       </Button>
@@ -36,27 +29,40 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   );
 }
 
-type Props = {
-  next: () => void;
-  back: () => void;
-};
-export default function Step7({ next, back }: Props) {
-  const [step] = useState(7);
-
+// ================= MAIN COMPONENT =================
+export default function Step7({ next, back }: any) {
   const [trainings, setTrainings] = useState<Step7Type[]>([
     { title: "", provider: "", duration: "", completionDate: "" },
   ]);
 
-  const updateTraining = (
-    index: number,
-    field: keyof Step7Type,
-    value: string,
-  ) => {
+  // ================= FETCH EXISTING DATA =================
+  useEffect(() => {
+    const fetchData = async () => {
+      const res = await getTrainings(user_id);
+
+      if (res.success && res.data?.length > 0) {
+        setTrainings(
+          res.data.map((t: any) => ({
+            title: t.title,
+            provider: t.provider,
+            duration: t.duration,
+            completionDate: t.completion_date,
+          }))
+        );
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // ================= UPDATE FIELD =================
+  const updateTraining = (index: number, field: keyof Step7Type, value: string) => {
     const updated = [...trainings];
     updated[index][field] = value;
     setTrainings(updated);
   };
 
+  // ================= ADD =================
   const addTraining = () => {
     setTrainings([
       ...trainings,
@@ -64,55 +70,74 @@ export default function Step7({ next, back }: Props) {
     ]);
   };
 
+  // ================= REMOVE =================
   const removeTraining = (index: number) => {
     setTrainings(trainings.filter((_, i) => i !== index));
   };
 
-  const validateStep = (): boolean => {
+  // ================= VALIDATION =================
+  const validateStep = () => {
     for (let i = 0; i < trainings.length; i++) {
       const t = trainings[i];
 
       if (!t.title || !t.provider || !t.duration || !t.completionDate) {
-        toast.error(`Please complete all fields for training ${i + 1}`);
+        toast.error(`Complete all fields for training ${i + 1}`);
         return false;
       }
     }
-
     return true;
   };
 
+  // ================= SUBMIT (CREATE + UPDATE SAME API) =================
+  const handleSubmit = async () => {
+    if (!validateStep()) return;
+
+    const res = await saveTrainings(user_id, trainings);
+
+    if (res.success) {
+      toast.success(res.message);
+      next();
+    } else {
+      toast.error(res.message);
+    }
+  };
+
+  // ================= UI =================
   return (
-    <>
-      <div className="min-w-full space-y-5  grid gap-x-5 gap-y-3 grid-cols-1 md:grid-cols-2  mb-3 ">
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <AnimatePresence>
           {trainings.map((t, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, x: -40, height: 0 }}
-              animate={{ opacity: 1, x: 0, height: "auto" }}
-              exit={{ opacity: 0, x: -40, height: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="border p-4 rounded-lg space-y-3 mb-0"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="border rounded-xl p-4 space-y-3 bg-white shadow-sm"
             >
-              <Label>Training / Course {index + 1}</Label>
+              <Label className="font-semibold text-lg color">
+                Training {index + 1}
+              </Label>
 
               <Input
-                value={t.title}
                 placeholder="Course Title"
-                onChange={(e) => updateTraining(index, "title", e.target.value)}
+                value={t.title}
+                onChange={(e) =>
+                  updateTraining(index, "title", e.target.value)
+                }
               />
 
               <Input
+                placeholder="Provider"
                 value={t.provider}
-                placeholder="Training Provider"
                 onChange={(e) =>
                   updateTraining(index, "provider", e.target.value)
                 }
               />
 
               <Input
-                value={t.duration}
                 placeholder="Duration"
+                value={t.duration}
                 onChange={(e) =>
                   updateTraining(index, "duration", e.target.value)
                 }
@@ -128,8 +153,8 @@ export default function Step7({ next, back }: Props) {
 
               {trainings.length > 1 && (
                 <Button
-                  variant="destructive"
                   type="button"
+                  variant="destructive"
                   onClick={() => removeTraining(index)}
                 >
                   Remove
@@ -146,13 +171,8 @@ export default function Step7({ next, back }: Props) {
 
       <SignupNavButtons
         onBack={back}
-        onNext={() => {
-          if (validateStep()) {
-            console.log("Step7 Data:", trainings); // ✅ log here
-            next();
-          }
-        }}
+        onNext={handleSubmit}
       />
-    </>
+    </div>
   );
 }

@@ -6,6 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { Step10Type } from "@/types/Form";
+import { submitStep10, getStep10 } from "@/lib/api/step10";
+import { useEffect } from "react";
+import { user_id } from "@/lib/id";
 
 type NavProps = {
   onNext: () => void;
@@ -54,6 +57,41 @@ export default function Step10({ next, back }: Props) {
 
     return true;
   };
+  useEffect(() => {
+    const fetchStep10 = async () => {
+      const res = await getStep10(user_id);
+
+      if (res.success && res.data?.[0]) {
+        const d = res.data[0];
+
+        setFormData({
+          supportingStatement: d.supporting_statement || "",
+        });
+      }
+    };
+
+    fetchStep10();
+  }, []);
+  const handleSubmitStep10 = async () => {
+    if (!validateStep()) return;
+
+    try {
+      const res = await submitStep10({
+        userId: user_id,
+        supportingStatement: formData.supportingStatement,
+      });
+
+      if (res.success) {
+        toast.success(res.data?.message || "Step10 saved");
+        next();
+      } else {
+        toast.error(res.message);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    }
+  };
 
   return (
     <div className="min-w-full space-y-3 p-1 flex flex-col">
@@ -66,15 +104,7 @@ export default function Step10({ next, back }: Props) {
         placeholder="Why are you applying & how do you match the role?"
         className="py-3 min-h-[150px]"
       />
-      <SignupNavButtons
-        onBack={back}
-         onNext={() => {
-          if (validateStep()) {
-            console.log("Step7 Data:", formData); // ✅ log here
-            next();
-          }
-        }}
-      />
+      <SignupNavButtons onBack={back} onNext={handleSubmitStep10} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Step5Type } from "@/types/Form";
+import { submitStep5, getStep5 } from "@/lib/api/step5";
+import { user_id } from "@/lib/id";
+
 // ------------------ Types ------------------
 
 type NavProps = {
@@ -25,12 +28,7 @@ type Props = {
 function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   return (
     <div className="flex gap-2 mt-3 justify-between">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onBack}
-        disabled={disableBack}
-      >
+      <Button type="button" variant="outline" onClick={onBack} disabled={disableBack}>
         <IoIosArrowBack />
         Back
       </Button>
@@ -45,17 +43,19 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 
 // ------------------ Step 5 Component ------------------
 export default function Step5({ next, back }: Props) {
+
   const [formData, setFormData] = useState<Step5Type>({
-    isNurse: "no",
+    isNurse: false,
     professionalBody: "",
     registrationType: "",
     registrationNumber: "",
     registrationExpiry: "",
   });
 
+  // ------------------ Handle Change ------------------
   const handleChange = <K extends keyof Step5Type>(
     key: K,
-    value: Step5Type[K],
+    value: Step5Type[K]
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -63,8 +63,32 @@ export default function Step5({ next, back }: Props) {
     }));
   };
 
+  // ------------------ Prefetch Existing Data ------------------
+  useEffect(() => {
+    const fetchStep5 = async () => {
+      const res = await getStep5(user_id);
+
+      if (res.success && res.data?.[0]) {
+        const d = res.data[0];
+
+        setFormData({
+          isNurse: Boolean(d.is_nurse),
+          professionalBody: d.professional_body || "",
+          registrationType: d.registration_type || "",
+          registrationNumber: d.registration_number || "",
+          registrationExpiry: d.registration_expiry
+            ? d.registration_expiry.split("T")[0]
+            : "",
+        });
+      }
+    };
+
+    fetchStep5();
+  }, []);
+
+  // ------------------ Validation ------------------
   const validateStep = (): boolean => {
-    if (formData.isNurse === "yes") {
+    if (formData.isNurse) {
       if (
         !formData.professionalBody ||
         !formData.registrationType ||
@@ -78,6 +102,32 @@ export default function Step5({ next, back }: Props) {
     return true;
   };
 
+  // ------------------ Submit Step 5 ------------------
+  const handleSubmitStep5 = async () => {
+    if (!validateStep()) return;
+
+    try {
+      const res = await submitStep5({
+        userId: user_id,
+        isNurse: formData.isNurse,
+        professionalBody: formData.professionalBody,
+        registrationType: formData.registrationType,
+        registrationNumber: formData.registrationNumber,
+        registrationExpiry: formData.registrationExpiry,
+      });
+
+      if (res.success) {
+        toast.success(res.data?.message || "Step 5 saved successfully!");
+        next();
+      } else {
+        toast.error(res.message || "Failed to save Step 5");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    }
+  };
+
   return (
     <>
       {/* Nurse Radio */}
@@ -85,8 +135,8 @@ export default function Step5({ next, back }: Props) {
         <Label>Are you a Nurse?</Label>
 
         <RadioGroup
-          value={formData.isNurse}
-          onValueChange={(val) => handleChange("isNurse", val as "yes" | "no")}
+          value={formData.isNurse ? "yes" : "no"}
+          onValueChange={(v) => handleChange("isNurse", v === "yes")}
         >
           <div className="flex gap-4 mt-2 items-center">
             <div className="flex items-center gap-2">
@@ -102,10 +152,10 @@ export default function Step5({ next, back }: Props) {
         </RadioGroup>
       </div>
 
-      {/* Conditional Professional Registration Fields */}
+      {/* Conditional Fields */}
       <div
         className={`min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2 transition-all duration-500 ease-in-out ${
-          formData.isNurse === "yes"
+          formData.isNurse
             ? "opacity-100 max-h-[500px]"
             : "opacity-0 max-h-0 overflow-hidden"
         }`}
@@ -115,7 +165,6 @@ export default function Step5({ next, back }: Props) {
           <Input
             value={formData.professionalBody}
             onChange={(e) => handleChange("professionalBody", e.target.value)}
-            placeholder="e.g. Nursing & Midwifery Council"
           />
         </div>
 
@@ -124,7 +173,6 @@ export default function Step5({ next, back }: Props) {
           <Input
             value={formData.registrationType}
             onChange={(e) => handleChange("registrationType", e.target.value)}
-            placeholder="e.g. PIN"
           />
         </div>
 
@@ -132,7 +180,9 @@ export default function Step5({ next, back }: Props) {
           <Label>Registration / PIN Number *</Label>
           <Input
             value={formData.registrationNumber}
-            onChange={(e) => handleChange("registrationNumber", e.target.value)}
+            onChange={(e) =>
+              handleChange("registrationNumber", e.target.value)
+            }
           />
         </div>
 
@@ -141,19 +191,17 @@ export default function Step5({ next, back }: Props) {
           <Input
             type="date"
             value={formData.registrationExpiry}
-            onChange={(e) => handleChange("registrationExpiry", e.target.value)}
+            onChange={(e) =>
+              handleChange("registrationExpiry", e.target.value)
+            }
           />
         </div>
       </div>
 
+      {/* Navigation */}
       <SignupNavButtons
         onBack={back}
-        onNext={() => {
-          if (validateStep()) {
-            console.log("Step5 Data:", formData); // ✅ log here
-            next();
-          }
-        }}
+        onNext={handleSubmitStep5}
       />
     </>
   );

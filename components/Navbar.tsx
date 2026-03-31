@@ -17,7 +17,7 @@ const navLinks = [
 
 export default function Navbar() {
   return (
-    <header className="border-b border-slate-200 sticky top-0 left-0 bg-white z-50">
+    <div className="border-b border-slate-200 sticky top-0 left-0 bg-white z-50">
       <div className=" px-4 py-2 flex items-center justify-between relative">
         {/* LOGO */}
         <Link href="/" className="flex items-center gap-2 w-[30%] max-w-45">
@@ -102,6 +102,6 @@ export default function Navbar() {
           </SheetContent>
         </Sheet>
       </div>
-    </header>
+    </div>
   );
 }

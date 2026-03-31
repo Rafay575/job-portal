@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { GoAlert } from "react-icons/go";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { Step4Type } from "@/types/Form";
-
+import { submitStep4, getStep4 } from "@/lib/api/step4";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import { user_id } from "@/lib/id";
 
 type NavProps = {
   onNext: () => void;
@@ -25,7 +28,12 @@ type Props = {
 function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   return (
     <div className="flex gap-2 mt-3 justify-between">
-      <Button type="button" variant="outline" onClick={onBack} disabled={disableBack}>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onBack}
+        disabled={disableBack}
+      >
         <IoIosArrowBack />
         Back
       </Button>
@@ -40,21 +48,25 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 
 // ------------------ Step 4 Component ------------------
 export default function Step4({ next, back }: Props) {
+
   const [formData, setFormData] = useState<Step4Type>({
     absentDays: "",
     absencePeriods: "",
-    onMedication: "no",
+    onMedication: false,
     medicationDetails: "",
-    healthTreatment: "no",
+    healthTreatment: false,
     treatmentDetails: "",
-    medicalCondition: "no",
+    medicalCondition: false,
     conditionDetails: "",
-    disabled: "no",
+    disabled: false,
     impairmentType: "",
-    nightShiftFit: "yes",
+    nightShiftFit: false,
   });
 
-  const handleChange = <K extends keyof Step4Type>(key: K, value: Step4Type[K]) => {
+  const handleChange = <K extends keyof Step4Type>(
+    key: K,
+    value: Step4Type[K],
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [key]: value,
@@ -62,9 +74,66 @@ export default function Step4({ next, back }: Props) {
   };
 
   const validateStep = (): boolean => {
-    // Placeholder: health info is optional, so always true
     return true;
   };
+  
+
+  useEffect(() => {
+  const fetchStep4 = async () => {
+     // later replace with real auth user
+
+    const res = await getStep4(user_id);
+
+    if (res.success && res.data?.[0]) {
+      const d = res.data[0];
+
+      setFormData({
+        absentDays: d.absent_days || "",
+        absencePeriods: d.absence_periods || "",
+        onMedication: Boolean(d.on_medication),
+        medicationDetails: d.medication_details || "",
+        healthTreatment: Boolean(d.health_treatment),
+        treatmentDetails: d.treatment_details || "",
+        medicalCondition: Boolean(d.medical_condition),
+        conditionDetails: d.condition_details || "",
+        disabled: Boolean(d.disabled),
+        impairmentType: d.impairment_type || "",
+        nightShiftFit: Boolean(d.night_shift_fit),
+      });
+    }
+  };
+
+  fetchStep4();
+}, []);
+
+const handleSubmitStep4 = async () => {
+  try {
+    const res = await submitStep4({
+      userId: user_id,
+      absentDays: formData.absentDays,
+      absencePeriods: formData.absencePeriods,
+      onMedication: formData.onMedication,
+      medicationDetails: formData.medicationDetails,
+      healthTreatment: formData.healthTreatment,
+      treatmentDetails: formData.treatmentDetails,
+      medicalCondition: formData.medicalCondition,
+      conditionDetails: formData.conditionDetails,
+      disabled: formData.disabled,
+      impairmentType: formData.impairmentType,
+      nightShiftFit: formData.nightShiftFit,
+    });
+
+    if (res.success) {
+      toast.success(res.data?.message || "Step 4 saved successfully!");
+      next();
+    } else {
+      toast.error(res.message || "Failed to save Step 4");
+    }
+  } catch (error) {
+    console.error(error);
+    toast.error("Something went wrong");
+  }
+};
 
   return (
     <>
@@ -73,7 +142,8 @@ export default function Step4({ next, back }: Props) {
         <div className="md:col-span-2 rounded-lg border p-2 text-sm text-muted-foreground">
           <p className="flex gap-1 font-medium">
             <GoAlert className="text-primary text-[15px] mt-0.5" />
-            Health information is optional and processed under data protection regulations.
+            Health information is optional and processed under data protection
+            regulations.
           </p>
         </div>
 
@@ -99,8 +169,8 @@ export default function Step4({ next, back }: Props) {
           <div>
             <Label>Currently taking medication?</Label>
             <RadioGroup
-              value={formData.onMedication}
-              onValueChange={(v) => handleChange("onMedication", v as "yes" | "no")}
+              value={formData.onMedication ? "yes" : "no"}
+              onValueChange={(v) => handleChange("onMedication", v === "yes")}
             >
               <div className="flex gap-4 mt-2">
                 <RadioGroupItem value="yes" id="medYes" />
@@ -113,13 +183,17 @@ export default function Step4({ next, back }: Props) {
 
           <div
             className={`transition-all duration-500 ease-in-out ${
-              formData.onMedication === "yes" ? "h-auto! opacity-100" : "h-0! overflow-hidden! opacity-0"
+              formData.onMedication
+                ? "h-auto! opacity-100"
+                : "h-0! overflow-hidden! opacity-0"
             }`}
           >
             <Label>Medication Details</Label>
             <Textarea
               value={formData.medicationDetails}
-              onChange={(e) => handleChange("medicationDetails", e.target.value)}
+              onChange={(e) =>
+                handleChange("medicationDetails", e.target.value)
+              }
             />
           </div>
         </div>
@@ -129,8 +203,10 @@ export default function Step4({ next, back }: Props) {
           <div>
             <Label>Physical or mental health treatment?</Label>
             <RadioGroup
-              value={formData.healthTreatment}
-              onValueChange={(v) => handleChange("healthTreatment", v as "yes" | "no")}
+              value={formData.healthTreatment ? "yes" : "no"}
+              onValueChange={(v) =>
+                handleChange("healthTreatment", v === "yes")
+              }
             >
               <div className="flex gap-4 mt-2">
                 <RadioGroupItem value="yes" id="treatYes" />
@@ -143,7 +219,9 @@ export default function Step4({ next, back }: Props) {
 
           <div
             className={`transition-all duration-500 ease-in-out ${
-              formData.healthTreatment === "yes" ? "h-auto! opacity-100" : "h-0! overflow-hidden! opacity-0"
+              formData.healthTreatment
+                ? "h-auto! opacity-100"
+                : "h-0! overflow-hidden! opacity-0"
             }`}
           >
             <Label>Treatment Details</Label>
@@ -159,8 +237,10 @@ export default function Step4({ next, back }: Props) {
           <div>
             <Label>Any injury / condition / allergy affecting duties?</Label>
             <RadioGroup
-              value={formData.medicalCondition}
-              onValueChange={(v) => handleChange("medicalCondition", v as "yes" | "no")}
+              value={formData.medicalCondition ? "yes" : "no"}
+              onValueChange={(v) =>
+                handleChange("medicalCondition", v === "yes")
+              }
             >
               <div className="flex gap-4 mt-2">
                 <RadioGroupItem value="yes" id="condYes" />
@@ -173,7 +253,9 @@ export default function Step4({ next, back }: Props) {
 
           <div
             className={`transition-all duration-500 ease-in-out ${
-              formData.medicalCondition === "yes" ? "h-auto! opacity-100" : "h-0! overflow-hidden! opacity-0"
+              formData.medicalCondition
+                ? "h-auto! opacity-100"
+                : "h-0! overflow-hidden! opacity-0"
             }`}
           >
             <Label>Condition Details</Label>
@@ -189,8 +271,8 @@ export default function Step4({ next, back }: Props) {
           <div>
             <Label>Do you consider yourself disabled?</Label>
             <RadioGroup
-              value={formData.disabled}
-              onValueChange={(v) => handleChange("disabled", v as "yes" | "no")}
+              value={formData.disabled ? "yes" : "no"}
+              onValueChange={(v) => handleChange("disabled", v === "yes")}
             >
               <div className="flex gap-4 mt-2">
                 <RadioGroupItem value="yes" id="disYes" />
@@ -203,7 +285,9 @@ export default function Step4({ next, back }: Props) {
 
           <div
             className={`transition-all duration-500 ease-in-out ${
-              formData.disabled === "yes" ? "h-auto! opacity-100" : "h-0! overflow-hidden! opacity-0"
+              formData.disabled
+                ? "h-auto! opacity-100"
+                : "h-0! overflow-hidden! opacity-0"
             }`}
           >
             <Label>Type of Impairment</Label>
@@ -218,8 +302,8 @@ export default function Step4({ next, back }: Props) {
         <div>
           <Label>Medical fit for Night Shift?</Label>
           <RadioGroup
-            value={formData.nightShiftFit}
-            onValueChange={(v) => handleChange("nightShiftFit", v as "yes" | "no")}
+            value={formData.nightShiftFit ? "yes" : "no"}
+            onValueChange={(v) => handleChange("nightShiftFit", v === "yes")}
           >
             <div className="flex gap-4 mt-2">
               <RadioGroupItem value="yes" id="nightYes" />
@@ -233,12 +317,7 @@ export default function Step4({ next, back }: Props) {
 
       <SignupNavButtons
         onBack={back}
-        onNext={() => {
-          if (validateStep()) {
-            console.log("Step4 Data:", formData); // ✅ log here
-            next();
-          }
-        }}
+        onNext={handleSubmitStep4}
       />
     </>
   );

@@ -8,9 +8,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-
-// ------------------ Types ------------------
+import { submitStep2 } from "@/lib/api/step2";
+import { getStep2 } from "@/lib/api/step2";
+import { useEffect } from "react";
 import { Step2Type } from "@/types/Form";
+import { user_id } from "@/lib/id";
 
 type NavProps = {
   onNext: () => void;
@@ -48,14 +50,14 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 // ------------------ Step 2 Component ------------------
 export default function Step2({ next, back }: Props) {
   const [formData, setFormData] = useState<Step2Type>({
-    availabilityIssue: "no",
-    workRestrictions: "no",
+    availabilityIssue: false,
+    workRestrictions: false,
     restrictionDetails: "",
-    overtime: "yes",
+    overtime: true,
     hoursAvoid: "",
     noticePeriod: "",
-    workedBefore: "no",
-    appliedBefore: "no",
+    workedBefore: false,
+    appliedBefore: false,
     appliedDetails: "",
   });
 
@@ -86,12 +88,12 @@ export default function Step2({ next, back }: Props) {
       return false;
     }
 
-    if (workRestrictions === "yes" && !restrictionDetails) {
+    if (workRestrictions && !restrictionDetails) {
       toast.error("Please provide restriction details");
       return false;
     }
 
-    if (appliedBefore === "yes" && !appliedDetails) {
+    if (appliedBefore && !appliedDetails) {
       toast.error("Please provide application details");
       return false;
     }
@@ -99,6 +101,64 @@ export default function Step2({ next, back }: Props) {
     return true;
   };
 
+  const handleSubmitStep2 = async () => {
+    // 1. validate first
+    if (!validateStep()) return;
+
+    try {
+      // 2. API CALL
+      const res = await submitStep2({
+        userId: user_id, // replace later with real user id
+        availabilityIssue: formData.availabilityIssue,
+        overtime: formData.overtime,
+        hoursAvoid: formData.hoursAvoid,
+        noticePeriod: formData.noticePeriod,
+        appliedBefore: formData.appliedBefore,
+        appliedDetails: formData.appliedDetails,
+        workRestrictions: formData.workRestrictions,
+        restrictionDetails: formData.restrictionDetails,
+        workedBefore: formData.workedBefore,
+      });
+
+      // 3. handle response
+      if (res.success) {
+        toast.success(res.data?.message || "Step 2 submitted successfully!");
+        next();
+      } else {
+        toast.error(res.message || "Failed to submit Step 2");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong. Please try again.");
+    }
+  };
+
+
+useEffect(() => {
+  const fetchStep2 = async () => {
+    const userId = 1;
+
+    const res = await getStep2(userId);
+
+    if (res.success && res.data?.[0]) {
+      const d = res.data[0];
+
+      setFormData({
+        availabilityIssue: Boolean(d.availability_issue),
+        overtime: Boolean(d.overtime),
+        hoursAvoid: d.hours_avoid || "",
+        noticePeriod: d.notice_period || "",
+        appliedBefore: Boolean(d.applied_before),
+        appliedDetails: d.applied_details || "",
+        workRestrictions: Boolean(d.work_restrictions),
+        restrictionDetails: d.restriction_details || "",
+        workedBefore: Boolean(d.worked_before),
+      });
+    }
+  };
+
+  fetchStep2();
+}, []);
   return (
     <>
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
@@ -106,9 +166,9 @@ export default function Step2({ next, back }: Props) {
         <div>
           <Label>Involved in activity limiting availability?</Label>
           <RadioGroup
-            value={formData.availabilityIssue}
+            value={formData.availabilityIssue ? "yes" : "no"}
             onValueChange={(v) =>
-              handleChange("availabilityIssue", v as "yes" | "no")
+              handleChange("availabilityIssue", v === "yes")
             }
           >
             <div className="flex gap-4 mt-2">
@@ -128,8 +188,8 @@ export default function Step2({ next, back }: Props) {
         <div>
           <Label>Willing to work overtime & weekends?</Label>
           <RadioGroup
-            value={formData.overtime}
-            onValueChange={(v) => handleChange("overtime", v as "yes" | "no")}
+            value={formData.overtime ? "yes" : "no"}
+            onValueChange={(v) => handleChange("overtime", v === "yes")}
           >
             <div className="flex gap-4 mt-1">
               <div className="flex items-center gap-2">
@@ -171,10 +231,8 @@ export default function Step2({ next, back }: Props) {
           <div>
             <Label>Applied before?</Label>
             <RadioGroup
-              value={formData.appliedBefore}
-              onValueChange={(v) =>
-                handleChange("appliedBefore", v as "yes" | "no")
-              }
+              value={formData.appliedBefore ? "yes" : "no"}
+              onValueChange={(v) => handleChange("appliedBefore", v === "yes")}
             >
               <div className="flex gap-4 mt-1">
                 <div className="flex items-center gap-2">
@@ -191,7 +249,7 @@ export default function Step2({ next, back }: Props) {
 
           <div
             className={`transition-all duration-500 ease-in-out ${
-              formData.appliedBefore === "yes"
+              formData.appliedBefore === true
                 ? "h-auto! opacity-100"
                 : "h-0! overflow-hidden! opacity-0"
             }`}
@@ -210,9 +268,9 @@ export default function Step2({ next, back }: Props) {
           <div>
             <Label>Subject to work restrictions / covenants?</Label>
             <RadioGroup
-              value={formData.workRestrictions}
+              value={formData.workRestrictions ? "yes" : "no"}
               onValueChange={(v) =>
-                handleChange("workRestrictions", v as "yes" | "no")
+                handleChange("workRestrictions", v === "yes")
               }
             >
               <div className="flex gap-4 mt-1">
@@ -230,7 +288,7 @@ export default function Step2({ next, back }: Props) {
 
           <div
             className={`transition-all duration-500 ease-in-out ${
-              formData.workRestrictions === "yes"
+              formData.workRestrictions === true
                 ? "max-h-auto! opacity-100"
                 : "max-h-0! overflow-hidden! opacity-0"
             }`}
@@ -250,10 +308,8 @@ export default function Step2({ next, back }: Props) {
         <div>
           <Label>Have you worked for us before?</Label>
           <RadioGroup
-            value={formData.workedBefore}
-            onValueChange={(v) =>
-              handleChange("workedBefore", v as "yes" | "no")
-            }
+            value={formData.workedBefore ? "yes" : "no"}
+            onValueChange={(v) => handleChange("workedBefore", v === "yes")}
           >
             <div className="flex gap-4 mt-1">
               <div className="flex items-center gap-2">
@@ -269,15 +325,7 @@ export default function Step2({ next, back }: Props) {
         </div>
       </div>
 
-      <SignupNavButtons
-        onBack={back}
-        onNext={() => {
-          if (validateStep()) {
-            console.log("Step2 Data:", formData); // ✅ log here
-            next();
-          }
-        }}
-      />
+      <SignupNavButtons onBack={back} onNext={handleSubmitStep2} />
     </>
   );
 }

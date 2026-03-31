@@ -15,7 +15,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { Step1FullTimeType } from "@/types/Form";
-
+import { submitStep1 } from "@/lib/api/step1";
+import { useEffect } from "react";
+import { getStep1 } from "@/lib/api/step1";
+import { user_id } from "@/lib/id";
 type NavProps = {
   onNext: () => void;
   onBack: () => void;
@@ -50,6 +53,7 @@ type Props = {
 };
 
 export default function Step1FullTime({ next, back, roleType }: Props) {
+  const [existingCV, setExistingCV] = useState<string>();
   const [formData, setFormData] = useState<Step1FullTimeType>({
     fullName: "",
     email: "",
@@ -59,11 +63,12 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
     nationality: "",
     immigrationStatus: "",
     immigrationExpiry: "",
-    workPermit: "no",
-    nameChanged: "no",
+    workPermit: false,
+    nameChanged: false,
     previousName: "",
     changedTo: "",
-    cvFile: null,
+    userId: user_id,
+    cvFile: "",
   });
 
   const handleChange = <K extends keyof Step1FullTimeType>(
@@ -89,9 +94,14 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
       nameChanged,
       previousName,
       changedTo,
+      userId,
       cvFile,
     } = formData;
 
+    if (!userId) {
+      toast.error("userId is missing");
+      return false;
+    }
     if (
       !fullName ||
       !email ||
@@ -116,7 +126,7 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
       return false;
     }
 
-    if (nameChanged === "yes") {
+    if (nameChanged) {
       if (!previousName || !changedTo) {
         toast.error("Please provide previous name details");
         return false;
@@ -124,31 +134,96 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
     }
 
     if (roleType === "permanent" || roleType === "both") {
-      if (!cvFile) {
+      if (!cvFile && !existingCV) {
         toast.error("Please upload your CV");
         return false;
       }
 
-      const allowedTypes = [
-        "application/pdf",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      ];
-
-      if (!allowedTypes.includes(cvFile.type)) {
-        toast.error("CV must be PDF, DOC, or DOCX");
-        return false;
-      }
-
-      if (cvFile.size > 5 * 1024 * 1024) {
-        toast.error("CV must be less than 5MB");
-        return false;
-      }
+      
     }
 
     return true;
   };
+  const formatDate = (date: string) => {
+  if (!date) return "";
+  return date.split("T")[0]; // removes time part
+};
+  const handleSubmitStep1 = async () => {
+    // 1. Validate first
+    if (!validateStep()) return;
 
+    try {
+      // 2. Create FormData
+      const form = new FormData();
+      form.append("userId", String(formData.userId));
+      form.append("fullName", formData.fullName);
+      form.append("email", formData.email);
+      form.append("phone", formData.phone);
+      form.append("address", formData.address);
+      form.append("postcode", formData.postcode);
+      form.append("nationality", formData.nationality);
+      form.append("immigrationStatus", formData.immigrationStatus);
+      form.append("immigrationExpiry", formData.immigrationExpiry);
+      form.append("workPermit", String(formData.workPermit));
+      form.append("nameChanged", String(formData.nameChanged));
+
+      if (formData.previousName) {
+        form.append("previousName", formData.previousName);
+      }
+
+      if (formData.changedTo) {
+        form.append("changedTo", formData.changedTo);
+      }
+
+      if (formData.cvFile) {
+        form.append("cvFile", formData.cvFile);
+      }
+
+      form.append("roleType", roleType);
+
+      // 3. API CALL
+      const res = await submitStep1(form);
+
+      // 4. Handle response
+      if (res.success) {
+        toast.success(res.data?.message || "Step 1 submitted successfully!");
+        next(); 
+      } else {
+        toast.error(res.message || "Failed to submit Step 1");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong. Please try again.");
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const res = await getStep1(user_id);
+      if (res.success && res.data[0]) {
+        const d = res.data[0];
+        setFormData({
+          userId: user_id,
+          fullName: d.full_name || "",
+          email: d.email || "",
+          phone: d.phone || "",
+          address: d.address || "",
+          postcode: d.postcode || "",
+          nationality: d.nationality || "",
+          immigrationStatus: d.immigration_status || "",
+          immigrationExpiry:formatDate(d.immigration_expiry) || "",
+          workPermit: Boolean(d.work_permit),
+          nameChanged: Boolean(d.name_changed),
+          previousName: d.previous_name || "",
+          changedTo: d.changed_to || "",
+          cvFile: "",
+        });
+        setExistingCV(d.cv_file_path);
+      }
+    };
+
+    fetchData();
+  }, []);
   return (
     <>
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 ">
@@ -231,9 +306,9 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
         <div>
           <Label>Do you need a UK Work Permit?</Label>
           <RadioGroup
-            value={formData.workPermit}
+            value={formData.workPermit ? "yes" : "no"}
             onValueChange={(value) =>
-              handleChange("workPermit", value as "yes" | "no")
+              handleChange("workPermit", value === "yes")
             }
           >
             <div className="flex gap-4 mt-2">
@@ -252,9 +327,9 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
         <div>
           <Label>Have you changed your name before?</Label>
           <RadioGroup
-            value={formData.nameChanged}
+            value={formData.nameChanged ? "yes" : "no"}
             onValueChange={(value) =>
-              handleChange("nameChanged", value as "yes" | "no")
+              handleChange("nameChanged", value === "yes")
             }
           >
             <div className="flex gap-4 mt-2">
@@ -272,7 +347,7 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
 
         <div
           className={`transition-all duration-500 ease-in-out  ${
-            formData.nameChanged === "yes"
+            formData.nameChanged
               ? "h-auto!  opacity-100 "
               : "h-0! overflow-hidden!  opacity-0"
           }`}
@@ -286,7 +361,7 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
 
         <div
           className={`transition-all duration-500 ease-in-out  ${
-            formData.nameChanged === "yes"
+            formData.nameChanged
               ? "h-auto!  opacity-100 "
               : "h-0! overflow-hidden!  opacity-0"
           }`}
@@ -314,6 +389,7 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
               onChange={(e) => {
                 if (e.target.files && e.target.files.length > 0) {
                   handleChange("cvFile", e.target.files[0]);
+                  setExistingCV(undefined); // 🔥 important
                 }
               }}
               className="absolute inset-0 opacity-0 cursor-pointer"
@@ -325,23 +401,17 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
                 : "Click or drag your CV here (PDF, DOC, DOCX – Max 5MB)"}
             </p>
           </div>
+          {existingCV && (
+            <a href={existingCV} target="_blank">
+              <Button type="button" className="mt-2" size="sm">
+                View Existing CV
+              </Button>
+            </a>
+          )}
         </div>
       </div>
 
-      <SignupNavButtons
-        disableBack
-        onBack={back}
-        onNext={() => {
-          if (validateStep()) {
-            console.log("Type",roleType)
-            console.log("Step1 Data:", formData); // ✅ log here
-            if(roleType == "permanent"){
-              toast.success("Application submitted successfully!.")
-            }
-            next();
-          }
-        }}
-      />
+      <SignupNavButtons disableBack onBack={back} onNext={handleSubmitStep1} />
     </>
   );
 }

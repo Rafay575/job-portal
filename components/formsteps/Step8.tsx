@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,16 +28,30 @@ import { CSS } from "@dnd-kit/utilities";
 import { EducationEntry } from "@/types/Form";
 import { GapEntry8 } from "@/types/Form";
 import { Step8Type } from "@/types/Form";
+import { user_id } from "@/lib/id";
+import { useEffect, useState } from "react";
 
+// Updated import — using the new API module path
+import { getTimeline, saveTimeline } from "@/lib/api/step8";
 
 // ─── Nav Buttons ──────────────────────────────────────────────────────────────
 
-type NavProps = { onNext: () => void; onBack: () => void; disableBack?: boolean };
+type NavProps = {
+  onNext: () => void;
+  onBack: () => void;
+  disableBack?: boolean;
+};
 
 function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   return (
     <div className="flex gap-2 mt-3 justify-between">
-      <Button type="button" variant="outline" onClick={onBack} disabled={disableBack} className="gap-2">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onBack}
+        disabled={disableBack}
+        className="gap-2"
+      >
         <IoIosArrowBack />
         Back
       </Button>
@@ -104,15 +115,36 @@ type CardProps = {
   label: string;
   isDragOverlay?: boolean;
   onRemove: (id: number) => void;
-  onUpdateEducation: (id: number, key: keyof Omit<EducationEntry, "kind" | "id">, value: any) => void;
-  onUpdateGap: (id: number, key: keyof Omit<GapEntry8, "kind" | "id">, value: string) => void;
+  onUpdateEducation: (
+    id: number,
+    key: keyof Omit<EducationEntry, "kind" | "id">,
+    value: any,
+  ) => void;
+  onUpdateGap: (
+    id: number,
+    key: keyof Omit<GapEntry8, "kind" | "id">,
+    value: string,
+  ) => void;
 };
 
 function SortableCard(props: CardProps) {
-  const { entry, label, isDragOverlay, onRemove, onUpdateEducation, onUpdateGap } = props;
+  const {
+    entry,
+    label,
+    isDragOverlay,
+    onRemove,
+    onUpdateEducation,
+    onUpdateGap,
+  } = props;
 
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: entry.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: entry.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -147,9 +179,7 @@ function SortableCard(props: CardProps) {
             <CalendarOff className="h-4 w-4 text-primary" />
           )}
 
-          <p className={`text-sm font-semibold ${entry.kind === "gap" ? "text-primary" : "text-primary"}`}>
-            {label}
-          </p>
+          <p className="text-sm font-semibold text-primary">{label}</p>
         </div>
 
         <Button
@@ -171,12 +201,16 @@ function SortableCard(props: CardProps) {
             <Label className="text-sm">Qualification Type *</Label>
             <select
               value={entry.qualificationType}
-              onChange={(e) => onUpdateEducation(entry.id, "qualificationType", e.target.value)}
+              onChange={(e) =>
+                onUpdateEducation(entry.id, "qualificationType", e.target.value)
+              }
               className="mt-2 w-full border rounded-xl p-2 text-sm bg-white"
             >
               <option value="">Select</option>
               {qualificationTypes.map((t) => (
-                <option key={t} value={t}>{t}</option>
+                <option key={t} value={t}>
+                  {t}
+                </option>
               ))}
             </select>
           </div>
@@ -188,7 +222,13 @@ function SortableCard(props: CardProps) {
               className="mt-2"
               placeholder="e.g., BSc Computer Science"
               value={entry.qualificationTitle}
-              onChange={(e) => onUpdateEducation(entry.id, "qualificationTitle", e.target.value)}
+              onChange={(e) =>
+                onUpdateEducation(
+                  entry.id,
+                  "qualificationTitle",
+                  e.target.value,
+                )
+              }
             />
           </div>
 
@@ -199,7 +239,9 @@ function SortableCard(props: CardProps) {
               className="mt-2"
               placeholder="e.g., University of Manchester"
               value={entry.institutionName}
-              onChange={(e) => onUpdateEducation(entry.id, "institutionName", e.target.value)}
+              onChange={(e) =>
+                onUpdateEducation(entry.id, "institutionName", e.target.value)
+              }
             />
           </div>
 
@@ -210,7 +252,13 @@ function SortableCard(props: CardProps) {
               className="mt-2"
               placeholder="e.g., United Kingdom"
               value={entry.institutionCountry}
-              onChange={(e) => onUpdateEducation(entry.id, "institutionCountry", e.target.value)}
+              onChange={(e) =>
+                onUpdateEducation(
+                  entry.id,
+                  "institutionCountry",
+                  e.target.value,
+                )
+              }
             />
           </div>
 
@@ -221,7 +269,9 @@ function SortableCard(props: CardProps) {
               className="mt-2"
               placeholder="e.g., Pearson / City & Guilds / University"
               value={entry.awardingBody}
-              onChange={(e) => onUpdateEducation(entry.id, "awardingBody", e.target.value)}
+              onChange={(e) =>
+                onUpdateEducation(entry.id, "awardingBody", e.target.value)
+              }
             />
           </div>
 
@@ -232,7 +282,9 @@ function SortableCard(props: CardProps) {
               className="mt-2"
               placeholder="e.g., 2:1 / Distinction / A*"
               value={entry.gradeOrResult}
-              onChange={(e) => onUpdateEducation(entry.id, "gradeOrResult", e.target.value)}
+              onChange={(e) =>
+                onUpdateEducation(entry.id, "gradeOrResult", e.target.value)
+              }
             />
           </div>
 
@@ -243,7 +295,9 @@ function SortableCard(props: CardProps) {
               className="mt-2"
               type="date"
               value={entry.startDate}
-              onChange={(e) => onUpdateEducation(entry.id, "startDate", e.target.value)}
+              onChange={(e) =>
+                onUpdateEducation(entry.id, "startDate", e.target.value)
+              }
             />
           </div>
 
@@ -253,7 +307,9 @@ function SortableCard(props: CardProps) {
               className="mt-2"
               type="date"
               value={entry.endDate}
-              onChange={(e) => onUpdateEducation(entry.id, "endDate", e.target.value)}
+              onChange={(e) =>
+                onUpdateEducation(entry.id, "endDate", e.target.value)
+              }
             />
           </div>
 
@@ -277,7 +333,9 @@ function SortableCard(props: CardProps) {
 
           {/* Professional Registration */}
           <div>
-            <Label className="text-sm">Professional Registration / Licence?</Label>
+            <Label className="text-sm">
+              Professional Registration / Licence?
+            </Label>
             <div className="mt-2 flex gap-3">
               {(["yes", "no"] as const).map((v) => (
                 <label key={v} className="flex items-center gap-2 text-sm">
@@ -285,7 +343,13 @@ function SortableCard(props: CardProps) {
                     type="radio"
                     name={`reg-${entry.id}`}
                     checked={entry.hasProfessionalRegistration === v}
-                    onChange={() => onUpdateEducation(entry.id, "hasProfessionalRegistration", v)}
+                    onChange={() =>
+                      onUpdateEducation(
+                        entry.id,
+                        "hasProfessionalRegistration",
+                        v,
+                      )
+                    }
                   />
                   {v.charAt(0).toUpperCase() + v.slice(1)}
                 </label>
@@ -301,7 +365,13 @@ function SortableCard(props: CardProps) {
                   className="mt-2"
                   placeholder="e.g., NMC / HCPC / GMC"
                   value={entry.registrationBody}
-                  onChange={(e) => onUpdateEducation(entry.id, "registrationBody", e.target.value)}
+                  onChange={(e) =>
+                    onUpdateEducation(
+                      entry.id,
+                      "registrationBody",
+                      e.target.value,
+                    )
+                  }
                 />
               </div>
               <div>
@@ -310,7 +380,13 @@ function SortableCard(props: CardProps) {
                   className="mt-2"
                   placeholder="e.g., PIN / Licence No"
                   value={entry.registrationNumber}
-                  onChange={(e) => onUpdateEducation(entry.id, "registrationNumber", e.target.value)}
+                  onChange={(e) =>
+                    onUpdateEducation(
+                      entry.id,
+                      "registrationNumber",
+                      e.target.value,
+                    )
+                  }
                 />
               </div>
               <div>
@@ -319,7 +395,13 @@ function SortableCard(props: CardProps) {
                   className="mt-2"
                   type="date"
                   value={entry.registrationExpiry}
-                  onChange={(e) => onUpdateEducation(entry.id, "registrationExpiry", e.target.value)}
+                  onChange={(e) =>
+                    onUpdateEducation(
+                      entry.id,
+                      "registrationExpiry",
+                      e.target.value,
+                    )
+                  }
                 />
               </div>
             </>
@@ -328,6 +410,7 @@ function SortableCard(props: CardProps) {
           {/* Certificate Upload */}
           <div className="md:col-span-2">
             <Label className="text-sm">Upload Certificate (optional)</Label>
+
             <div className="mt-2 border rounded-xl p-3">
               <input
                 type="file"
@@ -337,11 +420,28 @@ function SortableCard(props: CardProps) {
                   onUpdateEducation(entry.id, "certificateFile", file);
                 }}
               />
-              {entry.certificateFile && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Uploaded: {entry.certificateFile.name}
-                </p>
-              )}
+
+              {/* 🟢 SHOW NEWLY SELECTED FILE */}
+              {entry.certificateFile &&
+                typeof entry.certificateFile === "object" && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Uploaded: {entry.certificateFile.name}
+                  </p>
+                )}
+
+              {/* 🟢 SHOW EXISTING FILE FROM DB */}
+              {entry.certificateFile &&
+                typeof entry.certificateFile === "string" && (
+                  <div className="mt-2">
+                    <a
+                      href={entry.certificateFile}
+                      target="_blank"
+                      className="text-sm text-blue-600 underline"
+                    >
+                      View uploaded certificate
+                    </a>
+                  </div>
+                )}
             </div>
           </div>
 
@@ -352,7 +452,9 @@ function SortableCard(props: CardProps) {
               className="mt-2"
               placeholder="Any extra details about this qualification..."
               value={entry.additionalNotes}
-              onChange={(e) => onUpdateEducation(entry.id, "additionalNotes", e.target.value)}
+              onChange={(e) =>
+                onUpdateEducation(entry.id, "additionalNotes", e.target.value)
+              }
             />
           </div>
         </div>
@@ -403,17 +505,53 @@ type Props = { next: () => void; back: () => void };
 export default function Step8({ next, back }: Props) {
   const [timeline, setTimeline] = useState<Step8Type[]>([]);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
-  // ── Add / Remove ────────────────────────────────────────────────────────────
-  const addEducation = () =>
-    setTimeline((prev) => [...prev, emptyEducation()]);
+  // Load data on page load
+  useEffect(() => {
+    async function loadTimeline() {
+      try {
+        setLoading(true);
+        const data = await getTimeline(user_id);
+        // console.log("data:",data)
+        // Convert loaded data to include proper IDs and types
+        const formattedData = data.map((item: any) => {
+          if (item.kind === "education") {
+            return {
+              ...emptyEducation(),
+              ...item,
+              id: item.id || nextId(),
+            };
+          } else {
+            return {
+              ...emptyGap(),
+              ...item,
+              id: item.id || nextId(),
+            };
+          }
+        });
+        setTimeline(formattedData);
+      } catch (err) {
+        console.error("Failed to load timeline", err);
+        toast.error("Failed to load timeline");
+      } finally {
+        setLoading(false);
+        setInitialLoad(false);
+      }
+    }
 
-  const addGap = () =>
-    setTimeline((prev) => [...prev, emptyGap()]);
+    loadTimeline();
+  }, []);
+
+  // ── Add / Remove ────────────────────────────────────────────────────────────
+  const addEducation = () => setTimeline((prev) => [...prev, emptyEducation()]);
+
+  const addGap = () => setTimeline((prev) => [...prev, emptyGap()]);
 
   const removeEntry = (id: number) =>
     setTimeline((prev) => prev.filter((e) => e.id !== id));
@@ -426,8 +564,8 @@ export default function Step8({ next, back }: Props) {
   ) =>
     setTimeline((prev) =>
       prev.map((e) =>
-        e.id === id && e.kind === "education" ? { ...e, [key]: value } : e
-      )
+        e.id === id && e.kind === "education" ? { ...e, [key]: value } : e,
+      ),
     );
 
   const updateGap = (
@@ -437,12 +575,13 @@ export default function Step8({ next, back }: Props) {
   ) =>
     setTimeline((prev) =>
       prev.map((e) =>
-        e.id === id && e.kind === "gap" ? { ...e, [key]: value } : e
-      )
+        e.id === id && e.kind === "gap" ? { ...e, [key]: value } : e,
+      ),
     );
 
-  // ── DnD ─────────────────────────────────────────────────────────────────────
-  const handleDragStart = (event: DragStartEvent) => setActiveId(event.active.id);
+  // DnD handlers
+  const handleDragStart = (event: DragStartEvent) =>
+    setActiveId(event.active.id);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -467,7 +606,9 @@ export default function Step8({ next, back }: Props) {
 
   // ── Validation ───────────────────────────────────────────────────────────────
   const validateStep = (): boolean => {
-    const educations = timeline.filter((e): e is EducationEntry => e.kind === "education");
+    const educations = timeline.filter(
+      (e): e is EducationEntry => e.kind === "education",
+    );
 
     if (educations.length === 0) {
       toast.error("Please add at least one education record");
@@ -479,15 +620,29 @@ export default function Step8({ next, back }: Props) {
 
       if (entry.kind === "education") {
         const {
-          qualificationType, qualificationTitle, institutionName,
-          institutionCountry, awardingBody, gradeOrResult, startDate, endDate,
-          hasProfessionalRegistration, registrationBody, registrationNumber, registrationExpiry,
+          qualificationType,
+          qualificationTitle,
+          institutionName,
+          institutionCountry,
+          awardingBody,
+          gradeOrResult,
+          startDate,
+          endDate,
+          hasProfessionalRegistration,
+          registrationBody,
+          registrationNumber,
+          registrationExpiry,
         } = entry;
 
         if (
-          !qualificationType || !qualificationTitle.trim() || !institutionName.trim() ||
-          !institutionCountry.trim() || !awardingBody.trim() || !gradeOrResult.trim() ||
-          !startDate || !endDate
+          !qualificationType ||
+          !qualificationTitle?.trim() ||
+          !institutionName?.trim() ||
+          !institutionCountry?.trim() ||
+          !awardingBody?.trim() ||
+          !gradeOrResult?.trim() ||
+          !startDate ||
+          !endDate
         ) {
           toast.error(`Please complete all required fields for ${label}`);
           return false;
@@ -499,7 +654,11 @@ export default function Step8({ next, back }: Props) {
         }
 
         if (hasProfessionalRegistration === "yes") {
-          if (!registrationBody.trim() || !registrationNumber.trim() || !registrationExpiry) {
+          if (
+            !registrationBody?.trim() ||
+            !registrationNumber?.trim() ||
+            !registrationExpiry
+          ) {
             toast.error(`${label}: Please complete all registration details`);
             return false;
           }
@@ -508,10 +667,10 @@ export default function Step8({ next, back }: Props) {
 
       if (entry.kind === "gap") {
         const { gapFrom, gapTo, reason } = entry;
-        const anyFilled = [gapFrom, gapTo, reason].some((v) => v.trim());
+        const anyFilled = [gapFrom, gapTo, reason].some((v) => v?.trim());
         if (!anyFilled) continue;
 
-        if (!gapFrom || !gapTo || !reason.trim()) {
+        if (!gapFrom || !gapTo || !reason?.trim()) {
           toast.error(`Please complete all fields in ${label}`);
           return false;
         }
@@ -525,41 +684,94 @@ export default function Step8({ next, back }: Props) {
     return true;
   };
 
-  const activeEntry = activeId != null ? timeline.find((e) => e.id === activeId) ?? null : null;
+  // Save data (POST API) — called when user clicks Next
+  const handleSave = async (): Promise<boolean> => {
+  try {
+    setLoading(true);
+
+    await saveTimeline(user_id, timeline); // ✅ send original
+
+    toast.success("Timeline saved successfully!");
+    return true;
+  } catch (err) {
+    console.error("Save failed", err);
+    toast.error("Failed to save timeline");
+    return false;
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // Handle Next: validate → save → proceed
+  const handleNext = async () => {
+    if (!validateStep()) return;
+    const saved = await handleSave();
+    if (saved) next();
+  };
+
+  const activeEntry =
+    activeId != null ? (timeline.find((e) => e.id === activeId) ?? null) : null;
+
+  // Show loading state only on initial load
+  if (initialLoad && loading) {
+    return (
+      <div className="min-w-full space-y-4 p-1 flex flex-col">
+        <div className="rounded-2xl border bg-white p-5">
+          <h2 className="text-lg font-semibold mb-1">
+            Qualifications &amp; Education (UK)
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Loading your timeline...
+          </p>
+        </div>
+        <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+          <div className="animate-pulse">Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="min-w-full space-y-4 p-1 flex flex-col">
-
       {/* Header card */}
       <div className="rounded-2xl border bg-white p-5">
-        <h2 className="text-lg font-semibold mb-1">Qualifications &amp; Education (UK)</h2>
+        <h2 className="text-lg font-semibold mb-1">
+          Qualifications &amp; Education (UK)
+        </h2>
         <p className="text-sm text-muted-foreground">
-          Add your education history and any gaps between study periods. Drag the ⠿ handle to reorder entries.
+          Add your education history and any gaps between study periods. Drag
+          the ⠿ handle to reorder entries.
         </p>
       </div>
 
       {/* Action buttons */}
       <div className="flex flex-wrap gap-3">
-        <Button type="button" variant="outline" onClick={addEducation} className="gap-2 text-primary">
-          <GraduationCap className="h-4 w-4" />
-          + Add Education
+        <Button
+          type="button"
+          variant="outline"
+          onClick={addEducation}
+          className="gap-2 text-primary"
+          disabled={loading}
+        >
+          <GraduationCap className="h-4 w-4" />+ Add Education
         </Button>
         <Button
           type="button"
           variant="outline"
           onClick={addGap}
           className="gap-2 border-primary text-primary hover:bg-amber-50"
+          disabled={loading}
         >
-          <CalendarOff className="h-4 w-4" />
-          + Add Gap
+          <CalendarOff className="h-4 w-4" />+ Add Gap
         </Button>
       </div>
 
-      {/* Timeline */}
-      {timeline.length === 0 ? (
+      {/* Timeline render */}
+      {timeline.length === 0 && !loading ? (
         <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-          No entries yet. Use the buttons above to add your education or any education gaps.
+          No entries yet. Use the buttons above to add your education or any
+          education gaps.
         </div>
       ) : (
         <DndContext
@@ -603,12 +815,8 @@ export default function Step8({ next, back }: Props) {
 
       <SignupNavButtons
         onBack={back}
-         onNext={() => {
-          if (validateStep()) {
-            console.log("Step8 Data:", timeline); // ✅ log here
-            next();
-          }
-        }}
+        onNext={handleNext}
+        disableBack={loading}
       />
     </div>
   );

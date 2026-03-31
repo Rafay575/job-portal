@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { Trash2, Briefcase, CalendarOff, GripVertical } from "lucide-react";
-
+import { getStep9, saveStep9 } from "@/lib/api/step9";
 import {
   DndContext,
   closestCenter,
@@ -32,15 +32,24 @@ import { GapEntry9 } from "@/types/Form";
 import { TimelineEntry9 } from "@/types/Form";
 import { Step9Type } from "@/types/Form";
 
-
 // ─── Nav Buttons ─────────────────────────────────────────────────────────────
 
-type NavProps = { onNext: () => void; onBack: () => void; disableBack?: boolean };
+type NavProps = {
+  onNext: () => void;
+  onBack: () => void;
+  disableBack?: boolean;
+};
 
 function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   return (
     <div className="flex gap-2 mt-4 justify-between">
-      <Button type="button" variant="outline" onClick={onBack} disabled={disableBack} className="gap-2">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onBack}
+        disabled={disableBack}
+        className="gap-2"
+      >
         <IoIosArrowBack />
         Back
       </Button>
@@ -54,12 +63,13 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-let _id = 0;
-const nextId = () => ++_id;
+// ✅ Use Date.now() + counter to avoid collisions with real DB numeric IDs
+let _idCounter = 0;
+const nextTempId = () => -(++_idCounter); // negative IDs = local-only, never clash with DB
 
 const emptyExperience = (): ExperienceEntry => ({
   kind: "experience",
-  id: nextId(),
+  id: nextTempId(),
   employerName: "",
   dateFrom: "",
   dateTo: "",
@@ -69,11 +79,35 @@ const emptyExperience = (): ExperienceEntry => ({
 
 const emptyGap = (): GapEntry9 => ({
   kind: "gap",
-  id: nextId(),
+  id: nextTempId(),
   gapFrom: "",
   gapTo: "",
   reason: "",
 });
+
+// ✅ Moved outside component so it's not re-created on every render
+// ✅ Fixed: use `db.kind` not `db.entry_type` — matches what the API actually returns
+function dbToStep9Frontend(db: any): TimelineEntry9 {
+  if (db.kind === "experience") {
+    return {
+      id: db.id,
+      kind: "experience",
+      employerName: db.employerName || "",
+      jobTitle: db.jobTitle || "",
+      duties: db.duties || "",
+      dateFrom: db.dateFrom || "",
+      dateTo: db.dateTo || "",
+    };
+  }
+
+  return {
+    id: db.id,
+    kind: "gap",
+    gapFrom: db.gapFrom || "",
+    gapTo: db.gapTo || "",
+    reason: db.reason || "",
+  };
+}
 
 // ─── Sortable Card ────────────────────────────────────────────────────────────
 
@@ -82,12 +116,27 @@ type CardProps = {
   label: string;
   isDragOverlay?: boolean;
   onRemove: (id: number) => void;
-  onUpdateExperience: (id: number, key: keyof Omit<ExperienceEntry, "kind" | "id">, value: string) => void;
-  onUpdateGap: (id: number, key: keyof Omit<GapEntry9, "kind" | "id">, value: string) => void;
+  onUpdateExperience: (
+    id: number,
+    key: keyof Omit<ExperienceEntry, "kind" | "id">,
+    value: string,
+  ) => void;
+  onUpdateGap: (
+    id: number,
+    key: keyof Omit<GapEntry9, "kind" | "id">,
+    value: string,
+  ) => void;
 };
 
 function SortableCard(props: CardProps) {
-  const { entry, label, isDragOverlay, onRemove, onUpdateExperience, onUpdateGap } = props;
+  const {
+    entry,
+    label,
+    isDragOverlay,
+    onRemove,
+    onUpdateExperience,
+    onUpdateGap,
+  } = props;
 
   const {
     attributes,
@@ -109,9 +158,7 @@ function SortableCard(props: CardProps) {
       ref={setNodeRef}
       style={isDragOverlay ? undefined : style}
       className={`rounded-xl border p-4 ${
-        entry.kind === "gap"
-          ? "border-amber-200 bg-amber-50/40"
-          : "bg-white"
+        entry.kind === "gap" ? "border-amber-200 bg-amber-50/40" : "bg-white"
       } ${isDragOverlay ? "shadow-2xl rotate-1 scale-[1.02] opacity-95" : ""}`}
     >
       {/* Card header */}
@@ -133,7 +180,9 @@ function SortableCard(props: CardProps) {
           ) : (
             <CalendarOff className="h-4 w-4 text-primary" />
           )}
-          <p className={`text-sm font-semibold ${entry.kind === "gap" ? "text-primary" : ""}`}>
+          <p
+            className={`text-sm font-semibold ${entry.kind === "gap" ? "text-primary" : ""}`}
+          >
             {label}
           </p>
         </div>
@@ -157,7 +206,9 @@ function SortableCard(props: CardProps) {
             <Input
               className="mt-2"
               value={entry.employerName}
-              onChange={(e) => onUpdateExperience(entry.id, "employerName", e.target.value)}
+              onChange={(e) =>
+                onUpdateExperience(entry.id, "employerName", e.target.value)
+              }
               placeholder="e.g., ABC Care Services"
             />
           </div>
@@ -169,7 +220,9 @@ function SortableCard(props: CardProps) {
                 type="date"
                 className="mt-2"
                 value={entry.dateFrom}
-                onChange={(e) => onUpdateExperience(entry.id, "dateFrom", e.target.value)}
+                onChange={(e) =>
+                  onUpdateExperience(entry.id, "dateFrom", e.target.value)
+                }
               />
             </div>
             <div>
@@ -178,7 +231,9 @@ function SortableCard(props: CardProps) {
                 type="date"
                 className="mt-2"
                 value={entry.dateTo}
-                onChange={(e) => onUpdateExperience(entry.id, "dateTo", e.target.value)}
+                onChange={(e) =>
+                  onUpdateExperience(entry.id, "dateTo", e.target.value)
+                }
               />
             </div>
           </div>
@@ -188,7 +243,9 @@ function SortableCard(props: CardProps) {
             <Input
               className="mt-2"
               value={entry.jobTitle}
-              onChange={(e) => onUpdateExperience(entry.id, "jobTitle", e.target.value)}
+              onChange={(e) =>
+                onUpdateExperience(entry.id, "jobTitle", e.target.value)
+              }
               placeholder="e.g., Support Worker"
             />
           </div>
@@ -198,7 +255,9 @@ function SortableCard(props: CardProps) {
             <Textarea
               className="mt-2 min-h-[110px]"
               value={entry.duties}
-              onChange={(e) => onUpdateExperience(entry.id, "duties", e.target.value)}
+              onChange={(e) =>
+                onUpdateExperience(entry.id, "duties", e.target.value)
+              }
               placeholder="Describe what you did in this role..."
             />
           </div>
@@ -248,13 +307,16 @@ type Props = { next: () => void; back: () => void };
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Step9({ next, back }: Props) {
-  const [data, setData] = useState<Step9Type>({ areas: [], timeline: [] });
+  const [data, setData] = useState<Step9Type>({
+    areas: [],
+    timeline: [],
+  });
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 5 }, // prevents accidental drags on input click
-    })
+      activationConstraint: { distance: 5 },
+    }),
   );
 
   const areas = [
@@ -275,31 +337,46 @@ export default function Step9({ next, back }: Props) {
     }));
 
   const addExperience = () =>
-    setData((prev) => ({ ...prev, timeline: [...prev.timeline, emptyExperience()] }));
+    setData((prev) => ({
+      ...prev,
+      timeline: [...prev.timeline, emptyExperience()],
+    }));
 
   const addGap = () =>
     setData((prev) => ({ ...prev, timeline: [...prev.timeline, emptyGap()] }));
 
   const removeEntry = (id: number) =>
-    setData((prev) => ({ ...prev, timeline: prev.timeline.filter((e) => e.id !== id) }));
+    setData((prev) => ({
+      ...prev,
+      timeline: prev.timeline.filter((e) => e.id !== id),
+    }));
 
-  const updateExperience = (id: number, key: keyof Omit<ExperienceEntry, "kind" | "id">, value: string) =>
+  const updateExperience = (
+    id: number,
+    key: keyof Omit<ExperienceEntry, "kind" | "id">,
+    value: string,
+  ) =>
     setData((prev) => ({
       ...prev,
       timeline: prev.timeline.map((e) =>
-        e.id === id && e.kind === "experience" ? { ...e, [key]: value } : e
+        e.id === id && e.kind === "experience" ? { ...e, [key]: value } : e,
       ),
     }));
 
-  const updateGap = (id: number, key: keyof Omit<GapEntry9, "kind" | "id">, value: string) =>
+  const updateGap = (
+    id: number,
+    key: keyof Omit<GapEntry9, "kind" | "id">,
+    value: string,
+  ) =>
     setData((prev) => ({
       ...prev,
       timeline: prev.timeline.map((e) =>
-        e.id === id && e.kind === "gap" ? { ...e, [key]: value } : e
+        e.id === id && e.kind === "gap" ? { ...e, [key]: value } : e,
       ),
     }));
 
-  const handleDragStart = (event: DragStartEvent) => setActiveId(event.active.id);
+  const handleDragStart = (event: DragStartEvent) =>
+    setActiveId(event.active.id);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -308,7 +385,10 @@ export default function Step9({ next, back }: Props) {
     setData((prev) => {
       const oldIndex = prev.timeline.findIndex((e) => e.id === active.id);
       const newIndex = prev.timeline.findIndex((e) => e.id === over.id);
-      return { ...prev, timeline: arrayMove(prev.timeline, oldIndex, newIndex) };
+      return {
+        ...prev,
+        timeline: arrayMove(prev.timeline, oldIndex, newIndex),
+      };
     });
   };
 
@@ -318,7 +398,9 @@ export default function Step9({ next, back }: Props) {
       if (e.kind === entry.kind) count++;
       if (e.id === entry.id) break;
     }
-    return entry.kind === "experience" ? `Experience #${count}` : `Gap #${count}`;
+    return entry.kind === "experience"
+      ? `Experience #${count}`
+      : `Gap #${count}`;
   };
 
   const validateStep = (): boolean => {
@@ -330,9 +412,17 @@ export default function Step9({ next, back }: Props) {
       const label = getLabel(entry, data.timeline);
       if (entry.kind === "experience") {
         const { employerName, dateFrom, dateTo, jobTitle, duties } = entry;
-        const anyFilled = [employerName, dateFrom, dateTo, jobTitle, duties].some((v) => v.trim());
+        const anyFilled = [employerName, dateFrom, dateTo, jobTitle, duties].some(
+          (v) => v.trim(),
+        );
         if (!anyFilled) continue;
-        if (!employerName.trim() || !dateFrom || !dateTo || !jobTitle.trim() || !duties.trim()) {
+        if (
+          !employerName.trim() ||
+          !dateFrom ||
+          !dateTo ||
+          !jobTitle.trim() ||
+          !duties.trim()
+        ) {
           toast.error(`Please complete all fields in ${label}`);
           return false;
         }
@@ -358,14 +448,55 @@ export default function Step9({ next, back }: Props) {
     return true;
   };
 
-  const activeEntry = activeId != null ? data.timeline.find((e) => e.id === activeId) ?? null : null;
+  const activeEntry =
+    activeId != null
+      ? (data.timeline.find((e) => e.id === activeId) ?? null)
+      : null;
+
+  // ✅ Fixed: getStep9 returns Step9Data directly (areas + timeline), not a {success, data} wrapper
+  // The API lib already handles errors and returns the unwrapped shape
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const userId = 1; // replace with auth
+
+        const res = await getStep9(userId);
+
+        setData({
+          areas: res.areas || [],
+          timeline: (res.timeline || []).map(dbToStep9Frontend),
+        });
+      } catch (err) {
+        console.error("Failed to load Step 9:", err);
+        toast.error("Failed to load saved data");
+      }
+    };
+
+    load();
+  }, []);
+
+  const handleNext = async () => {
+    if (!validateStep()) return;
+
+    try {
+      const userId = 1; // replace with auth
+
+      const res = await saveStep9(userId, data);
+
+      // saveStep9 throws on failure, so reaching here means success
+      toast.success("Step 9 saved successfully");
+      next();
+    } catch (err) {
+      console.error(err);
+      toast.error("Server error");
+    }
+  };
 
   return (
     <div className="min-w-full space-y-4 p-2 flex flex-col">
-
       {/* Areas */}
       <div className="rounded-xl border bg-white p-4">
-        <Label className="text-base font-semibold">Select all that apply *</Label>
+        <Label className="text-base font-semibold">Areas of Experience *</Label>
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
           {areas.map((area) => (
             <label
@@ -386,16 +517,23 @@ export default function Step9({ next, back }: Props) {
 
       {/* Timeline section */}
       <div className="rounded-xl border bg-white p-4">
-        <p className="text-base font-semibold mb-1">Experience &amp; Employment Gaps</p>
+        <p className="text-base font-semibold mb-1">
+          Experience &amp; Employment Gaps
+        </p>
         <p className="text-xs text-muted-foreground mb-4">
-          Add your work history and any employment gaps. Drag the ⠿ handle on each card to reorder entries.
+          Add your work history and any employment gaps. Drag the ⠿ handle on
+          each card to reorder entries.
         </p>
 
         {/* Action buttons */}
         <div className="flex flex-wrap gap-3 mb-5">
-          <Button type="button" variant="outline" onClick={addExperience} className="gap-2 text-primary">
-            <Briefcase className="h-4 w-4 " />
-            + Add Experience
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addExperience}
+            className="gap-2 text-primary"
+          >
+            <Briefcase className="h-4 w-4" />+ Add Experience
           </Button>
           <Button
             type="button"
@@ -403,15 +541,15 @@ export default function Step9({ next, back }: Props) {
             onClick={addGap}
             className="gap-2 border-primary text-primary hover:bg-amber-50"
           >
-            <CalendarOff className="h-4 w-4" />
-            + Add Gap
+            <CalendarOff className="h-4 w-4" />+ Add Gap
           </Button>
         </div>
 
         {/* Drag-and-drop list */}
         {data.timeline.length === 0 ? (
           <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-            No entries yet. Use the buttons above to add your experience or employment gaps.
+            No entries yet. Use the buttons above to add your experience or
+            employment gaps.
           </div>
         ) : (
           <DndContext
@@ -424,7 +562,7 @@ export default function Step9({ next, back }: Props) {
               items={data.timeline.map((e) => e.id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="space-y-3 ">
+              <div className="space-y-3">
                 {data.timeline.map((entry) => (
                   <SortableCard
                     key={entry.id}
@@ -454,15 +592,7 @@ export default function Step9({ next, back }: Props) {
         )}
       </div>
 
-      <SignupNavButtons
-        onBack={back}
-         onNext={() => {
-          if (validateStep()) {
-            console.log("Step9 Data:", data); 
-            next();
-          }
-        }}
-      />
+      <SignupNavButtons onBack={back} onNext={handleNext} />
     </div>
   );
 }

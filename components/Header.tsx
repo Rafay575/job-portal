@@ -6,9 +6,9 @@ import Notification from "@/components/Notification";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function Header() {
+export default function  Header() {
   return (
-    <header className=" border-b border-slate-200 bg-background flex items-center px-2 gap-[10px] justify-between sticky top-0 w-[100%] er z-[10] py-2">
+    <div className=" border-b border-slate-200 bg-background flex items-center px-2 gap-[10px] justify-between sticky top-0 w-[100%] er z-[11] py-2">
       <div className="flex items-center gap-2 grow ">
         {/* LOGO */}
         <Link
@@ -38,6 +38,6 @@ export default function Header() {
         {/* Profile */}
         <Profile />
       </div>
-    </header>
+    </div>
   );
 }
