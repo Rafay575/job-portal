@@ -23,7 +23,7 @@ export type Step9Data = {
 // =========================
 // GET STEP 9
 // =========================
-export async function getStep9(userId: number): Promise<Step9Data> {
+export async function getStep9(userId: any): Promise<Step9Data> {
   try {
     const res = await fetch(`/api/step9?userId=${userId}`);
     const data = await res.json();
@@ -51,7 +51,7 @@ export async function getStep9(userId: number): Promise<Step9Data> {
 // SAVE STEP 9
 // =========================
 export async function saveStep9(
-  userId: number,
+  userId: number | string,
   data: Step9Data
 ) {
   try {

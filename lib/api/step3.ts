@@ -25,7 +25,7 @@ export const submitStep3 = async (formData: FormData) => {
 };
 
 // 🔵 Get Step3 Data
-export const getStep3 = async (userId: number | string) => {
+export const getStep3 = async (userId: number | string ) => {
   try {
     const { data } = await axios.get(`/api/step3?userId=${userId}`);
 

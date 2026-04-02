@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
-
+import { sendFormSubmissionEmail } from "@/lib/mailer";
 // 🟢 GET STEP 11
 export async function GET(req: NextRequest) {
   try {
@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
       `,
       [userId],
     );
+    console.log("rows:",rows)
 
     return NextResponse.json({ success: true, data: rows });
   } catch (error) {
@@ -43,6 +44,14 @@ export async function POST(req: NextRequest) {
       formData.get("declarationConfirmed") === "true";
     const declarationDate = formData.get("declarationDate");
     const file = formData.get("signatureFile") as File;
+    const email = formData.get("email") as string;
+    const name = formData.get("name") as string;
+
+    // 🕒 generate time here (SERVER SIDE)
+    const submittedAt = new Date().toLocaleString("en-PK", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
 
     if (!userId) {
       return NextResponse.json(
@@ -77,15 +86,16 @@ export async function POST(req: NextRequest) {
     if (existing.length > 0) {
       await pool.execute(
         `
-  UPDATE employee_declaration SET
+    UPDATE employee_declaration SET
     declaration_confirmed = ?,
     declaration_date = ?,
-    signature_file = ?,
+    signature_file = COALESCE(?, signature_file),
     updated_at = CURRENT_TIMESTAMP
   WHERE user_id = ?
   `,
         [declarationConfirmed, declarationDate, filePath, userId],
       );
+    
 
       return NextResponse.json({
         success: true,
@@ -105,6 +115,12 @@ export async function POST(req: NextRequest) {
       `,
       [userId, declarationConfirmed, declarationDate, filePath],
     );
+    // ✅ send email from backend
+    if (email && name) {
+      await sendFormSubmissionEmail(email, name, submittedAt);
+    } else {
+      console.log("no email or name found in email block");
+    }
 
     return NextResponse.json({
       success: true,

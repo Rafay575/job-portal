@@ -18,7 +18,8 @@ import { Step1FullTimeType } from "@/types/Form";
 import { submitStep1 } from "@/lib/api/step1";
 import { useEffect } from "react";
 import { getStep1 } from "@/lib/api/step1";
-import { user_id } from "@/lib/id";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
 type NavProps = {
   onNext: () => void;
   onBack: () => void;
@@ -47,14 +48,17 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 }
 
 type Props = {
+  type:string;
   next: () => void;
   back: () => void;
   roleType: string;
 };
 
-export default function Step1FullTime({ next, back, roleType }: Props) {
+export default function Step1FullTime({ type,next, back, roleType }: Props) {
+    const user = useSelector((state: RootState) => state.user);
   const [existingCV, setExistingCV] = useState<string>();
   const [formData, setFormData] = useState<Step1FullTimeType>({
+    type:type,
     fullName: "",
     email: "",
     phone: "",
@@ -67,7 +71,7 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
     nameChanged: false,
     previousName: "",
     changedTo: "",
-    userId: user_id,
+    userId: user.id,
     cvFile: "",
   });
 
@@ -156,6 +160,7 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
       // 2. Create FormData
       const form = new FormData();
       form.append("userId", String(formData.userId));
+      form.append("type", String(type));
       form.append("fullName", formData.fullName);
       form.append("email", formData.email);
       form.append("phone", formData.phone);
@@ -199,11 +204,12 @@ export default function Step1FullTime({ next, back, roleType }: Props) {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await getStep1(user_id);
+      const res = await getStep1(user.id);
       if (res.success && res.data[0]) {
         const d = res.data[0];
         setFormData({
-          userId: user_id,
+          userId: user.id,
+          type:type ,
           fullName: d.full_name || "",
           email: d.email || "",
           phone: d.phone || "",

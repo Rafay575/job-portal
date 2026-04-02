@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import { useEffect,  useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FaApple } from "react-icons/fa";
@@ -12,8 +12,9 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
-import { api, setAuthToken } from "@/lib/axios";
-
+import { api } from "@/lib/axios";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/lib/userSlice";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -49,6 +50,7 @@ type ResetForm = z.infer<typeof resetSchema>;
 type Mode = "signin" | "forgot_email" | "forgot_reset" | "forgot_done";
 
 export default function SignInPage() {
+  const dispatch = useDispatch();
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("signin");
 
@@ -61,31 +63,30 @@ export default function SignInPage() {
 
   const loginMutation = useMutation({
     mutationFn: async (payload: { email: string; password: string }) => {
-      const res = await api.post("/auth/login", payload);
+      const res = await api.post("/api/login", payload, {
+        withCredentials: true,
+      });
       return res.data;
     },
+
     onSuccess: (data) => {
-      // backend token key can be: token, accessToken, data.token etc.
-      const token =
-        data?.token ||
-        data?.accessToken ||
-        data?.data?.token ||
-        data?.data?.accessToken;
+      // ✅ RECEIVE DATA HERE
+      toast.success(data?.message || "Login successful!");
 
-      if (!token) {
-        toast.error("Login success but token not found in response.");
-        return;
-      }
+      // ✅ Save user in Redux
+      dispatch(
+        setUser({
+          id: data?.user?.id || null,
+          name: data?.user?.name || null,
+          email: data?.user?.email || null,
+          role: data?.user?.role || null,
+          loggedIn: true,
+        }),
+      );
 
-      // Store token
-      localStorage.setItem("token", token);
-
-      // Set axios header for future requests
-      setAuthToken(token);
-
-      toast.success("Login successful!");
-      router.push("/admin/dashboard");
+      router.push("/user/dashboard");
     },
+
     onError: (err: any) => {
       const msg =
         err?.response?.data?.message || err?.message || "Login failed";
@@ -118,13 +119,14 @@ export default function SignInPage() {
   // -------------------- Mutations --------------------
   const forgotMutation = useMutation({
     mutationFn: async (payload: { email: string }) => {
-      const res = await api.post("/auth/forgot-password", payload);
+      const res = await api.post("/api/auth/forgot-password", payload);
       return res.data;
     },
     onSuccess: (_data, variables) => {
       setForgotEmail(variables.email);
-      toast.success("If the email exists, an OTP has been sent.");
-      setMode("forgot_reset");
+      localStorage.setItem("forgotEmail", variables.email);
+      toast.success("OTP sent to your email");
+      setMode("forgot_reset"); // OK but ONLY if OTP already sent
     },
     onError: (err: any) => {
       const msg =
@@ -138,14 +140,15 @@ export default function SignInPage() {
       email: string;
       otp: string;
       password: string;
-      confirmPassword: string;
     }) => {
-      const res = await api.post("/auth/reset-password", payload);
+      const res = await api.post("/api/auth/reset-password", payload);
       return res.data;
     },
     onSuccess: () => {
       toast.success("Password reset successful!");
       setMode("forgot_done");
+      setForgotEmail("");
+      localStorage.removeItem("forgotEmail");
     },
     onError: (err: any) => {
       const msg =
@@ -170,11 +173,27 @@ export default function SignInPage() {
       email: forgotEmail,
       otp: values.otp,
       password: values.password,
-      confirmPassword: values.confirmPassword,
     };
     console.log("Reset Password:", payload);
     resetMutation.mutate(payload);
   };
+
+  const resendMutation = useMutation({
+    mutationFn: async (payload: { email: string }) => {
+      const res = await api.post("/auth/resend-otp", payload);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("OTP resent successfully");
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Failed to resend OTP");
+    },
+  });
+  useEffect(() => {
+    const email = localStorage.getItem("forgotEmail");
+    if (email) setForgotEmail(email);
+  }, []);
 
   // -------------------- UI --------------------
   return (
@@ -538,7 +557,7 @@ export default function SignInPage() {
                 type="button"
                 onClick={() => {
                   if (!forgotEmail) return;
-                  forgotMutation.mutate({ email: forgotEmail });
+                  resendMutation.mutate({ email: forgotEmail });
                 }}
                 className="text-sm text-gray-600 hover:underline"
               >

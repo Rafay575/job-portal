@@ -16,6 +16,7 @@ import { usePathname } from "next/navigation";
 import Footer from "@/components/Footer";
 
 import QueryProvider from "@/providers/QueryProvider";
+import ReduxProvider from "@/lib/provider";
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,35 +26,35 @@ export default function RootLayout({
 
   const hideSidebar = pathname.startsWith("/auth");
 
-
-  const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/auth") || pathname.startsWith("/user");
-
+  const isAdminRoute =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/user");
 
   return (
     <html lang="en">
-      <body
-        className={` antialiased`}
-      >
+      <body className={` antialiased`}>
         <QueryProvider>
           <TooltipProvider>
-            {!isAdminRoute && (
-              <>
-                <TopNav />
-                <Navbar />
-              </>
-            )}
-            {children}
-            {!isAdminRoute && (
-              <>
-                <Footer />
-              </>
-            )}
+            <ReduxProvider>
+              {!isAdminRoute && (
+                <>
+                  <TopNav />
+                  <Navbar />
+                </>
+              )}
+              {children}
+              {!isAdminRoute && (
+                <>
+                  <Footer />
+                </>
+              )}
 
-            {/* Change position: top-right, top-left, bottom-right, bottom-left, top-center, bottom-center */}
-            <Toaster position="top-center" richColors />
+              {/* Change position: top-right, top-left, bottom-right, bottom-left, top-center, bottom-center */}
+              <Toaster position="top-center" richColors />
+            </ReduxProvider>
           </TooltipProvider>
         </QueryProvider>
-
       </body>
     </html>
   );

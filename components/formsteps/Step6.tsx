@@ -6,7 +6,8 @@ import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { UploadCloud, Trash2, Eye } from "lucide-react";
 import { Step6Type } from "@/types/Form";
 import { submitStep6, getStep6 } from "@/lib/api/step6";
-import { user_id } from "@/lib/id";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
 
 type NavProps = {
   onNext: () => void;
@@ -272,6 +273,8 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 }
 
 export default function Step6({ next, back }: Props) {
+  const user = useSelector((state: RootState) => state.user);
+
   const [documents, setDocuments] = useState<Step6Type>({
     passport: null,
     drivingLicence: null,
@@ -281,7 +284,11 @@ export default function Step6({ next, back }: Props) {
 
   useEffect(() => {
     const fetchStep6 = async () => {
-      const res = await getStep6(user_id);
+       if (!user.id) {
+        toast.error("Id not found in useEffect")
+        return
+      };
+      const res = await getStep6(user.id);
       if (res.success && res.data?.[0]) {
         const d = res.data[0];
         setDocuments({
@@ -317,7 +324,7 @@ export default function Step6({ next, back }: Props) {
 
     try {
       const formData = new FormData();
-      formData.append("userId", String(user_id));
+      formData.append("userId", String(user.id));
 
       if (documents.passport instanceof File)
         formData.append("passport", documents.passport);

@@ -12,8 +12,8 @@ import { submitStep2 } from "@/lib/api/step2";
 import { getStep2 } from "@/lib/api/step2";
 import { useEffect } from "react";
 import { Step2Type } from "@/types/Form";
-import { user_id } from "@/lib/id";
-
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
 type NavProps = {
   onNext: () => void;
   onBack: () => void;
@@ -49,6 +49,7 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 
 // ------------------ Step 2 Component ------------------
 export default function Step2({ next, back }: Props) {
+  const user = useSelector((state: RootState) => state.user);
   const [formData, setFormData] = useState<Step2Type>({
     availabilityIssue: false,
     workRestrictions: false,
@@ -108,7 +109,7 @@ export default function Step2({ next, back }: Props) {
     try {
       // 2. API CALL
       const res = await submitStep2({
-        userId: user_id, // replace later with real user id
+        userId: user.id, // replace later with real user id
         availabilityIssue: formData.availabilityIssue,
         overtime: formData.overtime,
         hoursAvoid: formData.hoursAvoid,
@@ -133,32 +134,34 @@ export default function Step2({ next, back }: Props) {
     }
   };
 
+  useEffect(() => {
+    const fetchStep2 = async () => {
+      if (!user.id) {
+        toast.error("Id not found in useEffect")
+        return
+      };
 
-useEffect(() => {
-  const fetchStep2 = async () => {
-    const userId = 1;
+      const res = await getStep2(user.id);
 
-    const res = await getStep2(userId);
+      if (res.success && res.data?.[0]) {
+        const d = res.data[0];
 
-    if (res.success && res.data?.[0]) {
-      const d = res.data[0];
+        setFormData({
+          availabilityIssue: Boolean(d.availability_issue),
+          overtime: Boolean(d.overtime),
+          hoursAvoid: d.hours_avoid || "",
+          noticePeriod: d.notice_period || "",
+          appliedBefore: Boolean(d.applied_before),
+          appliedDetails: d.applied_details || "",
+          workRestrictions: Boolean(d.work_restrictions),
+          restrictionDetails: d.restriction_details || "",
+          workedBefore: Boolean(d.worked_before),
+        });
+      }
+    };
 
-      setFormData({
-        availabilityIssue: Boolean(d.availability_issue),
-        overtime: Boolean(d.overtime),
-        hoursAvoid: d.hours_avoid || "",
-        noticePeriod: d.notice_period || "",
-        appliedBefore: Boolean(d.applied_before),
-        appliedDetails: d.applied_details || "",
-        workRestrictions: Boolean(d.work_restrictions),
-        restrictionDetails: d.restriction_details || "",
-        workedBefore: Boolean(d.worked_before),
-      });
-    }
-  };
-
-  fetchStep2();
-}, []);
+    fetchStep2();
+  }, []);
   return (
     <>
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">

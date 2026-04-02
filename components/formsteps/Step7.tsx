@@ -10,7 +10,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { Step7Type } from "@/types/Form";
 import { getTrainings, saveTrainings } from "@/lib/api/step7";
-import { user_id } from "@/lib/id";
+import { RootState } from "@/lib/store";
+import { useSelector } from "react-redux";
 
 // ================= NAV BUTTONS =================
 function SignupNavButtons({ onNext, onBack }: any) {
@@ -31,6 +32,8 @@ function SignupNavButtons({ onNext, onBack }: any) {
 
 // ================= MAIN COMPONENT =================
 export default function Step7({ next, back }: any) {
+  const user = useSelector((state: RootState) => state.user);
+
   const [trainings, setTrainings] = useState<Step7Type[]>([
     { title: "", provider: "", duration: "", completionDate: "" },
   ]);
@@ -38,7 +41,11 @@ export default function Step7({ next, back }: any) {
   // ================= FETCH EXISTING DATA =================
   useEffect(() => {
     const fetchData = async () => {
-      const res = await getTrainings(user_id);
+      if (!user.id) {
+        toast.error("Id not found in useEffect");
+        return;
+      }
+      const res = await getTrainings(user.id);
 
       if (res.success && res.data?.length > 0) {
         setTrainings(
@@ -47,7 +54,7 @@ export default function Step7({ next, back }: any) {
             provider: t.provider,
             duration: t.duration,
             completionDate: t.completion_date,
-          }))
+          })),
         );
       }
     };
@@ -56,7 +63,11 @@ export default function Step7({ next, back }: any) {
   }, []);
 
   // ================= UPDATE FIELD =================
-  const updateTraining = (index: number, field: keyof Step7Type, value: string) => {
+  const updateTraining = (
+    index: number,
+    field: keyof Step7Type,
+    value: string,
+  ) => {
     const updated = [...trainings];
     updated[index][field] = value;
     setTrainings(updated);
@@ -91,8 +102,11 @@ export default function Step7({ next, back }: any) {
   // ================= SUBMIT (CREATE + UPDATE SAME API) =================
   const handleSubmit = async () => {
     if (!validateStep()) return;
-
-    const res = await saveTrainings(user_id, trainings);
+    if (!user.id) {
+      toast.error("Id not found in handle Submit");
+      return;
+    }
+    const res = await saveTrainings(user.id, trainings);
 
     if (res.success) {
       toast.success(res.message);
@@ -122,9 +136,7 @@ export default function Step7({ next, back }: any) {
               <Input
                 placeholder="Course Title"
                 value={t.title}
-                onChange={(e) =>
-                  updateTraining(index, "title", e.target.value)
-                }
+                onChange={(e) => updateTraining(index, "title", e.target.value)}
               />
 
               <Input
@@ -169,10 +181,7 @@ export default function Step7({ next, back }: any) {
         Add Another Training
       </Button>
 
-      <SignupNavButtons
-        onBack={back}
-        onNext={handleSubmit}
-      />
+      <SignupNavButtons onBack={back} onNext={handleSubmit} />
     </div>
   );
 }

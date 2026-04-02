@@ -11,7 +11,8 @@ import { Step4Type } from "@/types/Form";
 import { submitStep4, getStep4 } from "@/lib/api/step4";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { user_id } from "@/lib/id";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
 
 type NavProps = {
   onNext: () => void;
@@ -48,6 +49,7 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 
 // ------------------ Step 4 Component ------------------
 export default function Step4({ next, back }: Props) {
+  const user = useSelector((state: RootState) => state.user);
 
   const [formData, setFormData] = useState<Step4Type>({
     absentDays: "",
@@ -80,9 +82,12 @@ export default function Step4({ next, back }: Props) {
 
   useEffect(() => {
   const fetchStep4 = async () => {
-     // later replace with real auth user
+     if (!user.id) {
+        toast.error("Id not found in useEffect")
+        return
+      };
 
-    const res = await getStep4(user_id);
+    const res = await getStep4(user.id);
 
     if (res.success && res.data?.[0]) {
       const d = res.data[0];
@@ -109,7 +114,7 @@ export default function Step4({ next, back }: Props) {
 const handleSubmitStep4 = async () => {
   try {
     const res = await submitStep4({
-      userId: user_id,
+      userId: user.id,
       absentDays: formData.absentDays,
       absencePeriods: formData.absencePeriods,
       onMedication: formData.onMedication,

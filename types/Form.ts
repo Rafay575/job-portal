@@ -1,4 +1,5 @@
 export type Step1FullTimeType = {
+  type:string;
   fullName: string;
   email: string;
   phone: string;
@@ -11,7 +12,7 @@ export type Step1FullTimeType = {
   nameChanged: boolean;
   previousName: string;
   changedTo: string;
-  userId?: number;
+  userId?: number | string | null;
   cvFile?: any;
 };
 
@@ -37,7 +38,7 @@ export type Step3Type = {
   crb: boolean;
   surname: string;
   dob: string;
-  crbFile: any;
+  crbFile: File | string | null;
 };
 
 export type Step4Type = {
@@ -106,7 +107,7 @@ export type GapEntry8 = {
 export type Step8Type = EducationEntry | GapEntry8;
 
 export type ExperienceEntry = {
-  kind?: "experience";
+  kind: "experience";
   id: number;
   employerName: string;
   dateFrom: string;
@@ -116,38 +117,13 @@ export type ExperienceEntry = {
 };
 
 export type GapEntry9 = {
-  kind?: "gap";
+  kind: "gap";
   id: number;
   gapFrom: string;
   gapTo: string;
   reason: string;
 };
-export type TimelineItem = {
-  id?: number;  // Add id for tracking
-  kind: "education" | "gap";
 
-  // education
-  qualificationType?: string;
-  qualificationTitle?: string;
-  institutionName?: string;
-  institutionCountry?: string;
-  awardingBody?: string;
-  gradeOrResult?: string;
-  startDate?: string;
-  endDate?: string;
-  completed?: "yes" | "no";  // Change to "yes" | "no"
-  hasProfessionalRegistration?: "yes" | "no";  // Change to "yes" | "no"
-  registrationBody?: string;
-  registrationNumber?: string;
-  registrationExpiry?: string;
-  certificateFile?: string | File | null;  // Allow File or string
-  additionalNotes?: string;
-
-  // gap
-  gapFrom?: string;
-  gapTo?: string;
-  reason?: string;
-};
 
 export type TimelineEntry9 = ExperienceEntry | GapEntry9;
 
@@ -162,7 +138,7 @@ export type Step10Type = {
 export type Step11Type = {
   declarationConfirmed: boolean;
   declarationDate: string;
-  signatureFile: File | null;
+  signatureFile: File | string | null ;
 };
 
 export type Form = {
@@ -172,9 +148,35 @@ export type Form = {
   Step4: Step4Type;
   Step5: Step5Type;
   Step6: Step6Type;
-  Step7: Step7Type;
+  Step7: Step7Type[];
   Step8: Step8Type[];
   Step9: Step9Type;
   Step10: Step10Type;
   Step11: Step11Type;
 };
+// export type TimelineItem = {
+//   id: number;  // Add id for tracking
+//   kind: "education" | "gap";
+
+//   // education
+//   qualificationType: string;
+//   qualificationTitle: string;
+//   institutionName: string;
+//   institutionCountry: string;
+//   awardingBody: string;
+//   gradeOrResult: string;
+//   startDate: string;
+//   endDate: string;
+//   completed: "yes" | "no";  // Change to "yes" | "no"
+//   hasProfessionalRegistration: "yes" | "no";  // Change to "yes" | "no"
+//   registrationBody: string;
+//   registrationNumber: string;
+//   registrationExpiry: string;
+//   certificateFile: string | File | null;  // Allow File or string
+//   additionalNotes: string;
+
+//   // gap
+//   gapFrom: string;
+//   gapTo: string;
+//   reason: string;
+// };

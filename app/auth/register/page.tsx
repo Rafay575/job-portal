@@ -33,6 +33,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 type Step = "register" | "otp" | "done";
 
 export default function RegisterPage() {
+  const [registerData, setRegisterData] = useState<RegisterForm | null>(null);
   const [step, setStep] = useState<Step>("register");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -55,38 +56,49 @@ export default function RegisterPage() {
     "h-12 rounded-full px-4 pr-12 border-2 border-primary focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary";
 
   // --- Mutations ---
-  const signupMutation = useMutation({
-    mutationFn: async (payload: RegisterForm) => {
-      const res = await api.post("/auth/signup", payload);
-      return res.data;
-    },
-    onSuccess: (_data, variables) => {
-      setEmailForOtp(variables.email);
-      toast.success("OTP sent to your email.");
-      setStep("otp");
-      // focus first otp box
-      setTimeout(() => otpRefs.current?.[0]?.focus(), 50);
-    },
-    onError: (err: any) => {
-      const msg = err?.response?.data?.message || err?.message || "Signup failed";
-      toast.error(msg);
-    },
-  });
+const signupMutation = useMutation({
+  mutationFn: async (payload: RegisterForm) => {
+    const res = await api.post("/api/register", payload);
+    return res.data;
+  },
+
+  onSuccess: (_data, variables) => {
+    setRegisterData(variables); // 🔥 SAVE NAME + EMAIL + PASSWORD
+    setEmailForOtp(variables.email);
+
+    toast.success("OTP sent to your email.");
+    setStep("otp");
+
+    setTimeout(() => otpRefs.current?.[0]?.focus(), 50);
+  },
+
+  onError: (err: any) => {
+    const msg = err?.response?.data?.message || "Signup failed";
+    toast.error(msg);
+  },
+});
 
   const verifyOtpMutation = useMutation({
-    mutationFn: async (payload: { email: string; otp: string }) => {
-      const res = await api.post("/auth/verify-otp", payload);
-      return res.data;
-    },
-    onSuccess: () => {
-      toast.success("Verified! 🎉");
-      setStep("done");
-    },
-    onError: (err: any) => {
-      const msg = err?.response?.data?.message || err?.message || "OTP verification failed";
-      toast.error(msg);
-    },
-  });
+  mutationFn: async (payload: {
+    email: string;
+    otp: string;
+    name: string;
+    password: string;
+  }) => {
+    const res = await api.post("/api/auth/verify-otp", payload);
+    return res.data;
+  },
+
+  onSuccess: () => {
+    toast.success("Verified! 🎉");
+    setStep("done");
+  },
+
+  onError: (err: any) => {
+    const msg = err?.response?.data?.message || "OTP verification failed";
+    toast.error(msg);
+  },
+});
 
   const onSubmit = (values: RegisterForm) => {
     console.log("Register submit:", values);
@@ -139,13 +151,25 @@ export default function RegisterPage() {
     if (e.key === "ArrowRight" && idx < 5) otpRefs.current?.[idx + 1]?.focus();
   };
 
-  const submitOtp = () => {
-    if (otpValue.length !== 6) {
-      toast.error("Please enter 6-digit OTP");
-      return;
-    }
-    verifyOtpMutation.mutate({ email: emailForOtp, otp: otpValue });
-  };
+ const submitOtp = () => {
+  if (otpValue.length !== 6) {
+    toast.error("Please enter 6-digit OTP");
+    return;
+  }
+
+  if (!registerData) {
+    toast.error("Missing registration data. Please register again.");
+    setStep("register");
+    return;
+  }
+
+  verifyOtpMutation.mutate({
+    email: emailForOtp,
+    otp: otpValue,
+    name: registerData.name,
+    password: registerData.password,
+  });
+};
 
   const apiUrl = useMemo(() => process.env.NEXT_PUBLIC_API_URL, []);
 

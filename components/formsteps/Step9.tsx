@@ -31,6 +31,8 @@ import { ExperienceEntry } from "@/types/Form";
 import { GapEntry9 } from "@/types/Form";
 import { TimelineEntry9 } from "@/types/Form";
 import { Step9Type } from "@/types/Form";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
 
 // ─── Nav Buttons ─────────────────────────────────────────────────────────────
 
@@ -65,7 +67,7 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 
 // ✅ Use Date.now() + counter to avoid collisions with real DB numeric IDs
 let _idCounter = 0;
-const nextTempId = () => -(++_idCounter); // negative IDs = local-only, never clash with DB
+const nextTempId = () => -++_idCounter; // negative IDs = local-only, never clash with DB
 
 const emptyExperience = (): ExperienceEntry => ({
   kind: "experience",
@@ -307,6 +309,8 @@ type Props = { next: () => void; back: () => void };
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Step9({ next, back }: Props) {
+  const user = useSelector((state: RootState) => state.user);
+
   const [data, setData] = useState<Step9Type>({
     areas: [],
     timeline: [],
@@ -412,9 +416,13 @@ export default function Step9({ next, back }: Props) {
       const label = getLabel(entry, data.timeline);
       if (entry.kind === "experience") {
         const { employerName, dateFrom, dateTo, jobTitle, duties } = entry;
-        const anyFilled = [employerName, dateFrom, dateTo, jobTitle, duties].some(
-          (v) => v.trim(),
-        );
+        const anyFilled = [
+          employerName,
+          dateFrom,
+          dateTo,
+          jobTitle,
+          duties,
+        ].some((v) => v.trim());
         if (!anyFilled) continue;
         if (
           !employerName.trim() ||
@@ -458,9 +466,7 @@ export default function Step9({ next, back }: Props) {
   useEffect(() => {
     const load = async () => {
       try {
-        const userId = 1; // replace with auth
-
-        const res = await getStep9(userId);
+        const res = await getStep9(user.id);
 
         setData({
           areas: res.areas || [],
@@ -477,11 +483,12 @@ export default function Step9({ next, back }: Props) {
 
   const handleNext = async () => {
     if (!validateStep()) return;
-
+    if (!user.id) {
+      toast.error("Id not found in Handle Next");
+      return;
+    }
     try {
-      const userId = 1; // replace with auth
-
-      const res = await saveStep9(userId, data);
+      const res = await saveStep9(user.id, data);
 
       // saveStep9 throws on failure, so reaching here means success
       toast.success("Step 9 saved successfully");

@@ -26,7 +26,7 @@ export const submitStep2 = async (payload: any) => {
 
 
 // 🟢 Get Step2
-export const getStep2 = async (userId: number | string) => {
+export const getStep2 = async (userId: number | string ) => {
   try {
     const { data } = await axios.get(`/api/step2?userId=${userId}`);
 

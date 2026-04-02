@@ -26,7 +26,7 @@ export const submitStep1 = async (formData: FormData) => {
 };
 
 // Get Step1 
-export const getStep1 = async (userId: number | string) => {
+export const getStep1 = async (userId: number | string | null) => {
   try {
     const { data } = await axios.get(`/api/step1?userId=${userId}`);
     return {

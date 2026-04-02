@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
 import path from "path";
 import pool from "@/lib/db";
+import { sendFormSubmissionEmail } from "@/lib/mailer";
 
 // Get Step1
 export async function GET(req: NextRequest) {
@@ -21,6 +22,7 @@ export async function GET(req: NextRequest) {
       SELECT 
         id,
         user_id,
+        type,
         full_name,
         email,
         phone,
@@ -28,10 +30,8 @@ export async function GET(req: NextRequest) {
         postcode,
         nationality,
         immigration_status,
-
         -- ✅ formatted date
         DATE_FORMAT(immigration_expiry, '%Y-%m-%d') AS immigration_expiry,
-
         work_permit,
         name_changed,
         previous_name,
@@ -74,6 +74,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 🕒 generate time here (SERVER SIDE)
+    const submittedAt = new Date().toLocaleString("en-PK", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+
+    const type = formData.get("type") as string;
     const fullName = formData.get("fullName") as string;
     const email = formData.get("email") as string;
     const phone = formData.get("phone") as string;
@@ -122,6 +129,7 @@ export async function POST(req: NextRequest) {
       await pool.execute(
         `
         UPDATE employee_basic_information SET
+        type=?,
           full_name = ?,
           email = ?,
           phone = ?,
@@ -139,6 +147,7 @@ export async function POST(req: NextRequest) {
         WHERE id = ?
         `,
         [
+          type,
           fullName,
           email,
           phone,
@@ -170,6 +179,7 @@ export async function POST(req: NextRequest) {
       `
       INSERT INTO employee_basic_information (
         user_id,
+        type,
         full_name,
         email,
         phone,
@@ -187,6 +197,7 @@ export async function POST(req: NextRequest) {
       `,
       [
         userId,
+        type,
         fullName,
         email,
         phone,
@@ -203,6 +214,15 @@ export async function POST(req: NextRequest) {
       ],
     );
 
+    if (type == "permanent") {
+      if (email && fullName) {
+        console.log("email1");
+        await sendFormSubmissionEmail(email, fullName, submittedAt);
+        console.log("email2");
+      } else {
+        console.log("no email or name found in email block");
+      }
+    }
     return NextResponse.json({
       success: true,
       message: "Step 1 submitted successfully",

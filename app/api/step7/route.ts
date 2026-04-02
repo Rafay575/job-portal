@@ -15,8 +15,16 @@ export async function GET(req: Request) {
     }
 
     const [rows] = await pool.execute(
-      `SELECT * FROM employee_trainings WHERE user_id = ? ORDER BY id ASC`,
-      [userId]
+      `SELECT id,
+  user_id,
+  title,
+  provider,
+  duration,
+
+  DATE_FORMAT(completion_date, '%Y-%m-%d') AS completion_date,
+  DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at,
+  DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s') AS updated_at FROM employee_trainings WHERE user_id = ? ORDER BY id ASC`,
+      [userId],
     );
 
     return NextResponse.json({
@@ -52,7 +60,7 @@ export async function POST(req: Request) {
     // 🔥 STEP 1: DELETE OLD RECORDS (if any exist)
     await connection.execute(
       `DELETE FROM employee_trainings WHERE user_id = ?`,
-      [userId]
+      [userId],
     );
 
     // 🔥 STEP 2: INSERT NEW DATA
@@ -70,7 +78,7 @@ export async function POST(req: Request) {
             item.provider,
             item.duration,
             item.completionDate,
-          ]
+          ],
         );
       }
     }

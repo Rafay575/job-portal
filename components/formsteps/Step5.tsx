@@ -9,7 +9,8 @@ import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Step5Type } from "@/types/Form";
 import { submitStep5, getStep5 } from "@/lib/api/step5";
-import { user_id } from "@/lib/id";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
 
 // ------------------ Types ------------------
 
@@ -43,6 +44,7 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 
 // ------------------ Step 5 Component ------------------
 export default function Step5({ next, back }: Props) {
+  const user = useSelector((state: RootState) => state.user);
 
   const [formData, setFormData] = useState<Step5Type>({
     isNurse: false,
@@ -66,7 +68,11 @@ export default function Step5({ next, back }: Props) {
   // ------------------ Prefetch Existing Data ------------------
   useEffect(() => {
     const fetchStep5 = async () => {
-      const res = await getStep5(user_id);
+       if (!user.id) {
+        toast.error("Id not found in useEffect")
+        return
+      };
+      const res = await getStep5(user.id);
 
       if (res.success && res.data?.[0]) {
         const d = res.data[0];
@@ -108,7 +114,7 @@ export default function Step5({ next, back }: Props) {
 
     try {
       const res = await submitStep5({
-        userId: user_id,
+        userId: user.id,
         isNurse: formData.isNurse,
         professionalBody: formData.professionalBody,
         registrationType: formData.registrationType,

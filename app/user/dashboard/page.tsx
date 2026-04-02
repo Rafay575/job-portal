@@ -38,9 +38,6 @@ export default function Page() {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1); // 1 = next, -1 = back
   const [open, setOpen] = useState(false);
-  
-
-
 
   const next = () => {
     if (step < totalSteps) {
@@ -64,6 +61,7 @@ export default function Page() {
     roleType === "permanent"
       ? [
           <Step1FullTime
+            type={roleType}
             next={next}
             back={back}
             key="step1"
@@ -72,6 +70,7 @@ export default function Page() {
         ]
       : [
           <Step1FullTime
+            type={roleType}
             next={next}
             back={back}
             key="step1"

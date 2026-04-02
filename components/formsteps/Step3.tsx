@@ -12,7 +12,8 @@ import { Step3Type } from "@/types/Form";
 import { useEffect } from "react";
 import { getStep3 } from "@/lib/api/step3";
 import { submitStep3 } from "@/lib/api/step3";
-import { user_id } from "@/lib/id";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
 
 type NavProps = {
   onNext: () => void;
@@ -49,6 +50,7 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 
 // ------------------ Step 3 Component ------------------
 export default function Step3({ next, back }: Props) {
+  const user = useSelector((state: RootState) => state.user);
 
   const [existingCRB, setExistingCRB] = useState<string>();
   const [formData, setFormData] = useState<Step3Type>({
@@ -107,7 +109,11 @@ export default function Step3({ next, back }: Props) {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await getStep3(user_id);
+      if (!user.id) {
+        toast.error("Id not found in useEffect")
+        return
+      };
+      const res = await getStep3(user.id);
 
       if (res.success && res.data[0]) {
         const d = res.data[0];
@@ -138,7 +144,7 @@ export default function Step3({ next, back }: Props) {
     try {
       const form = new FormData();
 
-      form.append("userId", String(user_id));
+      form.append("userId", String(user.id));
       form.append("hasConvictions", String(formData.hasConvictions));
       form.append("convictionDetails", formData.convictionDetails);
 

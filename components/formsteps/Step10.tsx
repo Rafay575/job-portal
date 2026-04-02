@@ -8,7 +8,8 @@ import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { Step10Type } from "@/types/Form";
 import { submitStep10, getStep10 } from "@/lib/api/step10";
 import { useEffect } from "react";
-import { user_id } from "@/lib/id";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
 
 type NavProps = {
   onNext: () => void;
@@ -43,6 +44,8 @@ type Props = {
 };
 
 export default function Step10({ next, back }: Props) {
+  const user = useSelector((state: RootState) => state.user);
+
   const [formData, setFormData] = useState<Step10Type>({
     supportingStatement: "",
   });
@@ -59,7 +62,11 @@ export default function Step10({ next, back }: Props) {
   };
   useEffect(() => {
     const fetchStep10 = async () => {
-      const res = await getStep10(user_id);
+       if (!user.id) {
+        toast.error("Id not found in useEffect")
+        return
+      };
+      const res = await getStep10(user.id);
 
       if (res.success && res.data?.[0]) {
         const d = res.data[0];
@@ -77,7 +84,7 @@ export default function Step10({ next, back }: Props) {
 
     try {
       const res = await submitStep10({
-        userId: user_id,
+        userId: user.id,
         supportingStatement: formData.supportingStatement,
       });
 

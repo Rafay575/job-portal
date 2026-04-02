@@ -6,6 +6,12 @@ import AuthBG from "@/components/AuthBG";
 import { AnimatePresence, motion } from "framer-motion";
 import TopNav from "@/components/TopNav";
 import Navbar from "@/components/Navbar";
+import { useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import { RootState } from "@/lib/store";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -21,9 +27,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
-  const direction = pathname.includes("signup") ? 1 : -1;
+ 
+const user = useSelector((state: RootState) => state.user);
+const router = useRouter();
 
+useEffect(() => {
+  if (user?.loggedIn) {
+    toast.success("You are already logged in");
+    router.replace("/");
+  }
+}, [user, router]);
   return (
     <html lang="en">
       <body>
@@ -31,10 +44,7 @@ export default function RootLayout({
             <TopNav />
             <Navbar />
           </>
-       
-
           {children}
-        
       </body>
     </html>
   );

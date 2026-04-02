@@ -25,7 +25,7 @@ export type TimelineItem = {
   reason?: string;
 };
 
-export async function getTimeline(userId: number) {
+export async function getTimeline(userId: any) {
   try {
     const res = await fetch(`/api/step8?userId=${userId}`);
 
@@ -47,7 +47,7 @@ export async function getTimeline(userId: number) {
   }
 }
 
-export async function saveTimeline(userId: number, timeline: TimelineItem[]) {
+export async function saveTimeline(userId: number | string, timeline: TimelineItem[]) {
   try {
     const formData = new FormData();
 

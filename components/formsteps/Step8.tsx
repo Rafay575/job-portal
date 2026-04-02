@@ -28,11 +28,12 @@ import { CSS } from "@dnd-kit/utilities";
 import { EducationEntry } from "@/types/Form";
 import { GapEntry8 } from "@/types/Form";
 import { Step8Type } from "@/types/Form";
-import { user_id } from "@/lib/id";
 import { useEffect, useState } from "react";
 
 // Updated import — using the new API module path
 import { getTimeline, saveTimeline } from "@/lib/api/step8";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
 
 // ─── Nav Buttons ──────────────────────────────────────────────────────────────
 
@@ -503,6 +504,7 @@ type Props = { next: () => void; back: () => void };
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Step8({ next, back }: Props) {
+  const user = useSelector((state: RootState) => state.user);
   const [timeline, setTimeline] = useState<Step8Type[]>([]);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [loading, setLoading] = useState(false);
@@ -517,7 +519,7 @@ export default function Step8({ next, back }: Props) {
     async function loadTimeline() {
       try {
         setLoading(true);
-        const data = await getTimeline(user_id);
+        const data = await getTimeline(user.id);
         // console.log("data:",data)
         // Convert loaded data to include proper IDs and types
         const formattedData = data.map((item: any) => {
@@ -685,11 +687,16 @@ export default function Step8({ next, back }: Props) {
   };
 
   // Save data (POST API) — called when user clicks Next
-  const handleSave = async (): Promise<boolean> => {
+const handleSave = async (): Promise<boolean> => {
   try {
+    if (!user.id) {
+      toast.error("User not found. Please login again.");
+      return false;
+    }
+
     setLoading(true);
 
-    await saveTimeline(user_id, timeline); // ✅ send original
+    await saveTimeline(user.id, timeline);
 
     toast.success("Timeline saved successfully!");
     return true;
@@ -701,7 +708,6 @@ export default function Step8({ next, back }: Props) {
     setLoading(false);
   }
 };
-
   // Handle Next: validate → save → proceed
   const handleNext = async () => {
     if (!validateStep()) return;
