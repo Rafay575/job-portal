@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
         surname,
         
         -- ✅ format date
-        DATE_FORMAT(dob, '%Y-%m-%d') AS dob,
+        DATE_FORMAT(dob, '%d-%m-%Y') AS dob,
 
         crb_file_path,
         created_at,

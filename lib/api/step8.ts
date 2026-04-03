@@ -27,7 +27,7 @@ export type TimelineItem = {
 
 export async function getTimeline(userId: any) {
   try {
-    const res = await fetch(`/api/step8?userId=${userId}`);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/step8?userId=${userId}`);
 
     const data = await res.json();
 
@@ -90,7 +90,7 @@ export async function saveTimeline(userId: number | string, timeline: TimelineIt
       }
     });
 
-    const res = await fetch("/api/step8", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/step8`, {
       method: "POST",
       body: formData, // ✅ NO JSON
     });

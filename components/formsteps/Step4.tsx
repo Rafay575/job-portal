@@ -13,6 +13,7 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import { FullPageLoader } from "../Loading";
 
 type NavProps = {
   onNext: () => void;
@@ -49,6 +50,8 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 
 // ------------------ Step 4 Component ------------------
 export default function Step4({ next, back }: Props) {
+  const [loading, setLoading] = useState(false);
+
   const user = useSelector((state: RootState) => state.user);
 
   const [formData, setFormData] = useState<Step4Type>({
@@ -78,67 +81,73 @@ export default function Step4({ next, back }: Props) {
   const validateStep = (): boolean => {
     return true;
   };
-  
 
   useEffect(() => {
-  const fetchStep4 = async () => {
-     if (!user.id) {
-        toast.error("Id not found in useEffect")
-        return
-      };
+    const fetchStep4 = async () => {
+      setLoading(true);
 
-    const res = await getStep4(user.id);
+      if (!user.id) {
+        toast.error("Id not found in useEffect");
+        return;
+      }
 
-    if (res.success && res.data?.[0]) {
-      const d = res.data[0];
+      const res = await getStep4(user.id);
 
-      setFormData({
-        absentDays: d.absent_days || "",
-        absencePeriods: d.absence_periods || "",
-        onMedication: Boolean(d.on_medication),
-        medicationDetails: d.medication_details || "",
-        healthTreatment: Boolean(d.health_treatment),
-        treatmentDetails: d.treatment_details || "",
-        medicalCondition: Boolean(d.medical_condition),
-        conditionDetails: d.condition_details || "",
-        disabled: Boolean(d.disabled),
-        impairmentType: d.impairment_type || "",
-        nightShiftFit: Boolean(d.night_shift_fit),
+      if (res.success && res.data?.[0]) {
+        const d = res.data[0];
+
+        setFormData({
+          absentDays: d.absent_days || "",
+          absencePeriods: d.absence_periods || "",
+          onMedication: Boolean(d.on_medication),
+          medicationDetails: d.medication_details || "",
+          healthTreatment: Boolean(d.health_treatment),
+          treatmentDetails: d.treatment_details || "",
+          medicalCondition: Boolean(d.medical_condition),
+          conditionDetails: d.condition_details || "",
+          disabled: Boolean(d.disabled),
+          impairmentType: d.impairment_type || "",
+          nightShiftFit: Boolean(d.night_shift_fit),
+        });
+      }
+      setLoading(false);
+    };
+
+    fetchStep4();
+  }, []);
+
+  const handleSubmitStep4 = async () => {
+    try {
+      setLoading(true);
+      const res = await submitStep4({
+        userId: user.id,
+        absentDays: formData.absentDays,
+        absencePeriods: formData.absencePeriods,
+        onMedication: formData.onMedication,
+        medicationDetails: formData.medicationDetails,
+        healthTreatment: formData.healthTreatment,
+        treatmentDetails: formData.treatmentDetails,
+        medicalCondition: formData.medicalCondition,
+        conditionDetails: formData.conditionDetails,
+        disabled: formData.disabled,
+        impairmentType: formData.impairmentType,
+        nightShiftFit: formData.nightShiftFit,
       });
+
+      if (res.success) {
+        toast.success(res.data?.message || "Step 4 saved successfully!");
+        next();
+      } else {
+        toast.error(res.message || "Failed to save Step 4");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
-
-  fetchStep4();
-}, []);
-
-const handleSubmitStep4 = async () => {
-  try {
-    const res = await submitStep4({
-      userId: user.id,
-      absentDays: formData.absentDays,
-      absencePeriods: formData.absencePeriods,
-      onMedication: formData.onMedication,
-      medicationDetails: formData.medicationDetails,
-      healthTreatment: formData.healthTreatment,
-      treatmentDetails: formData.treatmentDetails,
-      medicalCondition: formData.medicalCondition,
-      conditionDetails: formData.conditionDetails,
-      disabled: formData.disabled,
-      impairmentType: formData.impairmentType,
-      nightShiftFit: formData.nightShiftFit,
-    });
-
-    if (res.success) {
-      toast.success(res.data?.message || "Step 4 saved successfully!");
-      next();
-    } else {
-      toast.error(res.message || "Failed to save Step 4");
-    }
-  } catch (error) {
-    console.error(error);
-    toast.error("Something went wrong");
-  }
-};
+  if (loading) return <FullPageLoader />;
 
   return (
     <>
@@ -320,10 +329,7 @@ const handleSubmitStep4 = async () => {
         </div>
       </div>
 
-      <SignupNavButtons
-        onBack={back}
-        onNext={handleSubmitStep4}
-      />
+      <SignupNavButtons onBack={back} onNext={handleSubmitStep4} />
     </>
   );
 }

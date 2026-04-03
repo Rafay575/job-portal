@@ -12,7 +12,7 @@ import { submitStep11, getStep11 } from "@/lib/api/step11";
 import { useEffect } from "react";
 import { RootState } from "@/lib/store";
 import { useSelector } from "react-redux";
-import { sendFormSubmissionEmail } from "@/lib/mailer";
+import { FullPageLoader } from "../Loading";
 
 type NavProps = {
   onBack: () => void;
@@ -42,7 +42,9 @@ function SignupNavButtons({ onBack, disableBack }: NavProps) {
 
 // ------------------ Step6 Component ------------------
 export default function Step11({ back }: Props) {
-  const router= useRouter()
+  const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
   const user = useSelector((state: RootState) => state.user);
   const submittedAt = new Date().toLocaleString();
   const [existingFile, setExistingFile] = useState<string | null>(null);
@@ -88,6 +90,7 @@ export default function Step11({ back }: Props) {
         toast.error("Id not found in useEffect");
         return;
       }
+      setLoading(true)
       const res = await getStep11(user.id);
 
       if (res.success && res.data?.[0]) {
@@ -101,6 +104,8 @@ export default function Step11({ back }: Props) {
 
         setExistingFile(d.signature_file || null); // ✅ store file path
       }
+      setLoading(false)
+
     };
 
     fetchData();
@@ -130,21 +135,25 @@ export default function Step11({ back }: Props) {
       if (user.name) {
         formDataToSend.append("name", user.name);
       }
+      setLoading(true)
       const res = await submitStep11(formDataToSend);
 
       if (res.success) {
         toast.success(res.data?.message || "Submitted!");
         console.log("FINAL SUBMISSION:", formData);
-        router.push("/")
-        
+        router.push("/");
       } else {
         toast.error(res.message);
       }
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong");
+    }finally{
+      setLoading(false)
     }
   };
+    if (loading) return <FullPageLoader />;
+
   return (
     <form className="w-full space-y-2" onSubmit={handleSubmit}>
       {/* Declaration */}

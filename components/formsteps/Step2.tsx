@@ -14,6 +14,8 @@ import { useEffect } from "react";
 import { Step2Type } from "@/types/Form";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import { FullPageLoader } from "../Loading";
+
 type NavProps = {
   onNext: () => void;
   onBack: () => void;
@@ -49,6 +51,7 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 
 // ------------------ Step 2 Component ------------------
 export default function Step2({ next, back }: Props) {
+  const [loading, setLoading] = useState(false);
   const user = useSelector((state: RootState) => state.user);
   const [formData, setFormData] = useState<Step2Type>({
     availabilityIssue: false,
@@ -103,9 +106,8 @@ export default function Step2({ next, back }: Props) {
   };
 
   const handleSubmitStep2 = async () => {
-    // 1. validate first
     if (!validateStep()) return;
-
+    setLoading(true);
     try {
       // 2. API CALL
       const res = await submitStep2({
@@ -131,15 +133,18 @@ export default function Step2({ next, back }: Props) {
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");
+    }finally{
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     const fetchStep2 = async () => {
+      setLoading(true);
       if (!user.id) {
-        toast.error("Id not found in useEffect")
-        return
-      };
+        toast.error("Id not found in useEffect");
+        return;
+      }
 
       const res = await getStep2(user.id);
 
@@ -158,10 +163,12 @@ export default function Step2({ next, back }: Props) {
           workedBefore: Boolean(d.worked_before),
         });
       }
+      setLoading(false);
     };
 
     fetchStep2();
   }, []);
+  if (loading) return <FullPageLoader />;
   return (
     <>
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">

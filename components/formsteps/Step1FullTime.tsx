@@ -20,6 +20,7 @@ import { useEffect } from "react";
 import { getStep1 } from "@/lib/api/step1";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import { FullPageLoader } from "../Loading";
 type NavProps = {
   onNext: () => void;
   onBack: () => void;
@@ -48,17 +49,18 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 }
 
 type Props = {
-  type:string;
+  type: string;
   next: () => void;
   back: () => void;
   roleType: string;
 };
 
-export default function Step1FullTime({ type,next, back, roleType }: Props) {
-    const user = useSelector((state: RootState) => state.user);
+export default function Step1FullTime({ type, next, back, roleType }: Props) {
+  const user = useSelector((state: RootState) => state.user);
+  const [loading, setLoading] = useState(false);
   const [existingCV, setExistingCV] = useState<string>();
   const [formData, setFormData] = useState<Step1FullTimeType>({
-    type:type,
+    type: type,
     fullName: "",
     email: "",
     phone: "",
@@ -142,20 +144,19 @@ export default function Step1FullTime({ type,next, back, roleType }: Props) {
         toast.error("Please upload your CV");
         return false;
       }
-
-      
     }
 
     return true;
   };
   const formatDate = (date: string) => {
-  if (!date) return "";
-  return date.split("T")[0]; // removes time part
-};
+    if (!date) return "";
+    return date.split("T")[0]; // removes time part
+  };
   const handleSubmitStep1 = async () => {
     // 1. Validate first
     if (!validateStep()) return;
 
+    setLoading(true);
     try {
       // 2. Create FormData
       const form = new FormData();
@@ -192,24 +193,27 @@ export default function Step1FullTime({ type,next, back, roleType }: Props) {
       // 4. Handle response
       if (res.success) {
         toast.success(res.data?.message || "Step 1 submitted successfully!");
-        next(); 
+        next();
       } else {
         toast.error(res.message || "Failed to submit Step 1");
       }
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       const res = await getStep1(user.id);
       if (res.success && res.data[0]) {
         const d = res.data[0];
         setFormData({
           userId: user.id,
-          type:type ,
+          type: type,
           fullName: d.full_name || "",
           email: d.email || "",
           phone: d.phone || "",
@@ -217,7 +221,7 @@ export default function Step1FullTime({ type,next, back, roleType }: Props) {
           postcode: d.postcode || "",
           nationality: d.nationality || "",
           immigrationStatus: d.immigration_status || "",
-          immigrationExpiry:formatDate(d.immigration_expiry) || "",
+          immigrationExpiry: formatDate(d.immigration_expiry) || "",
           workPermit: Boolean(d.work_permit),
           nameChanged: Boolean(d.name_changed),
           previousName: d.previous_name || "",
@@ -226,10 +230,12 @@ export default function Step1FullTime({ type,next, back, roleType }: Props) {
         });
         setExistingCV(d.cv_file_path);
       }
+      setLoading(false);
     };
 
     fetchData();
   }, []);
+  if (loading) return <FullPageLoader />;
   return (
     <>
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 ">

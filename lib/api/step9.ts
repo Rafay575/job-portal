@@ -25,7 +25,7 @@ export type Step9Data = {
 // =========================
 export async function getStep9(userId: any): Promise<Step9Data> {
   try {
-    const res = await fetch(`/api/step9?userId=${userId}`);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/step9?userId=${userId}`);
     const data = await res.json();
 
     if (!data.success) {
@@ -85,7 +85,7 @@ export async function saveStep9(
       }
     });
 
-    const res = await fetch("/api/step9", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/step9`, {
       method: "POST",
       body: formData,
     });

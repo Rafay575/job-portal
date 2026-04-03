@@ -12,6 +12,7 @@ import { Step7Type } from "@/types/Form";
 import { getTrainings, saveTrainings } from "@/lib/api/step7";
 import { RootState } from "@/lib/store";
 import { useSelector } from "react-redux";
+import { FullPageLoader } from "../Loading";
 
 // ================= NAV BUTTONS =================
 function SignupNavButtons({ onNext, onBack }: any) {
@@ -32,6 +33,8 @@ function SignupNavButtons({ onNext, onBack }: any) {
 
 // ================= MAIN COMPONENT =================
 export default function Step7({ next, back }: any) {
+  const [loading, setLoading] = useState(false);
+
   const user = useSelector((state: RootState) => state.user);
 
   const [trainings, setTrainings] = useState<Step7Type[]>([
@@ -45,6 +48,8 @@ export default function Step7({ next, back }: any) {
         toast.error("Id not found in useEffect");
         return;
       }
+      setLoading(true);
+
       const res = await getTrainings(user.id);
 
       if (res.success && res.data?.length > 0) {
@@ -57,6 +62,7 @@ export default function Step7({ next, back }: any) {
           })),
         );
       }
+      setLoading(false);
     };
 
     fetchData();
@@ -106,6 +112,7 @@ export default function Step7({ next, back }: any) {
       toast.error("Id not found in handle Submit");
       return;
     }
+    setLoading(true);
     const res = await saveTrainings(user.id, trainings);
 
     if (res.success) {
@@ -114,7 +121,9 @@ export default function Step7({ next, back }: any) {
     } else {
       toast.error(res.message);
     }
+    setLoading(false);
   };
+  if (loading) return <FullPageLoader />;
 
   // ================= UI =================
   return (

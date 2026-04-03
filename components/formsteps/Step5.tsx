@@ -11,6 +11,7 @@ import { Step5Type } from "@/types/Form";
 import { submitStep5, getStep5 } from "@/lib/api/step5";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import { FullPageLoader } from "../Loading";
 
 // ------------------ Types ------------------
 
@@ -44,6 +45,8 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 
 // ------------------ Step 5 Component ------------------
 export default function Step5({ next, back }: Props) {
+  const [loading, setLoading] = useState(false);
+
   const user = useSelector((state: RootState) => state.user);
 
   const [formData, setFormData] = useState<Step5Type>({
@@ -72,6 +75,8 @@ export default function Step5({ next, back }: Props) {
         toast.error("Id not found in useEffect")
         return
       };
+      setLoading(true)
+
       const res = await getStep5(user.id);
 
       if (res.success && res.data?.[0]) {
@@ -86,7 +91,9 @@ export default function Step5({ next, back }: Props) {
             ? d.registration_expiry.split("T")[0]
             : "",
         });
+        
       }
+      setLoading(false)
     };
 
     fetchStep5();
@@ -94,6 +101,7 @@ export default function Step5({ next, back }: Props) {
 
   // ------------------ Validation ------------------
   const validateStep = (): boolean => {
+    
     if (formData.isNurse) {
       if (
         !formData.professionalBody ||
@@ -113,6 +121,7 @@ export default function Step5({ next, back }: Props) {
     if (!validateStep()) return;
 
     try {
+      setLoading(true)
       const res = await submitStep5({
         userId: user.id,
         isNurse: formData.isNurse,
@@ -131,8 +140,11 @@ export default function Step5({ next, back }: Props) {
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong");
+    }finally {
+      setLoading(false);
     }
   };
+  if (loading) return <FullPageLoader />;
 
   return (
     <>

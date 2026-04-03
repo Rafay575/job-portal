@@ -4,7 +4,7 @@ import axios from "axios";
 // Create or Edit Step1 
 export const submitStep1 = async (formData: FormData) => {
   try {
-    const { data } = await axios.post("/api/step1", formData, {
+    const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/step1`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -28,7 +28,7 @@ export const submitStep1 = async (formData: FormData) => {
 // Get Step1 
 export const getStep1 = async (userId: number | string | null) => {
   try {
-    const { data } = await axios.get(`/api/step1?userId=${userId}`);
+    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/step1?userId=${userId}`);    
     return {
       success: true,
       ...data,

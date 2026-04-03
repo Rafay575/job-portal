@@ -20,7 +20,6 @@ export default function Profile() {
   const router = useRouter();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
-  console.log(user);
   const handleLogout = async () => {
     try {
       await logoutUser(); // ✅ wait for API

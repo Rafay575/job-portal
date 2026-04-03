@@ -10,6 +10,7 @@ import { submitStep10, getStep10 } from "@/lib/api/step10";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import { FullPageLoader } from "../Loading";
 
 type NavProps = {
   onNext: () => void;
@@ -44,6 +45,8 @@ type Props = {
 };
 
 export default function Step10({ next, back }: Props) {
+    const [loading, setLoading] = useState(false);
+
   const user = useSelector((state: RootState) => state.user);
 
   const [formData, setFormData] = useState<Step10Type>({
@@ -62,6 +65,8 @@ export default function Step10({ next, back }: Props) {
   };
   useEffect(() => {
     const fetchStep10 = async () => {
+      setLoading(true)
+
        if (!user.id) {
         toast.error("Id not found in useEffect")
         return
@@ -75,6 +80,8 @@ export default function Step10({ next, back }: Props) {
           supportingStatement: d.supporting_statement || "",
         });
       }
+      setLoading(false)
+
     };
 
     fetchStep10();
@@ -83,6 +90,8 @@ export default function Step10({ next, back }: Props) {
     if (!validateStep()) return;
 
     try {
+      setLoading(true)
+
       const res = await submitStep10({
         userId: user.id,
         supportingStatement: formData.supportingStatement,
@@ -97,8 +106,11 @@ export default function Step10({ next, back }: Props) {
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong");
+    }finally{
+      setLoading(false)
     }
   };
+  if (loading) return <FullPageLoader />;
 
   return (
     <div className="min-w-full space-y-3 p-1 flex flex-col">

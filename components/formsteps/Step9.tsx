@@ -33,6 +33,7 @@ import { TimelineEntry9 } from "@/types/Form";
 import { Step9Type } from "@/types/Form";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import { FullPageLoader } from "../Loading";
 
 // ─── Nav Buttons ─────────────────────────────────────────────────────────────
 
@@ -309,6 +310,7 @@ type Props = { next: () => void; back: () => void };
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Step9({ next, back }: Props) {
+  const [loading, setLoading] = useState(false);
   const user = useSelector((state: RootState) => state.user);
 
   const [data, setData] = useState<Step9Type>({
@@ -462,9 +464,10 @@ export default function Step9({ next, back }: Props) {
       : null;
 
   // ✅ Fixed: getStep9 returns Step9Data directly (areas + timeline), not a {success, data} wrapper
-  // The API lib already handles errors and returns the unwrapped shape
   useEffect(() => {
     const load = async () => {
+      setLoading(true)
+
       try {
         const res = await getStep9(user.id);
 
@@ -476,6 +479,8 @@ export default function Step9({ next, back }: Props) {
         console.error("Failed to load Step 9:", err);
         toast.error("Failed to load saved data");
       }
+      setLoading(false)
+
     };
 
     load();
@@ -488,6 +493,7 @@ export default function Step9({ next, back }: Props) {
       return;
     }
     try {
+      setLoading(true)
       const res = await saveStep9(user.id, data);
 
       // saveStep9 throws on failure, so reaching here means success
@@ -496,8 +502,12 @@ export default function Step9({ next, back }: Props) {
     } catch (err) {
       console.error(err);
       toast.error("Server error");
+    }finally{
+      setLoading(false)
     }
   };
+
+    if (loading) return <FullPageLoader />;
 
   return (
     <div className="min-w-full space-y-4 p-2 flex flex-col">

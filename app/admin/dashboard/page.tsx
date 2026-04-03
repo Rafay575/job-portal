@@ -31,110 +31,165 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Users, Briefcase, CheckCircle2 } from "lucide-react";
+import {
+  TrendingUp,
+  Users,
+  Briefcase,
+  CheckCircle2,
+  UserCheck,
+  Layers,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { getDashboard, getLatestUsers } from "@/lib/api/Dashboard";
+import { FullPageLoader } from "@/components/Loading";
 
-// Dummy data for recruitment metrics
-const applicationData = [
-  { month: "Jan", applications: 240, hired: 24 },
-  { month: "Feb", applications: 390, hired: 38 },
-  { month: "Mar", applications: 420, hired: 45 },
-  { month: "Apr", applications: 380, hired: 42 },
-  { month: "May", applications: 520, hired: 58 },
-  { month: "Jun", applications: 610, hired: 68 },
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
-const jobPositions = [
-  { name: "Software Engineer", value: 45, color: "#5c49d8" },
-  { name: "Product Manager", value: 18, color: "#6e60d6" },
-  { name: "Designer", value: 22, color: "#867cd6" },
-  { name: "DevOps", value: 15, color: "#a39cd8" },
-];
-
-const candidatePool = [
-  {
-    id: 1,
-    name: "Alice Johnson",
-    position: "Senior Developer",
-    status: "Interviewed",
-    date: "2024-02-20",
-  },
-  {
-    id: 2,
-    name: "Bob Smith",
-    position: "UX Designer",
-    status: "Reviewing",
-    date: "2024-02-19",
-  },
-  {
-    id: 3,
-    name: "Carol White",
-    position: "Product Manager",
-    status: "Offered",
-    date: "2024-02-18",
-  },
-  {
-    id: 4,
-    name: "David Lee",
-    position: "QA Engineer",
-    status: "Interviewed",
-    date: "2024-02-17",
-  },
-  {
-    id: 5,
-    name: "Emma Davis",
-    position: "DevOps Engineer",
-    status: "Applied",
-    date: "2024-02-16",
-  },
-];
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Offered":
-      return "bg-emerald-100 text-emerald-800";
-    case "Interviewed":
-      return "bg-blue-100 text-blue-800";
-    case "Reviewing":
-      return "bg-amber-100 text-amber-800";
-    case "Applied":
-      return "bg-slate-100 text-slate-800";
-    default:
-      return "bg-slate-100 text-slate-800";
-  }
+const formatMonth = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleString("en-US", { month: "short" });
 };
 
-const kpiCards = [
-  {
-    title: "Total Applications",
-    value: "2,560",
-    description: "12% increase",
-    icon: Users,
-    highlight: true,
-  },
-  {
-    title: "Active Positions",
-    value: "24",
-    description: "Across all departments",
-    icon: Briefcase,
-    highlight: false,
-  },
-  {
-    title: "Hired This Month",
-    value: "68",
-    description: "8% above target",
-    icon: CheckCircle2,
-    highlight: true,
-  },
-  {
-    title: "Avg. Offer Rate",
-    value: "34%",
-    description: "Of total applications",
-    icon: null,
-    highlight: false,
-  },
-];
+const groupByMonth = (data: any[]) => {
+  const map: Record<string, any> = {};
+
+  // Step 1: Initialize ALL months with 0
+  MONTHS.forEach((month) => {
+    map[month] = {
+      month,
+      permanent: 0,
+      agency: 0,
+      both: 0,
+    };
+  });
+
+  // Step 2: Fill real data
+  data.forEach((item) => {
+    const month = formatMonth(item.created_at);
+
+    if (map[month]) {
+      if (item.type === "permanent") map[month].permanent += 1;
+      if (item.type === "agency-work") map[month].agency += 1;
+      if (item.type === "both") map[month].both += 1;
+    }
+  });
+
+  // Step 3: Return in correct order
+  return MONTHS.map((m) => map[m]);
+};
 
 export default function AdminDashboard() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [latestUsers, setLatestUsers] = useState([]);
+
+  const fetchData = async () => {
+    setLoading(true);
+
+    const res = await getDashboard();
+
+    if (res.success) {
+      setData(res.data);
+    } else {
+      setError(res.message);
+    }
+
+    setLoading(false);
+  };
+  const fetchLatest = async () => {
+    const res = await getLatestUsers();
+    if (res.success) {
+      setLatestUsers(res.data);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    fetchLatest();
+  }, []);
+  const totalUsers = data.length;
+  const permanentUsers = data.filter((u: any) => u.type === "permanent").length;
+  const agencyUsers = data.filter((u: any) => u.type === "agency-work").length;
+  const bothUsers = data.filter((u: any) => u.type === "both").length;
+  const jobPositions = [
+    {
+      name: "Permanent",
+      value: permanentUsers,
+      color: "#5C49D8",
+    },
+    {
+      name: "Agency Work",
+      value: agencyUsers,
+      color: "#10b981",
+    },
+    {
+      name: "Both",
+      value: bothUsers,
+      color: "#f59e0b",
+    },
+  ];
+  const kpiCards = [
+    {
+      title: "Total Users",
+      value: totalUsers,
+      icon: Users,
+      description: "All registered employees",
+      highlight: true,
+    },
+    {
+      title: "Permanent",
+      value: permanentUsers,
+      icon: UserCheck,
+      description: "Permanent employees",
+      highlight: true,
+    },
+    {
+      title: "Agency Work",
+      value: agencyUsers,
+      icon: Briefcase,
+      description: "Agency employees",
+      highlight: true,
+    },
+    {
+      title: "Both Type",
+      value: bothUsers,
+      icon: Layers,
+      description: "Both category users",
+      highlight: true,
+    },
+  ];
+  const formatType = (type: string) => {
+    if (type === "permanent") return "Permanent";
+    if (type === "agency-work") return "Agency Work";
+    if (type === "both") return "Both";
+    return "Not Submitted";
+  };
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+  const chartData = groupByMonth(data);
+
+  if (loading) return <FullPageLoader />;
+  if (error) return <p>{error}</p>;
+  console.log(data);
   return (
     <div className="w-full min-h-screen bg-gradient-to-br  p-8">
       <div className="">
@@ -149,7 +204,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
           {kpiCards.map((card, index) => {
             const Icon = card.icon;
 
@@ -185,44 +240,56 @@ export default function AdminDashboard() {
           <Card className="lg:col-span-2 border-slate-300">
             <CardHeader>
               <CardTitle className="text-primary">
-                Applications & Hires Trend
+                User Registrations Trend
               </CardTitle>
               <CardDescription className="text-gray-500">
-                Last 6 months performance
+                Monthly employee registrations by type
               </CardDescription>
             </CardHeader>
-            <CardContent className="focus:outline-none! ">
-              <ResponsiveContainer width="100%" height={300} className='focus:outline-none! '>
-                <LineChart data={applicationData}   className=" focus:outline-none!  ">
+
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis stroke="#5C49D8" />
+
+                  <XAxis dataKey="month" stroke="#5C49D8" />
                   <YAxis stroke="#5C49D8" />
+
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#ffffff",
                       border: "1px solid #5C49D8",
                       borderRadius: "8px",
                     }}
-                    labelStyle={{ color: "#374151" }}
-                    
                   />
-                  <Legend  />
+
+                  <Legend />
+
+                  {/* Permanent */}
                   <Line
                     type="monotone"
-                    dataKey="applications"
-                    stroke="#374151"
-                    strokeWidth={2}
-                    dot={{ fill: "#374151" }}
-                    name="Total Applications"
-                    
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="hired"
+                    dataKey="permanent"
                     stroke="#5C49D8"
                     strokeWidth={2}
-                    dot={{ fill: "#5C49D8" }}
-                    name="Hired"
+                    name="Permanent"
+                  />
+
+                  {/* Agency Work */}
+                  <Line
+                    type="monotone"
+                    dataKey="agency"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    name="Agency Work"
+                  />
+
+                  {/* Both */}
+                  <Line
+                    type="monotone"
+                    dataKey="both"
+                    stroke="#f59e0b"
+                    strokeWidth={2}
+                    name="Both"
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -230,13 +297,16 @@ export default function AdminDashboard() {
           </Card>
 
           {/* Job Positions Distribution */}
-          <Card className="border-slate-300">
+          <Card className="border-slate-300 ">
             <CardHeader>
-              <CardTitle className="text-primary">Hiring by Position</CardTitle>
+              <CardTitle className="text-primary">
+                User Type Distribution
+              </CardTitle>
               <CardDescription className="text-gray-500">
-                Current distribution
+                Breakdown of employee types
               </CardDescription>
             </CardHeader>
+
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
@@ -252,6 +322,7 @@ export default function AdminDashboard() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
+
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#ffffff",
@@ -276,6 +347,7 @@ export default function AdminDashboard() {
                       />
                       <span className="text-gray-700">{pos.name}</span>
                     </div>
+
                     <span className="text-primary font-semibold">
                       {pos.value}
                     </span>
@@ -286,47 +358,6 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        <Card className="mb-8 border-slate-300">
-          <CardHeader>
-            <CardTitle className="text-primary">
-              Applications by Status
-            </CardTitle>
-            <CardDescription className="text-gray-500">
-              Monthly application status breakdown
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={applicationData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#ffffff",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "8px",
-                  }}
-                  labelStyle={{ color: "#374151" }}
-                />
-                <Legend />
-                <Bar
-                  dataKey="applications"
-                  fill="#374151"
-                  radius={[8, 8, 0, 0]}
-                  name="Applications"
-                />
-                <Bar
-                  dataKey="hired"
-                  fill="#5C49D8"
-                  radius={[8, 8, 0, 0]}
-                  name="Hired"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
         <Card className="border-slate-300">
           <CardHeader>
             <CardTitle className="text-primary">Recent Candidates</CardTitle>
@@ -339,41 +370,60 @@ export default function AdminDashboard() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-slate-200 hover:bg-gray-50">
-                    <TableHead className="text-gray-600">Name</TableHead>
-                    <TableHead className="text-gray-600">Position</TableHead>
-                    <TableHead className="text-gray-600">Status</TableHead>
-                    <TableHead className="text-gray-600">
-                      Date Applied
-                    </TableHead>
-                  </TableRow>
+                    <TableRow className="border-slate-200 bg-gray-200">
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Date</TableHead>
+                    </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                  {candidatePool.map((candidate) => (
-                    <TableRow
-                      key={candidate.id}
-                      className="border-slate-200 hover:bg-gray-50 transition"
-                    >
-                      <TableCell className="text-gray-800 font-medium">
-                        {candidate.name}
-                      </TableCell>
-
-                      <TableCell className="text-gray-600">
-                        {candidate.position}
-                      </TableCell>
-
-                      <TableCell>
-                        <Badge className={getStatusColor(candidate.status)}>
-                          {candidate.status}
-                        </Badge>
-                      </TableCell>
-
-                      <TableCell className="text-gray-500">
-                        {candidate.date}
+                  {latestUsers.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="text-center text-gray-400 py-6"
+                      >
+                        No users found
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    latestUsers.map((user: any) => (
+                      <TableRow
+                        key={user.id}
+                        className="border-slate-200 hover:bg-gray-50 transition"
+                      >
+                        {/* Name */}
+                        <TableCell className="text-gray-800 font-medium">
+                          {user.name}
+                        </TableCell>
+
+                        {/* Email */}
+                        <TableCell className="text-gray-600">
+                          {user.email}
+                        </TableCell>
+
+                        {/* Phone */}
+                        <TableCell className="text-gray-600">
+                          {user.phone}
+                        </TableCell>
+
+                        {/* Type */}
+                        <TableCell>
+                          <Badge className="bg-primary text-white">
+                            {formatType(user.type)}
+                          </Badge>
+                        </TableCell>
+
+                        {/* Date */}
+                        <TableCell className="text-gray-500">
+                          {formatDate(user.created_at)}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>

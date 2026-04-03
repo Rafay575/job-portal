@@ -21,9 +21,9 @@ export async function GET(req: Request) {
   provider,
   duration,
 
-  DATE_FORMAT(completion_date, '%Y-%m-%d') AS completion_date,
-  DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at,
-  DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s') AS updated_at FROM employee_trainings WHERE user_id = ? ORDER BY id ASC`,
+  DATE_FORMAT(completion_date, '%d-%m-%Y') AS completion_date,
+  DATE_FORMAT(created_at, '%d-%m-%Y') AS created_at,
+  DATE_FORMAT(updated_at, '%d-%m-%Y ') AS updated_at FROM employee_trainings WHERE user_id = ? ORDER BY id ASC`,
       [userId],
     );
 

@@ -34,6 +34,7 @@ import { useEffect, useState } from "react";
 import { getTimeline, saveTimeline } from "@/lib/api/step8";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import { FullPageLoader } from "../Loading";
 
 // ─── Nav Buttons ──────────────────────────────────────────────────────────────
 
@@ -87,7 +88,7 @@ const emptyEducation = (): EducationEntry => ({
   qualificationType: "",
   qualificationTitle: "",
   institutionName: "",
-  institutionCountry: "United Kingdom",
+  institutionCountry: "",
   awardingBody: "",
   gradeOrResult: "",
   startDate: "",
@@ -504,10 +505,11 @@ type Props = { next: () => void; back: () => void };
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Step8({ next, back }: Props) {
+  const [loading, setLoading] = useState(false);
+
   const user = useSelector((state: RootState) => state.user);
   const [timeline, setTimeline] = useState<Step8Type[]>([]);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
-  const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
 
   const sensors = useSensors(
@@ -520,7 +522,6 @@ export default function Step8({ next, back }: Props) {
       try {
         setLoading(true);
         const data = await getTimeline(user.id);
-        // console.log("data:",data)
         // Convert loaded data to include proper IDs and types
         const formattedData = data.map((item: any) => {
           if (item.kind === "education") {
@@ -687,27 +688,27 @@ export default function Step8({ next, back }: Props) {
   };
 
   // Save data (POST API) — called when user clicks Next
-const handleSave = async (): Promise<boolean> => {
-  try {
-    if (!user.id) {
-      toast.error("User not found. Please login again.");
+  const handleSave = async (): Promise<boolean> => {
+    try {
+      if (!user.id) {
+        toast.error("User not found. Please login again.");
+        return false;
+      }
+
+      setLoading(true);
+
+      await saveTimeline(user.id, timeline);
+
+      toast.success("Timeline saved successfully!");
+      return true;
+    } catch (err) {
+      console.error("Save failed", err);
+      toast.error("Failed to save timeline");
       return false;
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(true);
-
-    await saveTimeline(user.id, timeline);
-
-    toast.success("Timeline saved successfully!");
-    return true;
-  } catch (err) {
-    console.error("Save failed", err);
-    toast.error("Failed to save timeline");
-    return false;
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   // Handle Next: validate → save → proceed
   const handleNext = async () => {
     if (!validateStep()) return;
@@ -736,6 +737,7 @@ const handleSave = async (): Promise<boolean> => {
       </div>
     );
   }
+  if (loading) return <FullPageLoader />;
 
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (

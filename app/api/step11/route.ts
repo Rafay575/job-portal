@@ -16,13 +16,13 @@ export async function GET(req: NextRequest) {
 
     const [rows] = await pool.execute(
       `
-      SELECT id, user_id, declaration_confirmed,  DATE_FORMAT(declaration_date, '%Y-%m-%d') AS declaration_date, signature_file
+      SELECT id, user_id, declaration_confirmed,  DATE_FORMAT(declaration_date, '%d-%m-%Y') AS declaration_date, signature_file
       FROM employee_declaration
       WHERE user_id = ?
       `,
       [userId],
     );
-    console.log("rows:",rows)
+    console.log("rows:", rows);
 
     return NextResponse.json({ success: true, data: rows });
   } catch (error) {
@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
 
     const userId = formData.get("userId");
+    const id = userId;
     const declarationConfirmed =
       formData.get("declarationConfirmed") === "true";
     const declarationDate = formData.get("declarationDate");
@@ -95,7 +96,12 @@ export async function POST(req: NextRequest) {
   `,
         [declarationConfirmed, declarationDate, filePath, userId],
       );
-    
+      // ✅ send email from backend
+      if (email && name) {
+        await sendFormSubmissionEmail(id, email, name, submittedAt);
+      } else {
+        console.log("no email or name found in email block");
+      }
 
       return NextResponse.json({
         success: true,
@@ -115,9 +121,10 @@ export async function POST(req: NextRequest) {
       `,
       [userId, declarationConfirmed, declarationDate, filePath],
     );
+
     // ✅ send email from backend
     if (email && name) {
-      await sendFormSubmissionEmail(email, name, submittedAt);
+      await sendFormSubmissionEmail(id, email, name, submittedAt);
     } else {
       console.log("no email or name found in email block");
     }

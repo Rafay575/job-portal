@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-
+import { getUserPDF } from "@/lib/getUserPdf";
 // 1. Create transporter (connection to email service)
 export const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -14,7 +14,7 @@ export const transporter = nodemailer.createTransport({
 // 2. Function to send OTP email
 export async function sendOTPEmail(email: string, otp: string) {
   await transporter.sendMail({
-    from: `"Hayaibu Solutions" <${process.env.EMAIL_USER}>`,
+    from: `"Hayaibu Talent" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Your OTP Code",
     html: `
@@ -85,7 +85,7 @@ export async function sendOTPEmail(email: string, otp: string) {
                     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
                       <tr>
                         <td align="center" style="padding: 0;">
-                          <p style="font-size: 12px; color: #A5AFC0; margin: 0 0 8px 0;">&copy; 2025 hayaibu Solutions. All rights reserved.</p>
+                          <p style="font-size: 12px; color: #A5AFC0; margin: 0 0 8px 0;">&copy; 2025 Hayaibu Talent. All rights reserved.</p>
                         </td>
                       </tr>
                     </table>
@@ -113,12 +113,14 @@ export async function sendOTPEmail(email: string, otp: string) {
 }
 
 export async function sendFormSubmissionEmail(
+  userId:any,
   email: string,
   name: string,
   submittedAt: string
 ) {
+  const { buffer, filename } = await getUserPDF(userId);
   await transporter.sendMail({
-    from: `"Hayaibu Solutions" <${process.env.EMAIL_USER}>`,
+    from: `"Hayaibu Talent" <${process.env.EMAIL_USER}>`,
     to: email,
     cc: process.env.EMAIL_CC, 
     subject: "Form Submitted Successfully",
@@ -132,7 +134,7 @@ export async function sendFormSubmissionEmail(
             <!-- Top gradient bar -->
             <tr>
               <td>
-                <div style="height: 6px; background: linear-gradient(90deg, #22C55E, #4ADE80);"></div>
+                <div style="height: 6px; background: linear-gradient(90deg, ##5C49D8, ##5C49D8);"></div>
               </td>
             </tr>
 
@@ -197,5 +199,12 @@ export async function sendFormSubmissionEmail(
       </tr>
     </table>
     `,
+     attachments: [
+      {
+        filename,
+        content: buffer,
+        contentType: "application/pdf",
+      },
+    ]
   });
 }

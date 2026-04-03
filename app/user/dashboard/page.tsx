@@ -54,7 +54,7 @@ export default function Page() {
   };
 
   const [roleType, setRoleType] = useState<
-    "permanent" | "acency-work" | "both"
+    "permanent" | "agency-work" | "both"
   >("permanent");
 
   const steps =
@@ -134,13 +134,13 @@ export default function Page() {
             Permanent
           </Button>
 
-          {/* acency-work */}
+          {/* agency-work */}
           <Button
             type="button"
-            onClick={() => setRoleType("acency-work")}
+            onClick={() => setRoleType("agency-work")}
             className={`flex-1 py-2 border-2 rounded transition-all cursor-pointer
                 ${
-                  roleType === "acency-work"
+                  roleType === "agency-work"
                     ? "bg-primary text-white border-primary"
                     : "bg-white text-primary border-primary hover:text-white"
                 }`}

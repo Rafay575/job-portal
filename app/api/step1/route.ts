@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
         nationality,
         immigration_status,
         -- ✅ formatted date
-        DATE_FORMAT(immigration_expiry, '%Y-%m-%d') AS immigration_expiry,
+        DATE_FORMAT(immigration_expiry, '%d-%m-%Y') AS immigration_expiry,
         work_permit,
         name_changed,
         previous_name,
@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
         previous_name,
         changed_to,
         cv_file_path
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
       `,
       [
         userId,
@@ -216,13 +216,12 @@ export async function POST(req: NextRequest) {
 
     if (type == "permanent") {
       if (email && fullName) {
-        console.log("email1");
-        await sendFormSubmissionEmail(email, fullName, submittedAt);
-        console.log("email2");
+        await sendFormSubmissionEmail(userId, email, fullName, submittedAt);
       } else {
         console.log("no email or name found in email block");
       }
     }
+
     return NextResponse.json({
       success: true,
       message: "Step 1 submitted successfully",

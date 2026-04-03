@@ -3,7 +3,7 @@ import axios from "axios";
 // 🟡 Submit Step6 (FILES)
 export const submitStep6 = async (payload: FormData) => {
   try {
-    const { data } = await axios.post("/api/step6", payload);
+    const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/step6`, payload);
 
     return {
       success: true,
@@ -23,7 +23,7 @@ export const submitStep6 = async (payload: FormData) => {
 // 🟢 Get Step6
 export const getStep6 = async (userId: number | string) => {
   try {
-    const { data } = await axios.get(`/api/step6?userId=${userId}`);
+    const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/step6?userId=${userId}`);
 
     return {
       success: true,

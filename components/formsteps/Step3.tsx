@@ -14,6 +14,7 @@ import { getStep3 } from "@/lib/api/step3";
 import { submitStep3 } from "@/lib/api/step3";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import { FullPageLoader } from "../Loading";
 
 type NavProps = {
   onNext: () => void;
@@ -50,6 +51,8 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 
 // ------------------ Step 3 Component ------------------
 export default function Step3({ next, back }: Props) {
+  const [loading, setLoading] = useState(false);
+
   const user = useSelector((state: RootState) => state.user);
 
   const [existingCRB, setExistingCRB] = useState<string>();
@@ -109,10 +112,12 @@ export default function Step3({ next, back }: Props) {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+
       if (!user.id) {
-        toast.error("Id not found in useEffect")
-        return
-      };
+        toast.error("Id not found in useEffect");
+        return;
+      }
       const res = await getStep3(user.id);
 
       if (res.success && res.data[0]) {
@@ -133,6 +138,7 @@ export default function Step3({ next, back }: Props) {
 
         setExistingCRB(d.crb_file_path);
       }
+      setLoading(false);
     };
 
     fetchData();
@@ -142,6 +148,7 @@ export default function Step3({ next, back }: Props) {
     if (!validateStep()) return;
 
     try {
+      setLoading(true);
       const form = new FormData();
 
       form.append("userId", String(user.id));
@@ -180,8 +187,12 @@ export default function Step3({ next, back }: Props) {
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
+  if (loading) return <FullPageLoader />;
+
   return (
     <>
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">

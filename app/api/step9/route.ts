@@ -51,11 +51,11 @@ export async function GET(req: NextRequest) {
           job_title,
           duties,
 
-          DATE_FORMAT(date_from, '%Y-%m-%d') AS date_from,
-          DATE_FORMAT(date_to, '%Y-%m-%d') AS date_to,
+          DATE_FORMAT(date_from, '%d-%m-%Y') AS date_from,
+          DATE_FORMAT(date_to, '%d-%m-%Y') AS date_to,
 
-          DATE_FORMAT(gap_from, '%Y-%m-%d') AS gap_from,
-          DATE_FORMAT(gap_to, '%Y-%m-%d') AS gap_to,
+          DATE_FORMAT(gap_from, '%d-%m-%Y') AS gap_from,
+          DATE_FORMAT(gap_to, '%d-%m-%Y') AS gap_to,
 
           reason
 

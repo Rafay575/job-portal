@@ -8,6 +8,7 @@ import { Step6Type } from "@/types/Form";
 import { submitStep6, getStep6 } from "@/lib/api/step6";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import { FullPageLoader } from "../Loading";
 
 type NavProps = {
   onNext: () => void;
@@ -273,6 +274,7 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 }
 
 export default function Step6({ next, back }: Props) {
+  const [loading, setLoading] = useState(false);
   const user = useSelector((state: RootState) => state.user);
 
   const [documents, setDocuments] = useState<Step6Type>({
@@ -288,6 +290,7 @@ export default function Step6({ next, back }: Props) {
         toast.error("Id not found in useEffect")
         return
       };
+      setLoading(true)
       const res = await getStep6(user.id);
       if (res.success && res.data?.[0]) {
         const d = res.data[0];
@@ -298,6 +301,8 @@ export default function Step6({ next, back }: Props) {
           proofId2: d.proof_id2 || null,
         });
       }
+      setLoading(false)
+
     };
     fetchStep6();
   }, []);
@@ -323,6 +328,8 @@ export default function Step6({ next, back }: Props) {
     if (!validateStep()) return;
 
     try {
+      setLoading(true)
+
       const formData = new FormData();
       formData.append("userId", String(user.id));
 
@@ -349,9 +356,10 @@ export default function Step6({ next, back }: Props) {
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong");
+      setLoading(false)
     }
   };
-
+if (loading) return <FullPageLoader />;
   return (
     <div className="min-w-full space-y-4 p-2 flex flex-col">
       <div className="rounded-2xl border bg-white p-5">

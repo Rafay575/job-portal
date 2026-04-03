@@ -1,14 +1,14 @@
 import { Step7Type } from "@/types/Form";
 import axios from "axios";
 
-const API = "/api/step7";
+
 
 /**
  * ================= GET TRAININGS =================
  */
 export const getTrainings = async (userId: number | string) => {
   try {
-    const res = await axios.get(`${API}?userId=${userId}`);
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/step7?userId=${userId}`);
     return res.data;
   } catch (err: any) {
     return {
@@ -27,7 +27,7 @@ export const saveTrainings = async (
   trainings: Step7Type[]
 ) => {
   try {
-    const res = await axios.post(API, {
+    const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/step7`, {
       userId,
       trainings,
     });

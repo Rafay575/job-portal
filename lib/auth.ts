@@ -27,7 +27,7 @@ export async function getUserFromRequest(req: NextRequest) {
 // Auth APIS ----------------------------
 // ✅ Check Authentication
 export const checkAuth = async () => {
-  const res = await axios.get("/api/check", {
+  const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/check`, {
     headers: { "Cache-Control": "no-cache" },
   });
 
@@ -36,7 +36,7 @@ export const checkAuth = async () => {
 
 // ✅ Login
 export const loginUser = async (email: string, password: string) => {
-  const res = await axios.post("/api/login", {
+  const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/login`, {
     email,
     password,
   });
@@ -48,7 +48,7 @@ export const loginUser = async (email: string, password: string) => {
 
 export const logoutUser = async () => {
   try {
-    const res = await axios.post("/api/logout", {}, {
+    const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/logout`, {}, {
       withCredentials: true,
     });
 

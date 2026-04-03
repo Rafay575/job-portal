@@ -4,15 +4,15 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Role {
-  id: "acency-work" | "permanent" | "both";
+  id: "agency-work" | "permanent" | "both";
   title: string;
   description: string;
   image: string;
 }
 
 interface RoleSelectorProps {
-  value: "acency-work" | "permanent" | "both";
-  onChange: (role: "acency-work" | "permanent" | "both") => void;
+  value: "agency-work" | "permanent" | "both";
+  onChange: (role: "agency-work" | "permanent" | "both") => void;
 }
 
 const roles: Role[] = [
@@ -23,8 +23,8 @@ const roles: Role[] = [
     image: "/role-icon2.png",
   },
   {
-    id: "acency-work",
-    title: "Acency Work Role",
+    id: "agency-work",
+    title: "Agency Work Role",
     description: "Flexible hours, work part of the day",
     image: "/role-icon1.png",
   },
