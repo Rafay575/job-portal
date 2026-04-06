@@ -35,6 +35,8 @@ import { getTimeline, saveTimeline } from "@/lib/api/step8";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
+import { useRouter } from "next/navigation";
+import { checkApproval } from "@/lib/usersApproval";
 
 // ─── Nav Buttons ──────────────────────────────────────────────────────────────
 
@@ -200,7 +202,9 @@ function SortableCard(props: CardProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* Qualification Type */}
           <div>
-            <Label className="text-sm">Qualification Type *</Label>
+            <Label className="text-sm">
+              Qualification Type <span className="text-red-500">*</span>
+            </Label>
             <select
               value={entry.qualificationType}
               onChange={(e) =>
@@ -219,7 +223,10 @@ function SortableCard(props: CardProps) {
 
           {/* Qualification Title */}
           <div>
-            <Label className="text-sm">Qualification Title / Subject *</Label>
+            <Label className="text-sm">
+              Qualification Title / Subject{" "}
+              <span className="text-red-500">*</span>
+            </Label>
             <Input
               className="mt-2"
               placeholder="e.g., BSc Computer Science"
@@ -236,7 +243,9 @@ function SortableCard(props: CardProps) {
 
           {/* Institution Name */}
           <div>
-            <Label className="text-sm">Institution Name *</Label>
+            <Label className="text-sm">
+              Institution Name <span className="text-red-500">*</span>
+            </Label>
             <Input
               className="mt-2"
               placeholder="e.g., University of Manchester"
@@ -249,7 +258,9 @@ function SortableCard(props: CardProps) {
 
           {/* Institution Country */}
           <div>
-            <Label className="text-sm">Institution Country *</Label>
+            <Label className="text-sm">
+              Institution Country <span className="text-red-500">*</span>
+            </Label>
             <Input
               className="mt-2"
               placeholder="e.g., United Kingdom"
@@ -266,7 +277,9 @@ function SortableCard(props: CardProps) {
 
           {/* Awarding Body */}
           <div>
-            <Label className="text-sm">Awarding Body *</Label>
+            <Label className="text-sm">
+              Awarding Body <span className="text-red-500">*</span>
+            </Label>
             <Input
               className="mt-2"
               placeholder="e.g., Pearson / City & Guilds / University"
@@ -279,7 +292,9 @@ function SortableCard(props: CardProps) {
 
           {/* Grade */}
           <div>
-            <Label className="text-sm">Grade / Result *</Label>
+            <Label className="text-sm">
+              Grade / Result <span className="text-red-500">*</span>
+            </Label>
             <Input
               className="mt-2"
               placeholder="e.g., 2:1 / Distinction / A*"
@@ -292,7 +307,9 @@ function SortableCard(props: CardProps) {
 
           {/* Start / End Date */}
           <div>
-            <Label className="text-sm">Start Date *</Label>
+            <Label className="text-sm">
+              Start Date <span className="text-red-500">*</span>
+            </Label>
             <Input
               className="mt-2"
               type="date"
@@ -304,7 +321,9 @@ function SortableCard(props: CardProps) {
           </div>
 
           <div>
-            <Label className="text-sm">End Date *</Label>
+            <Label className="text-sm">
+              End Date <span className="text-red-500">*</span>
+            </Label>
             <Input
               className="mt-2"
               type="date"
@@ -317,7 +336,9 @@ function SortableCard(props: CardProps) {
 
           {/* Completed */}
           <div>
-            <Label className="text-sm">Completed? *</Label>
+            <Label className="text-sm">
+              Completed? <span className="text-red-500">*</span>
+            </Label>
             <div className="mt-2 flex gap-3">
               {(["yes", "no"] as const).map((v) => (
                 <label key={v} className="flex items-center gap-2 text-sm">
@@ -362,7 +383,9 @@ function SortableCard(props: CardProps) {
           {entry.hasProfessionalRegistration === "yes" && (
             <>
               <div>
-                <Label className="text-sm">Registration Body *</Label>
+                <Label className="text-sm">
+                  Registration Body <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   className="mt-2"
                   placeholder="e.g., NMC / HCPC / GMC"
@@ -392,7 +415,9 @@ function SortableCard(props: CardProps) {
                 />
               </div>
               <div>
-                <Label className="text-sm">Registration Expiry *</Label>
+                <Label className="text-sm">
+                  Registration Expiry <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   className="mt-2"
                   type="date"
@@ -466,7 +491,9 @@ function SortableCard(props: CardProps) {
       {entry.kind === "gap" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <Label className="text-sm">Gap From *</Label>
+            <Label className="text-sm">
+              Gap From <span className="text-red-500">*</span>
+            </Label>
             <Input
               type="date"
               className="mt-2"
@@ -475,7 +502,9 @@ function SortableCard(props: CardProps) {
             />
           </div>
           <div>
-            <Label className="text-sm">Gap To *</Label>
+            <Label className="text-sm">
+              Gap To <span className="text-red-500">*</span>
+            </Label>
             <Input
               type="date"
               className="mt-2"
@@ -484,7 +513,9 @@ function SortableCard(props: CardProps) {
             />
           </div>
           <div className="md:col-span-2">
-            <Label className="text-sm">Reason *</Label>
+            <Label className="text-sm">
+              Reason <span className="text-red-500">*</span>
+            </Label>
             <Textarea
               className="mt-2 min-h-[90px]"
               value={entry.reason}
@@ -506,7 +537,7 @@ type Props = { next: () => void; back: () => void };
 
 export default function Step8({ next, back }: Props) {
   const [loading, setLoading] = useState(false);
-
+  const [blur, setBlur] = useState(false);
   const user = useSelector((state: RootState) => state.user);
   const [timeline, setTimeline] = useState<Step8Type[]>([]);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
@@ -517,7 +548,25 @@ export default function Step8({ next, back }: Props) {
   );
 
   // Load data on page load
+  const router = useRouter();
   useEffect(() => {
+    const verifyUser = async () => {
+      if (!user.id) {
+        toast.error("Id not found  ");
+        router.push("/");
+        return;
+      }
+      const isApproved = await checkApproval(user.id);
+
+      if (!isApproved) {
+        setBlur(true);
+        toast.error(
+          "You are not allowed until admin approves your application.",
+        );
+      }
+    };
+
+    verifyUser();
     async function loadTimeline() {
       try {
         setLoading(true);
@@ -741,91 +790,120 @@ export default function Step8({ next, back }: Props) {
 
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="min-w-full space-y-4 p-1 flex flex-col">
-      {/* Header card */}
-      <div className="rounded-2xl border bg-white p-5">
-        <h2 className="text-lg font-semibold mb-1">
-          Qualifications &amp; Education (UK)
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Add your education history and any gaps between study periods. Drag
-          the ⠿ handle to reorder entries.
-        </p>
-      </div>
+    <div className="relative">
+      <div
+        className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
+      >
+        <div className="min-w-full space-y-4 p-1 flex flex-col">
+          {/* Header card */}
+          <div className="rounded-2xl border bg-white p-5">
+            <h2 className="text-lg font-semibold mb-1">
+              Qualifications &amp; Education (UK)
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Add your education history and any gaps between study periods.
+              Drag the ⠿ handle to reorder entries.
+            </p>
+          </div>
 
-      {/* Action buttons */}
-      <div className="flex flex-wrap gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={addEducation}
-          className="gap-2 text-primary"
-          disabled={loading}
-        >
-          <GraduationCap className="h-4 w-4" />+ Add Education
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={addGap}
-          className="gap-2 border-primary text-primary hover:bg-amber-50"
-          disabled={loading}
-        >
-          <CalendarOff className="h-4 w-4" />+ Add Gap
-        </Button>
-      </div>
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addEducation}
+              className="gap-2 text-primary"
+              disabled={loading}
+            >
+              <GraduationCap className="h-4 w-4" />+ Add Education
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addGap}
+              className="gap-2 border-primary text-primary hover:bg-amber-50"
+              disabled={loading}
+            >
+              <CalendarOff className="h-4 w-4" />+ Add Gap
+            </Button>
+          </div>
 
-      {/* Timeline render */}
-      {timeline.length === 0 && !loading ? (
-        <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-          No entries yet. Use the buttons above to add your education or any
-          education gaps.
-        </div>
-      ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={timeline.map((e) => e.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            <div className="space-y-3">
-              {timeline.map((entry) => (
-                <SortableCard
-                  key={entry.id}
-                  entry={entry}
-                  label={getLabel(entry, timeline)}
-                  onRemove={removeEntry}
-                  onUpdateEducation={updateEducation}
-                  onUpdateGap={updateGap}
-                />
-              ))}
+          {/* Timeline render */}
+          {timeline.length === 0 && !loading ? (
+            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+              No entries yet. Use the buttons above to add your education or any
+              education gaps.
             </div>
-          </SortableContext>
+          ) : (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={timeline.map((e) => e.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-3">
+                  {timeline.map((entry) => (
+                    <SortableCard
+                      key={entry.id}
+                      entry={entry}
+                      label={getLabel(entry, timeline)}
+                      onRemove={removeEntry}
+                      onUpdateEducation={updateEducation}
+                      onUpdateGap={updateGap}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
 
-          <DragOverlay>
-            {activeEntry ? (
-              <SortableCard
-                entry={activeEntry}
-                label={getLabel(activeEntry, timeline)}
-                isDragOverlay
-                onRemove={() => {}}
-                onUpdateEducation={() => {}}
-                onUpdateGap={() => {}}
-              />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+              <DragOverlay>
+                {activeEntry ? (
+                  <SortableCard
+                    entry={activeEntry}
+                    label={getLabel(activeEntry, timeline)}
+                    isDragOverlay
+                    onRemove={() => {}}
+                    onUpdateEducation={() => {}}
+                    onUpdateGap={() => {}}
+                  />
+                ) : null}
+              </DragOverlay>
+            </DndContext>
+          )}
+
+          <SignupNavButtons
+            onBack={back}
+            onNext={handleNext}
+            disableBack={loading}
+          />
+        </div>
+      </div>
+
+      {/* Overlay */}
+      {blur && (
+        <div className="absolute inset-0 flex items-center justify-center  z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
+            <h2 className="text-lg font-semibold mb-2">
+              Appliaction Approval Pending
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Your appliaction is under review. You’ll gain full access once
+              approved and will let you know by email.
+            </p>
+
+            {/* Optional action */}
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-1 bg-primary text-white rounded-full"
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
       )}
-
-      <SignupNavButtons
-        onBack={back}
-        onNext={handleNext}
-        disableBack={loading}
-      />
     </div>
   );
 }

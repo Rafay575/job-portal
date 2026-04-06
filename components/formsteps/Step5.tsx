@@ -12,6 +12,8 @@ import { submitStep5, getStep5 } from "@/lib/api/step5";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
+import { useRouter } from "next/navigation";
+import { checkApproval } from "@/lib/usersApproval";
 
 // ------------------ Types ------------------
 
@@ -30,7 +32,12 @@ type Props = {
 function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   return (
     <div className="flex gap-2 mt-3 justify-between">
-      <Button type="button" variant="outline" onClick={onBack} disabled={disableBack}>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onBack}
+        disabled={disableBack}
+      >
         <IoIosArrowBack />
         Back
       </Button>
@@ -46,7 +53,7 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 // ------------------ Step 5 Component ------------------
 export default function Step5({ next, back }: Props) {
   const [loading, setLoading] = useState(false);
-
+  const [blur, setBlur] = useState(false);
   const user = useSelector((state: RootState) => state.user);
 
   const [formData, setFormData] = useState<Step5Type>({
@@ -60,7 +67,7 @@ export default function Step5({ next, back }: Props) {
   // ------------------ Handle Change ------------------
   const handleChange = <K extends keyof Step5Type>(
     key: K,
-    value: Step5Type[K]
+    value: Step5Type[K],
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -69,13 +76,31 @@ export default function Step5({ next, back }: Props) {
   };
 
   // ------------------ Prefetch Existing Data ------------------
+  const router = useRouter();
   useEffect(() => {
+    const verifyUser = async () => {
+      if (!user.id) {
+        toast.error("Id not found  ");
+        router.push("/");
+        return;
+      }
+      const isApproved = await checkApproval(user.id);
+
+      if (!isApproved) {
+        setBlur(true);
+        toast.error(
+          "You are not allowed until admin approves your application.",
+        );
+      }
+    };
+
+    verifyUser();
     const fetchStep5 = async () => {
-       if (!user.id) {
-        toast.error("Id not found in useEffect")
-        return
-      };
-      setLoading(true)
+      if (!user.id) {
+        toast.error("Id not found in useEffect");
+        return;
+      }
+      setLoading(true);
 
       const res = await getStep5(user.id);
 
@@ -91,9 +116,8 @@ export default function Step5({ next, back }: Props) {
             ? d.registration_expiry.split("T")[0]
             : "",
         });
-        
       }
-      setLoading(false)
+      setLoading(false);
     };
 
     fetchStep5();
@@ -101,7 +125,6 @@ export default function Step5({ next, back }: Props) {
 
   // ------------------ Validation ------------------
   const validateStep = (): boolean => {
-    
     if (formData.isNurse) {
       if (
         !formData.professionalBody ||
@@ -121,7 +144,7 @@ export default function Step5({ next, back }: Props) {
     if (!validateStep()) return;
 
     try {
-      setLoading(true)
+      setLoading(true);
       const res = await submitStep5({
         userId: user.id,
         isNurse: formData.isNurse,
@@ -140,87 +163,119 @@ export default function Step5({ next, back }: Props) {
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong");
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
   if (loading) return <FullPageLoader />;
 
   return (
-    <>
-      {/* Nurse Radio */}
-      <div className="col-span-2 mb-2">
-        <Label>Are you a Nurse?</Label>
-
-        <RadioGroup
-          value={formData.isNurse ? "yes" : "no"}
-          onValueChange={(v) => handleChange("isNurse", v === "yes")}
-        >
-          <div className="flex gap-4 mt-2 items-center">
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="yes" id="nurseYes" />
-              <Label htmlFor="nurseYes">Yes</Label>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="no" id="nurseNo" />
-              <Label htmlFor="nurseNo">No</Label>
-            </div>
-          </div>
-        </RadioGroup>
-      </div>
-
-      {/* Conditional Fields */}
+    <div className="relative min-h-[250px]">
       <div
-        className={`min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2 transition-all duration-500 ease-in-out ${
-          formData.isNurse
-            ? "opacity-100 max-h-[500px]"
-            : "opacity-0 max-h-0 overflow-hidden"
-        }`}
+        className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
       >
-        <div>
-          <Label>Professional Body Name *</Label>
-          <Input
-            value={formData.professionalBody}
-            onChange={(e) => handleChange("professionalBody", e.target.value)}
-          />
+        {/* Nurse Radio */}
+        <div className="col-span-2 mb-2">
+          <Label>Are you a Nurse?</Label>
+
+          <RadioGroup
+            value={formData.isNurse ? "yes" : "no"}
+            onValueChange={(v) => handleChange("isNurse", v === "yes")}
+          >
+            <div className="flex gap-4 mt-2 items-center">
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="yes" id="nurseYes" />
+                <Label htmlFor="nurseYes">Yes</Label>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="no" id="nurseNo" />
+                <Label htmlFor="nurseNo">No</Label>
+              </div>
+            </div>
+          </RadioGroup>
         </div>
 
-        <div>
-          <Label>Registration Type *</Label>
-          <Input
-            value={formData.registrationType}
-            onChange={(e) => handleChange("registrationType", e.target.value)}
-          />
+        {/* Conditional Fields */}
+        <div
+          className={`min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2 transition-all duration-500 ease-in-out ${
+            formData.isNurse
+              ? "opacity-100 max-h-[500px]"
+              : "opacity-0 max-h-0 overflow-hidden"
+          }`}
+        >
+          <div>
+            <Label>
+              Professional Body Name <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              value={formData.professionalBody}
+              onChange={(e) => handleChange("professionalBody", e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label>
+              Registration Type <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              value={formData.registrationType}
+              onChange={(e) => handleChange("registrationType", e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label>
+              Registration / PIN Number <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              value={formData.registrationNumber}
+              onChange={(e) =>
+                handleChange("registrationNumber", e.target.value)
+              }
+            />
+          </div>
+
+          <div>
+            <Label>
+              Expiry Date <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              type="date"
+              value={formData.registrationExpiry}
+              onChange={(e) =>
+                handleChange("registrationExpiry", e.target.value)
+              }
+            />
+          </div>
         </div>
 
-        <div>
-          <Label>Registration / PIN Number *</Label>
-          <Input
-            value={formData.registrationNumber}
-            onChange={(e) =>
-              handleChange("registrationNumber", e.target.value)
-            }
-          />
-        </div>
-
-        <div>
-          <Label>Expiry Date *</Label>
-          <Input
-            type="date"
-            value={formData.registrationExpiry}
-            onChange={(e) =>
-              handleChange("registrationExpiry", e.target.value)
-            }
-          />
-        </div>
+        {/* Navigation */}
+        <SignupNavButtons onBack={back} onNext={handleSubmitStep5} />
       </div>
 
-      {/* Navigation */}
-      <SignupNavButtons
-        onBack={back}
-        onNext={handleSubmitStep5}
-      />
-    </>
+      {/* Overlay */}
+      {blur && (
+        <div className="absolute inset-0 flex items-center justify-center  z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
+            <h2 className="text-lg font-semibold mb-2">
+              Appliaction Approval Pending
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Your appliaction is under review. You’ll gain full access once
+              approved and will let you know by email.
+            </p>
+
+            {/* Optional action */}
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-1 bg-primary text-white rounded-full"
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

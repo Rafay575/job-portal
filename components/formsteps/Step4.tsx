@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
+import { useRouter } from "next/navigation";
+import { checkApproval } from "@/lib/usersApproval";
 
 type NavProps = {
   onNext: () => void;
@@ -51,6 +53,7 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 // ------------------ Step 4 Component ------------------
 export default function Step4({ next, back }: Props) {
   const [loading, setLoading] = useState(false);
+  const [blur, setBlur] = useState(false);
 
   const user = useSelector((state: RootState) => state.user);
 
@@ -82,7 +85,25 @@ export default function Step4({ next, back }: Props) {
     return true;
   };
 
+  const router = useRouter();
   useEffect(() => {
+    const verifyUser = async () => {
+      if (!user.id) {
+        toast.error("Id not found  ");
+        router.push("/");
+        return;
+      }
+      const isApproved = await checkApproval(user.id);
+
+      if (!isApproved) {
+        setBlur(true);
+        toast.error(
+          "You are not allowed until admin approves your application.",
+        );
+      }
+    };
+
+    verifyUser();
     const fetchStep4 = async () => {
       setLoading(true);
 
@@ -150,186 +171,217 @@ export default function Step4({ next, back }: Props) {
   if (loading) return <FullPageLoader />;
 
   return (
-    <>
-      <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
-        {/* Notice */}
-        <div className="md:col-span-2 rounded-lg border p-2 text-sm text-muted-foreground">
-          <p className="flex gap-1 font-medium">
-            <GoAlert className="text-primary text-[15px] mt-0.5" />
-            Health information is optional and processed under data protection
-            regulations.
-          </p>
-        </div>
+    <div className="relative">
+      <div
+        className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
+      >
+        <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
+          {/* Notice */}
+          <div className="md:col-span-2 rounded-sm border p-2 px-3 text-sm text-white bg-primary">
+            <p className="flex gap-3 font-medium ">
+              <GoAlert className=" text-[17px] mt-0.5 text-white" />
+              Health information is optional and processed under data protection
+              regulations.
+            </p>
+          </div>
 
-        {/* Absent Days */}
-        <div>
-          <Label>Absent days in last 3 years</Label>
-          <Input
-            value={formData.absentDays}
-            onChange={(e) => handleChange("absentDays", e.target.value)}
-          />
-        </div>
-
-        <div>
-          <Label>Number of absence periods in last 3 years</Label>
-          <Input
-            value={formData.absencePeriods}
-            onChange={(e) => handleChange("absencePeriods", e.target.value)}
-          />
-        </div>
-
-        {/* Medication */}
-        <div className="flex flex-col items-stretch gap-4">
+          {/* Absent Days */}
           <div>
-            <Label>Currently taking medication?</Label>
-            <RadioGroup
-              value={formData.onMedication ? "yes" : "no"}
-              onValueChange={(v) => handleChange("onMedication", v === "yes")}
-            >
-              <div className="flex gap-4 mt-2">
-                <RadioGroupItem value="yes" id="medYes" />
-                <Label htmlFor="medYes">Yes</Label>
-                <RadioGroupItem value="no" id="medNo" />
-                <Label htmlFor="medNo">No</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          <div
-            className={`transition-all duration-500 ease-in-out ${
-              formData.onMedication
-                ? "h-auto! opacity-100"
-                : "h-0! overflow-hidden! opacity-0"
-            }`}
-          >
-            <Label>Medication Details</Label>
-            <Textarea
-              value={formData.medicationDetails}
-              onChange={(e) =>
-                handleChange("medicationDetails", e.target.value)
-              }
-            />
-          </div>
-        </div>
-
-        {/* Treatment */}
-        <div className="flex flex-col items-stretch gap-4">
-          <div>
-            <Label>Physical or mental health treatment?</Label>
-            <RadioGroup
-              value={formData.healthTreatment ? "yes" : "no"}
-              onValueChange={(v) =>
-                handleChange("healthTreatment", v === "yes")
-              }
-            >
-              <div className="flex gap-4 mt-2">
-                <RadioGroupItem value="yes" id="treatYes" />
-                <Label htmlFor="treatYes">Yes</Label>
-                <RadioGroupItem value="no" id="treatNo" />
-                <Label htmlFor="treatNo">No</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          <div
-            className={`transition-all duration-500 ease-in-out ${
-              formData.healthTreatment
-                ? "h-auto! opacity-100"
-                : "h-0! overflow-hidden! opacity-0"
-            }`}
-          >
-            <Label>Treatment Details</Label>
-            <Textarea
-              value={formData.treatmentDetails}
-              onChange={(e) => handleChange("treatmentDetails", e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Condition */}
-        <div className="flex flex-col items-stretch gap-4">
-          <div>
-            <Label>Any injury / condition / allergy affecting duties?</Label>
-            <RadioGroup
-              value={formData.medicalCondition ? "yes" : "no"}
-              onValueChange={(v) =>
-                handleChange("medicalCondition", v === "yes")
-              }
-            >
-              <div className="flex gap-4 mt-2">
-                <RadioGroupItem value="yes" id="condYes" />
-                <Label htmlFor="condYes">Yes</Label>
-                <RadioGroupItem value="no" id="condNo" />
-                <Label htmlFor="condNo">No</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          <div
-            className={`transition-all duration-500 ease-in-out ${
-              formData.medicalCondition
-                ? "h-auto! opacity-100"
-                : "h-0! overflow-hidden! opacity-0"
-            }`}
-          >
-            <Label>Condition Details</Label>
-            <Textarea
-              value={formData.conditionDetails}
-              onChange={(e) => handleChange("conditionDetails", e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Disability */}
-        <div className="flex flex-col items-stretch gap-4">
-          <div>
-            <Label>Do you consider yourself disabled?</Label>
-            <RadioGroup
-              value={formData.disabled ? "yes" : "no"}
-              onValueChange={(v) => handleChange("disabled", v === "yes")}
-            >
-              <div className="flex gap-4 mt-2">
-                <RadioGroupItem value="yes" id="disYes" />
-                <Label htmlFor="disYes">Yes</Label>
-                <RadioGroupItem value="no" id="disNo" />
-                <Label htmlFor="disNo">No</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          <div
-            className={`transition-all duration-500 ease-in-out ${
-              formData.disabled
-                ? "h-auto! opacity-100"
-                : "h-0! overflow-hidden! opacity-0"
-            }`}
-          >
-            <Label>Type of Impairment</Label>
+            <Label>Absent days in last 3 years</Label>
             <Input
-              value={formData.impairmentType}
-              onChange={(e) => handleChange("impairmentType", e.target.value)}
+              value={formData.absentDays}
+              onChange={(e) => handleChange("absentDays", e.target.value)}
             />
+          </div>
+
+          <div>
+            <Label>Number of absence periods in last 3 years</Label>
+            <Input
+              value={formData.absencePeriods}
+              onChange={(e) => handleChange("absencePeriods", e.target.value)}
+            />
+          </div>
+
+          {/* Medication */}
+          <div className="flex flex-col items-stretch gap-4">
+            <div>
+              <Label>Currently taking medication?</Label>
+              <RadioGroup
+                value={formData.onMedication ? "yes" : "no"}
+                onValueChange={(v) => handleChange("onMedication", v === "yes")}
+              >
+                <div className="flex gap-4 mt-2">
+                  <RadioGroupItem value="yes" id="medYes" />
+                  <Label htmlFor="medYes">Yes</Label>
+                  <RadioGroupItem value="no" id="medNo" />
+                  <Label htmlFor="medNo">No</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div
+              className={`transition-all duration-500 ease-in-out ${
+                formData.onMedication
+                  ? "h-auto! opacity-100"
+                  : "h-0! overflow-hidden! opacity-0"
+              }`}
+            >
+              <Label>Medication Details</Label>
+              <Textarea
+                value={formData.medicationDetails}
+                onChange={(e) =>
+                  handleChange("medicationDetails", e.target.value)
+                }
+              />
+            </div>
+          </div>
+
+          {/* Treatment */}
+          <div className="flex flex-col items-stretch gap-4">
+            <div>
+              <Label>Physical or mental health treatment?</Label>
+              <RadioGroup
+                value={formData.healthTreatment ? "yes" : "no"}
+                onValueChange={(v) =>
+                  handleChange("healthTreatment", v === "yes")
+                }
+              >
+                <div className="flex gap-4 mt-2">
+                  <RadioGroupItem value="yes" id="treatYes" />
+                  <Label htmlFor="treatYes">Yes</Label>
+                  <RadioGroupItem value="no" id="treatNo" />
+                  <Label htmlFor="treatNo">No</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div
+              className={`transition-all duration-500 ease-in-out ${
+                formData.healthTreatment
+                  ? "h-auto! opacity-100"
+                  : "h-0! overflow-hidden! opacity-0"
+              }`}
+            >
+              <Label>Treatment Details</Label>
+              <Textarea
+                value={formData.treatmentDetails}
+                onChange={(e) =>
+                  handleChange("treatmentDetails", e.target.value)
+                }
+              />
+            </div>
+          </div>
+
+          {/* Condition */}
+          <div className="flex flex-col items-stretch gap-4">
+            <div>
+              <Label>Any injury / condition / allergy affecting duties?</Label>
+              <RadioGroup
+                value={formData.medicalCondition ? "yes" : "no"}
+                onValueChange={(v) =>
+                  handleChange("medicalCondition", v === "yes")
+                }
+              >
+                <div className="flex gap-4 mt-2">
+                  <RadioGroupItem value="yes" id="condYes" />
+                  <Label htmlFor="condYes">Yes</Label>
+                  <RadioGroupItem value="no" id="condNo" />
+                  <Label htmlFor="condNo">No</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div
+              className={`transition-all duration-500 ease-in-out ${
+                formData.medicalCondition
+                  ? "h-auto! opacity-100"
+                  : "h-0! overflow-hidden! opacity-0"
+              }`}
+            >
+              <Label>Condition Details</Label>
+              <Textarea
+                value={formData.conditionDetails}
+                onChange={(e) =>
+                  handleChange("conditionDetails", e.target.value)
+                }
+              />
+            </div>
+          </div>
+
+          {/* Disability */}
+          <div className="flex flex-col items-stretch gap-4">
+            <div>
+              <Label>Do you consider yourself disabled?</Label>
+              <RadioGroup
+                value={formData.disabled ? "yes" : "no"}
+                onValueChange={(v) => handleChange("disabled", v === "yes")}
+              >
+                <div className="flex gap-4 mt-2">
+                  <RadioGroupItem value="yes" id="disYes" />
+                  <Label htmlFor="disYes">Yes</Label>
+                  <RadioGroupItem value="no" id="disNo" />
+                  <Label htmlFor="disNo">No</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div
+              className={`transition-all duration-500 ease-in-out ${
+                formData.disabled
+                  ? "h-auto! opacity-100"
+                  : "h-0! overflow-hidden! opacity-0"
+              }`}
+            >
+              <Label>Type of Impairment</Label>
+              <Input
+                value={formData.impairmentType}
+                onChange={(e) => handleChange("impairmentType", e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Night Shift */}
+          <div>
+            <Label>Medical fit for Night Shift?</Label>
+            <RadioGroup
+              value={formData.nightShiftFit ? "yes" : "no"}
+              onValueChange={(v) => handleChange("nightShiftFit", v === "yes")}
+            >
+              <div className="flex gap-4 mt-2">
+                <RadioGroupItem value="yes" id="nightYes" />
+                <Label htmlFor="nightYes">Yes</Label>
+                <RadioGroupItem value="no" id="nightNo" />
+                <Label htmlFor="nightNo">No</Label>
+              </div>
+            </RadioGroup>
           </div>
         </div>
 
-        {/* Night Shift */}
-        <div>
-          <Label>Medical fit for Night Shift?</Label>
-          <RadioGroup
-            value={formData.nightShiftFit ? "yes" : "no"}
-            onValueChange={(v) => handleChange("nightShiftFit", v === "yes")}
-          >
-            <div className="flex gap-4 mt-2">
-              <RadioGroupItem value="yes" id="nightYes" />
-              <Label htmlFor="nightYes">Yes</Label>
-              <RadioGroupItem value="no" id="nightNo" />
-              <Label htmlFor="nightNo">No</Label>
-            </div>
-          </RadioGroup>
-        </div>
+        <SignupNavButtons onBack={back} onNext={handleSubmitStep4} />
       </div>
 
-      <SignupNavButtons onBack={back} onNext={handleSubmitStep4} />
-    </>
+      {/* Overlay */}
+      {blur && (
+        <div className="absolute inset-0 flex items-center justify-center  z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
+            <h2 className="text-lg font-semibold mb-2">
+              Appliaction Approval Pending
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Your appliaction is under review. You’ll gain full access once
+              approved and will let you know by email.
+            </p>
+
+            {/* Optional action */}
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-1 bg-primary text-white rounded-full"
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

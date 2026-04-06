@@ -9,6 +9,8 @@ import { submitStep6, getStep6 } from "@/lib/api/step6";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
+import { useRouter } from "next/navigation";
+import { checkApproval } from "@/lib/usersApproval";
 
 type NavProps = {
   onNext: () => void;
@@ -130,10 +132,10 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
     <div className="rounded-2xl border bg-white p-4">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <Label className="text-sm font-semibold">{title} *</Label>
-          {hint && (
-            <p className="text-xs text-muted-foreground mt-1">{hint}</p>
-          )}
+          <Label className="text-sm font-semibold">
+            {title} <span className="text-red-500">*</span>
+          </Label>
+          {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
         </div>
 
         {file && (
@@ -169,9 +171,6 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
               <p className="text-sm font-medium">
                 Drag & drop your file here, or click to upload
               </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {ACCEPTED.join(", ")} • Max {MAX_MB}MB
-              </p>
             </div>
           </div>
         ) : (
@@ -183,7 +182,8 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
 
               {isNewFile && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  {formatBytes((file as File).size)} • {(file as File).type || "file"}
+                  {formatBytes((file as File).size)} •{" "}
+                  {(file as File).type || "file"}
                 </p>
               )}
 
@@ -195,8 +195,16 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
               )}
             </div>
 
-            <div className="flex gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-              <Button type="button" variant="outline" size="sm" onClick={onPick}>
+            <div
+              className="flex gap-2 shrink-0"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onPick}
+              >
                 Replace
               </Button>
               {/* ✅ View button always shown when a file/URL exists */}
@@ -241,13 +249,6 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
           </p>
         </div>
       )}
-
-      {/* PDF note */}
-      {showPdfNote && (
-        <p className="text-xs text-muted-foreground mt-3">
-          PDF preview will open in a new tab when you click "View".
-        </p>
-      )}
     </div>
   );
 }
@@ -276,6 +277,7 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 export default function Step6({ next, back }: Props) {
   const [loading, setLoading] = useState(false);
   const user = useSelector((state: RootState) => state.user);
+  const [blur, setBlur] = useState(false);
 
   const [documents, setDocuments] = useState<Step6Type>({
     passport: null,
@@ -284,13 +286,31 @@ export default function Step6({ next, back }: Props) {
     proofId2: null,
   });
 
+  const router = useRouter();
   useEffect(() => {
+    const verifyUser = async () => {
+      if (!user.id) {
+        toast.error("Id not found  ");
+        router.push("/");
+        return;
+      }
+      const isApproved = await checkApproval(user.id);
+
+      if (!isApproved) {
+        setBlur(true);
+        toast.error(
+          "You are not allowed until admin approves your application.",
+        );
+      }
+    };
+
+    verifyUser();
     const fetchStep6 = async () => {
-       if (!user.id) {
-        toast.error("Id not found in useEffect")
-        return
-      };
-      setLoading(true)
+      if (!user.id) {
+        toast.error("Id not found in useEffect");
+        return;
+      }
+      setLoading(true);
       const res = await getStep6(user.id);
       if (res.success && res.data?.[0]) {
         const d = res.data[0];
@@ -301,8 +321,7 @@ export default function Step6({ next, back }: Props) {
           proofId2: d.proof_id2 || null,
         });
       }
-      setLoading(false)
-
+      setLoading(false);
     };
     fetchStep6();
   }, []);
@@ -328,7 +347,7 @@ export default function Step6({ next, back }: Props) {
     if (!validateStep()) return;
 
     try {
-      setLoading(true)
+      setLoading(true);
 
       const formData = new FormData();
       formData.append("userId", String(user.id));
@@ -356,53 +375,82 @@ export default function Step6({ next, back }: Props) {
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong");
-      setLoading(false)
+      setLoading(false);
     }
   };
-if (loading) return <FullPageLoader />;
+  if (loading) return <FullPageLoader />;
   return (
-    <div className="min-w-full space-y-4 p-2 flex flex-col">
-      <div className="rounded-2xl border bg-white p-5">
-        <h2 className="text-lg font-semibold mb-1">
-          Identity & Verification Documents
-        </h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Upload clear copies. Supported: {ACCEPTED.join(", ")} (Max {MAX_MB}MB each).
-        </p>
+    <div className="relative">
+      <div
+        className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
+      >
+        <div className="min-w-full space-y-4 p-2 flex flex-col">
+          <div className="rounded-2xl border bg-white p-5">
+            <h2 className="text-lg font-semibold mb-1">
+              Identity & Verification Documents
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Upload clear copies. Supported: {ACCEPTED.join(", ")}
+            </p>
 
-        <div className="grid md:grid-cols-2 gap-4">
-          <DocCard
-            title="Passport"
-            fieldKey="passport"
-            hint="Upload your passport bio page (clear and readable)."
-            file={documents.passport}
-            onUpdate={updateDoc}
-          />
-          <DocCard
-            title="Driving Licence"
-            fieldKey="drivingLicence"
-            hint="Front side is usually enough, unless you want to upload both sides."
-            file={documents.drivingLicence}
-            onUpdate={updateDoc}
-          />
-          <DocCard
-            title="Proof of ID 1"
-            fieldKey="proofId1"
-            hint="Any valid proof of ID (e.g., national ID, residence card, etc.)."
-            file={documents.proofId1}
-            onUpdate={updateDoc}
-          />
-          <DocCard
-            title="Proof of ID 2"
-            fieldKey="proofId2"
-            hint="Second proof of ID (can be different from Proof of ID 1)."
-            file={documents.proofId2}
-            onUpdate={updateDoc}
-          />
+            <div className="grid md:grid-cols-2 gap-4">
+              <DocCard
+                title="Passport"
+                fieldKey="passport"
+                hint="Upload your passport bio page. "
+                file={documents.passport}
+                onUpdate={updateDoc}
+              />
+              <DocCard
+                title="Driving Licence"
+                fieldKey="drivingLicence"
+                hint="Front side is usually enough."
+                file={documents.drivingLicence}
+                onUpdate={updateDoc}
+              />
+              <DocCard
+                title="Proof of ID 1"
+                fieldKey="proofId1"
+                hint="Any valid proof of ID "
+                file={documents.proofId1}
+                onUpdate={updateDoc}
+              />
+              <DocCard
+                title="Proof of ID 2"
+                fieldKey="proofId2"
+                hint="Second proof of ID "
+                file={documents.proofId2}
+                onUpdate={updateDoc}
+              />
+            </div>
+          </div>
+
+          <SignupNavButtons onBack={back} onNext={handleSubmitStep6} />
         </div>
       </div>
 
-      <SignupNavButtons onBack={back} onNext={handleSubmitStep6} />
+      {/* Overlay */}
+      {blur && (
+        <div className="absolute inset-0 flex items-center justify-center  z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
+            <h2 className="text-lg font-semibold mb-2">
+              Appliaction Approval Pending
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Your appliaction is under review. You’ll gain full access once
+              approved and will let you know by email.
+            </p>
+
+            {/* Optional action */}
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-1 bg-primary text-white rounded-full"
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

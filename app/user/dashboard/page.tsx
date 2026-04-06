@@ -19,6 +19,12 @@ import RoleSelector from "@/components/RoleSelector";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Step1FullTime from "@/components/formsteps/Step1FullTime";
+import { checkApproval } from "@/lib/usersApproval";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { getStep1 } from "@/lib/api/step1";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
 
 const allStepLabels = [
   "Basic",
@@ -35,11 +41,28 @@ const allStepLabels = [
 ];
 
 export default function Page() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1); // 1 = next, -1 = back
   const [open, setOpen] = useState(false);
+  const user = useSelector((state: RootState) => state.user);
 
-  const next = () => {
+  const handleNext = async (userId?: number) => {
+    // 👇 Only apply logic on STEP 1
+    if (step === 1 && (roleType === "agency-work" || roleType === "both")) {
+      const isApproved = await checkApproval(userId!);
+
+      if (!isApproved) {
+        toast.success(
+          "Your information is submitted. Please wait for admin approval for next steps. We will inform you via email once your application is reviewed.",
+        );
+        // redirect to home
+        router.push("/");
+        return;
+      }
+    }
+
+    // normal next
     if (step < totalSteps) {
       setDirection(1);
       setStep((prev) => prev + 1);
@@ -62,7 +85,7 @@ export default function Page() {
       ? [
           <Step1FullTime
             type={roleType}
-            next={next}
+            next={handleNext}
             back={back}
             key="step1"
             roleType={roleType}
@@ -71,20 +94,20 @@ export default function Page() {
       : [
           <Step1FullTime
             type={roleType}
-            next={next}
+            next={handleNext}
             back={back}
             key="step1"
             roleType={roleType}
           />,
-          <Step2 next={next} back={back} key="step2" />,
-          <Step3 next={next} back={back} key="step3" />,
-          <Step4 next={next} back={back} key="step4" />,
-          <Step5 next={next} back={back} key="step5" />,
-          <Step6 next={next} back={back} key="step6" />,
-          <Step7 next={next} back={back} key="step7" />,
-          <Step8 next={next} back={back} key="step8" />,
-          <Step9 next={next} back={back} key="step9" />,
-          <Step10 next={next} back={back} key="step10" />,
+          <Step2 next={handleNext} back={back} key="step2" />,
+          <Step3 next={handleNext} back={back} key="step3" />,
+          <Step4 next={handleNext} back={back} key="step4" />,
+          <Step5 next={handleNext} back={back} key="step5" />,
+          <Step6 next={handleNext} back={back} key="step6" />,
+          <Step7 next={handleNext} back={back} key="step7" />,
+          <Step8 next={handleNext} back={back} key="step8" />,
+          <Step9 next={handleNext} back={back} key="step9" />,
+          <Step10 next={handleNext} back={back} key="step10" />,
           <Step11 back={back} key="step11" />,
         ];
 
@@ -97,9 +120,15 @@ export default function Page() {
     setStep(1);
   }, [roleType]);
   useEffect(() => {
-    setOpen(true);
-  }, []);
+    const fetchData = async () => {
+      const res = await getStep1(user.id);
+      if (res.success && !res.data[0]) {
+        setOpen(true);
+      }
+    };
 
+    fetchData();
+  }, []);
   return (
     <div className="p-4 overflow-hidden">
       {/* Shadcn Modal */}

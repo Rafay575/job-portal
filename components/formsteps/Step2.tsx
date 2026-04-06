@@ -15,6 +15,7 @@ import { Step2Type } from "@/types/Form";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
+import { useRouter } from "next/navigation";
 
 type NavProps = {
   onNext: () => void;
@@ -48,9 +49,19 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
     </div>
   );
 }
+const checkApproval = async (userId: number | string) => {
+  try {
+    const res = await fetch(`/api/users/check-approval?id=${userId}`);
+    const data = await res.json();
+    return data.isApproved;
+  } catch (error) {
+    return false;
+  }
+};
 
 // ------------------ Step 2 Component ------------------
 export default function Step2({ next, back }: Props) {
+  const [blur, setBlur] = useState(false);
   const [loading, setLoading] = useState(false);
   const user = useSelector((state: RootState) => state.user);
   const [formData, setFormData] = useState<Step2Type>({
@@ -133,16 +144,34 @@ export default function Step2({ next, back }: Props) {
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");
-    }finally{
+    } finally {
       setLoading(false);
     }
   };
-
+  const router = useRouter();
   useEffect(() => {
+    const verifyUser = async () => {
+      if (!user.id) {
+        toast.error("Id not found  ");
+        router.push("/");
+        return;
+      }
+      const isApproved = await checkApproval(user.id);
+
+      if (!isApproved) {
+        setBlur(true);
+        toast.error(
+          "You are not allowed until admin approves your application.",
+        );
+      }
+    };
+
+    verifyUser();
+
     const fetchStep2 = async () => {
       setLoading(true);
       if (!user.id) {
-        toast.error("Id not found in useEffect");
+        toast.error("Id not found ");
         return;
       }
 
@@ -171,171 +200,212 @@ export default function Step2({ next, back }: Props) {
   if (loading) return <FullPageLoader />;
   return (
     <>
-      <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
-        {/* Availability Issue */}
-        <div>
-          <Label>Involved in activity limiting availability?</Label>
-          <RadioGroup
-            value={formData.availabilityIssue ? "yes" : "no"}
-            onValueChange={(v) =>
-              handleChange("availabilityIssue", v === "yes")
-            }
-          >
-            <div className="flex gap-4 mt-2">
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="yes" id="availabilityYes" />
-                <Label htmlFor="availabilityYes">Yes</Label>
+      <div className="relative">
+        <div
+          className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
+        >
+          <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
+            {/* Availability Issue */}
+            <div>
+              <Label>Involved in activity limiting availability?</Label>
+              <RadioGroup
+                value={formData.availabilityIssue ? "yes" : "no"}
+                onValueChange={(v) =>
+                  handleChange("availabilityIssue", v === "yes")
+                }
+              >
+                <div className="flex gap-4 mt-2">
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="availabilityYes" />
+                    <Label htmlFor="availabilityYes">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="availabilityNo" />
+                    <Label htmlFor="availabilityNo">No</Label>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Overtime */}
+            <div>
+              <Label>Willing to work overtime & weekends?</Label>
+              <RadioGroup
+                value={formData.overtime ? "yes" : "no"}
+                onValueChange={(v) => handleChange("overtime", v === "yes")}
+              >
+                <div className="flex gap-4 mt-1">
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="overtimeYes" />
+                    <Label htmlFor="overtimeYes">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="overtimeNo" />
+                    <Label htmlFor="overtimeNo">No</Label>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Hours Avoid */}
+            <div>
+              <Label>
+                Hours you do not wish to work{" "}
+                <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                value={formData.hoursAvoid}
+                onChange={(e) => handleChange("hoursAvoid", e.target.value)}
+                placeholder="e.g. Nights"
+                className="py-5"
+              />
+            </div>
+
+            {/* Notice Period */}
+            <div>
+              <Label>
+                Notice period required <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                value={formData.noticePeriod}
+                onChange={(e) => handleChange("noticePeriod", e.target.value)}
+                placeholder="e.g. 2 weeks"
+                className="py-5"
+              />
+            </div>
+
+            {/* Applied Before */}
+            <div className="flex flex-col items-stretch gap-4">
+              <div>
+                <Label>Applied before?</Label>
+                <RadioGroup
+                  value={formData.appliedBefore ? "yes" : "no"}
+                  onValueChange={(v) =>
+                    handleChange("appliedBefore", v === "yes")
+                  }
+                >
+                  <div className="flex gap-4 mt-1">
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="yes" id="appliedYes" />
+                      <Label htmlFor="appliedYes">Yes</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="no" id="appliedNo" />
+                      <Label htmlFor="appliedNo">No</Label>
+                    </div>
+                  </div>
+                </RadioGroup>
               </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="no" id="availabilityNo" />
-                <Label htmlFor="availabilityNo">No</Label>
+
+              <div
+                className={`transition-all duration-500 ease-in-out ${
+                  formData.appliedBefore === true
+                    ? "h-auto! opacity-100"
+                    : "h-0! overflow-hidden! opacity-0"
+                }`}
+              >
+                <Label>
+                  Application Details <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  value={formData.appliedDetails}
+                  onChange={(e) =>
+                    handleChange("appliedDetails", e.target.value)
+                  }
+                  placeholder="Provide details"
+                />
               </div>
             </div>
-          </RadioGroup>
-        </div>
 
-        {/* Overtime */}
-        <div>
-          <Label>Willing to work overtime & weekends?</Label>
-          <RadioGroup
-            value={formData.overtime ? "yes" : "no"}
-            onValueChange={(v) => handleChange("overtime", v === "yes")}
-          >
-            <div className="flex gap-4 mt-1">
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="yes" id="overtimeYes" />
-                <Label htmlFor="overtimeYes">Yes</Label>
+            {/* Work Restrictions */}
+            <div className="flex flex-col items-stretch gap-4">
+              <div>
+                <Label>Subject to work restrictions / covenants?</Label>
+                <RadioGroup
+                  value={formData.workRestrictions ? "yes" : "no"}
+                  onValueChange={(v) =>
+                    handleChange("workRestrictions", v === "yes")
+                  }
+                >
+                  <div className="flex gap-4 mt-1">
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="yes" id="restrictYes" />
+                      <Label htmlFor="restrictYes">Yes</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="no" id="restrictNo" />
+                      <Label htmlFor="restrictNo">No</Label>
+                    </div>
+                  </div>
+                </RadioGroup>
               </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="no" id="overtimeNo" />
-                <Label htmlFor="overtimeNo">No</Label>
-              </div>
-            </div>
-          </RadioGroup>
-        </div>
 
-        {/* Hours Avoid */}
-        <div>
-          <Label>Hours you do not wish to work *</Label>
-          <Input
-            value={formData.hoursAvoid}
-            onChange={(e) => handleChange("hoursAvoid", e.target.value)}
-            placeholder="e.g. Nights"
-            className="py-5"
-          />
-        </div>
-
-        {/* Notice Period */}
-        <div>
-          <Label>Notice period required *</Label>
-          <Input
-            value={formData.noticePeriod}
-            onChange={(e) => handleChange("noticePeriod", e.target.value)}
-            placeholder="e.g. 2 weeks"
-            className="py-5"
-          />
-        </div>
-
-        {/* Applied Before */}
-        <div className="flex flex-col items-stretch gap-4">
-          <div>
-            <Label>Applied before?</Label>
-            <RadioGroup
-              value={formData.appliedBefore ? "yes" : "no"}
-              onValueChange={(v) => handleChange("appliedBefore", v === "yes")}
-            >
-              <div className="flex gap-4 mt-1">
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="yes" id="appliedYes" />
-                  <Label htmlFor="appliedYes">Yes</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="no" id="appliedNo" />
-                  <Label htmlFor="appliedNo">No</Label>
-                </div>
-              </div>
-            </RadioGroup>
-          </div>
-
-          <div
-            className={`transition-all duration-500 ease-in-out ${
-              formData.appliedBefore === true
-                ? "h-auto! opacity-100"
-                : "h-0! overflow-hidden! opacity-0"
-            }`}
-          >
-            <Label>Application Details *</Label>
-            <Textarea
-              value={formData.appliedDetails}
-              onChange={(e) => handleChange("appliedDetails", e.target.value)}
-              placeholder="Provide details"
-            />
-          </div>
-        </div>
-
-        {/* Work Restrictions */}
-        <div className="flex flex-col items-stretch gap-4">
-          <div>
-            <Label>Subject to work restrictions / covenants?</Label>
-            <RadioGroup
-              value={formData.workRestrictions ? "yes" : "no"}
-              onValueChange={(v) =>
-                handleChange("workRestrictions", v === "yes")
-              }
-            >
-              <div className="flex gap-4 mt-1">
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="yes" id="restrictYes" />
-                  <Label htmlFor="restrictYes">Yes</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="no" id="restrictNo" />
-                  <Label htmlFor="restrictNo">No</Label>
-                </div>
-              </div>
-            </RadioGroup>
-          </div>
-
-          <div
-            className={`transition-all duration-500 ease-in-out ${
-              formData.workRestrictions === true
-                ? "max-h-auto! opacity-100"
-                : "max-h-0! overflow-hidden! opacity-0"
-            }`}
-          >
-            <Label>Restriction Details *</Label>
-            <Textarea
-              value={formData.restrictionDetails}
-              onChange={(e) =>
-                handleChange("restrictionDetails", e.target.value)
-              }
-              placeholder="Provide details"
-            />
-          </div>
-        </div>
-
-        {/* Worked Before */}
-        <div>
-          <Label>Have you worked for us before?</Label>
-          <RadioGroup
-            value={formData.workedBefore ? "yes" : "no"}
-            onValueChange={(v) => handleChange("workedBefore", v === "yes")}
-          >
-            <div className="flex gap-4 mt-1">
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="yes" id="workedYes" />
-                <Label htmlFor="workedYes">Yes</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="no" id="workedNo" />
-                <Label htmlFor="workedNo">No</Label>
+              <div
+                className={`transition-all duration-500 ease-in-out ${
+                  formData.workRestrictions === true
+                    ? "max-h-auto! opacity-100"
+                    : "max-h-0! overflow-hidden! opacity-0"
+                }`}
+              >
+                <Label>
+                  Restriction Details <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  value={formData.restrictionDetails}
+                  onChange={(e) =>
+                    handleChange("restrictionDetails", e.target.value)
+                  }
+                  placeholder="Provide details"
+                />
               </div>
             </div>
-          </RadioGroup>
+
+            {/* Worked Before */}
+            <div>
+              <Label>Have you worked for us before?</Label>
+              <RadioGroup
+                value={formData.workedBefore ? "yes" : "no"}
+                onValueChange={(v) => handleChange("workedBefore", v === "yes")}
+              >
+                <div className="flex gap-4 mt-1">
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="workedYes" />
+                    <Label htmlFor="workedYes">Yes</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="workedNo" />
+                    <Label htmlFor="workedNo">No</Label>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+          <SignupNavButtons onBack={back} onNext={handleSubmitStep2} />
         </div>
+
+        {/* Overlay */}
+        {blur && (
+          <div className="absolute inset-0 flex items-center justify-center  z-50">
+            <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
+              <h2 className="text-lg font-semibold mb-2">
+                Appliaction Approval Pending
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Your appliaction is under review. You’ll gain full access once
+                approved and will let you know by email.
+              </p>
+
+              {/* Optional action */}
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-1 bg-primary text-white rounded-full"
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-
-      <SignupNavButtons onBack={back} onNext={handleSubmitStep2} />
     </>
   );
 }

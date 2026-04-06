@@ -11,6 +11,8 @@ import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
+import { useRouter } from "next/navigation";
+import { checkApproval } from "@/lib/usersApproval";
 
 type NavProps = {
   onNext: () => void;
@@ -45,7 +47,8 @@ type Props = {
 };
 
 export default function Step10({ next, back }: Props) {
-    const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [blur, setBlur] = useState(false);
 
   const user = useSelector((state: RootState) => state.user);
 
@@ -63,14 +66,32 @@ export default function Step10({ next, back }: Props) {
 
     return true;
   };
+  const router = useRouter();
   useEffect(() => {
-    const fetchStep10 = async () => {
-      setLoading(true)
+    const verifyUser = async () => {
+      if (!user.id) {
+        toast.error("Id not found  ");
+        router.push("/");
+        return;
+      }
+      const isApproved = await checkApproval(user.id);
 
-       if (!user.id) {
-        toast.error("Id not found in useEffect")
-        return
-      };
+      if (!isApproved) {
+        setBlur(true);
+        toast.error(
+          "You are not allowed until admin approves your application.",
+        );
+      }
+    };
+
+    verifyUser();
+    const fetchStep10 = async () => {
+      setLoading(true);
+
+      if (!user.id) {
+        toast.error("Id not found in useEffect");
+        return;
+      }
       const res = await getStep10(user.id);
 
       if (res.success && res.data?.[0]) {
@@ -80,8 +101,7 @@ export default function Step10({ next, back }: Props) {
           supportingStatement: d.supporting_statement || "",
         });
       }
-      setLoading(false)
-
+      setLoading(false);
     };
 
     fetchStep10();
@@ -90,7 +110,7 @@ export default function Step10({ next, back }: Props) {
     if (!validateStep()) return;
 
     try {
-      setLoading(true)
+      setLoading(true);
 
       const res = await submitStep10({
         userId: user.id,
@@ -106,24 +126,56 @@ export default function Step10({ next, back }: Props) {
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong");
-    }finally{
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
   };
   if (loading) return <FullPageLoader />;
 
   return (
-    <div className="min-w-full space-y-3 p-1 flex flex-col">
-      <Label>Supporting Statement (Max 150 words)</Label>
-      <Textarea
-        value={formData.supportingStatement}
-        onChange={(e) =>
-          setFormData({ ...formData, supportingStatement: e.target.value })
-        }
-        placeholder="Why are you applying & how do you match the role?"
-        className="py-3 min-h-[150px]"
-      />
-      <SignupNavButtons onBack={back} onNext={handleSubmitStep10} />
+    <div className="relative">
+      <div
+        className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
+      >
+        <div className="min-w-full space-y-3 p-1 flex flex-col">
+          <Label>
+            Supporting Statement (Max 150 words)
+            <span className="text-red-500">*</span>
+          </Label>
+          <Textarea
+            value={formData.supportingStatement}
+            onChange={(e) =>
+              setFormData({ ...formData, supportingStatement: e.target.value })
+            }
+            placeholder="Why are you applying & how do you match the role?"
+            className="py-3 min-h-[150px] mt-2"
+          />
+          <SignupNavButtons onBack={back} onNext={handleSubmitStep10} />
+        </div>
+      </div>
+
+      {/* Overlay */}
+      {blur && (
+        <div className="absolute inset-0 flex items-center justify-center  z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
+            <h2 className="text-lg font-semibold mb-2">
+              Appliaction Approval Pending
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Your appliaction is under review. You’ll gain full access once
+              approved and will let you know by email.
+            </p>
+
+            {/* Optional action */}
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-1 bg-primary text-white rounded-full"
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

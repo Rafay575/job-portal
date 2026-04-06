@@ -12,8 +12,11 @@ import { getStep9 } from "@/lib/api/step9";
 import { getStep10 } from "@/lib/api/step10";
 import { getStep11 } from "@/lib/api/step11";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import jsPDF from "jspdf";
+import { approveUser, checkApproval, rejectUser } from "@/lib/usersApproval";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -65,6 +68,7 @@ async function getBase64FromUrl(url: string): Promise<string> {
     reader.readAsDataURL(blob);
   });
 }
+
 async function generatePDF(user: any) {
   const logoBase64 = await getBase64FromUrl("/logo.png");
   const {
@@ -730,7 +734,7 @@ async function generatePDF(user: any) {
 export default function UserDetailPage() {
   const params = useParams();
   const user_id = params?.id as string | undefined;
-
+  const [isApproved, setIsApproved] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [user, setUser] = useState<any>({
@@ -749,15 +753,15 @@ export default function UserDetailPage() {
 
   useEffect(() => {
     if (!user_id) return;
+
     const fetchData = async () => {
+      setIsApproved(await checkApproval(user_id));
       setLoading(true);
       const step1 = await safeFetch(() => getStep1(user_id), {
         success: false,
         data: [],
       });
-      console.log("step1:", step1);
       const isPermanent = step1?.data?.[0]?.type === "permanent";
-      console.log("isPermanent:", isPermanent);
       const [
         step2,
         step3,
@@ -1465,6 +1469,11 @@ export default function UserDetailPage() {
           </CardContent>
         </Card>
       )}
+      <ActionsButtons
+        id={user_id}
+        isApproved={isApproved}
+        setIsApproved={setIsApproved}
+      />
     </div>
   );
 }
@@ -1473,7 +1482,52 @@ function Info({ label, value }: { label: string; value: any }) {
   return (
     <div>
       <p className="font-semibold text-gray-700 text-xs">{label}:</p>
-      <p className="text-gray-500 font-medium">{value ?? "—"}</p>
+      <p className="text-gray-500 font-medium ">{value ?? "—"}</p>
     </div>
   );
 }
+
+const ActionsButtons = ({
+  id,
+  isApproved,
+  setIsApproved,
+}: {
+  id: number | string;
+  isApproved: boolean | null;
+  setIsApproved: React.Dispatch<React.SetStateAction<boolean | null>>;
+}) => {
+  const handleApprove = async () => {
+    const res = await approveUser(id);
+
+    if (res.success) {
+      toast.success("User approved");
+      setIsApproved(true); // update UI instantly
+    } else {
+      toast.error(res.message);
+    }
+  };
+
+  const handleReject = async () => {
+    const res = await rejectUser(id);
+
+    if (res.success) {
+      toast.success("User rejected");
+      setIsApproved(false); // update UI instantly
+    } else {
+      toast.error(res.message);
+    }
+  };
+
+  return (
+    <div className="flex flex-col flex-wrap gap-2 items-start">
+      <div className="font-[600] text-md">Status :{isApproved ? "Approved" : "	Unapproved"}</div>
+      <div className="flex flex-wrap gap-2 items-center">
+        <Button onClick={handleApprove}>Approve User</Button>
+
+        <Button variant="destructive" onClick={handleReject}>
+          Unapprove User
+        </Button>
+      </div>
+    </div>
+  );
+};

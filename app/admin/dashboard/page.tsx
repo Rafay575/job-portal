@@ -90,7 +90,18 @@ const groupByMonth = (data: any[]) => {
   // Step 3: Return in correct order
   return MONTHS.map((m) => map[m]);
 };
-
+const getTypeStyles = (type: string|null) => {
+  switch (type) {
+    case "permanent":
+      return "bg-primary text-white";
+    case "agency-work":
+      return "bg-[#10b981] text-white";
+    case "both":
+      return "bg-[#f59e0b] text-white";
+    default:
+      return "bg-gray-400 text-white";
+  }
+};
 export default function AdminDashboard() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -374,7 +385,7 @@ export default function AdminDashboard() {
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
-                      <TableHead>Type</TableHead>
+                      <TableHead className="text-center">Type</TableHead>
                       <TableHead>Date</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -411,8 +422,8 @@ export default function AdminDashboard() {
                         </TableCell>
 
                         {/* Type */}
-                        <TableCell>
-                          <Badge className="bg-primary text-white">
+                        <TableCell className="text-center">
+                          <Badge className={` text-white ${getTypeStyles(user.type)}`}>
                             {formatType(user.type)}
                           </Badge>
                         </TableCell>

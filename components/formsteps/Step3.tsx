@@ -15,6 +15,8 @@ import { submitStep3 } from "@/lib/api/step3";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
+import { useRouter } from "next/navigation";
+import { checkApproval } from "@/lib/usersApproval";
 
 type NavProps = {
   onNext: () => void;
@@ -52,6 +54,7 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 // ------------------ Step 3 Component ------------------
 export default function Step3({ next, back }: Props) {
   const [loading, setLoading] = useState(false);
+  const [blur, setBlur] = useState(false);
 
   const user = useSelector((state: RootState) => state.user);
 
@@ -110,7 +113,25 @@ export default function Step3({ next, back }: Props) {
     return true;
   };
 
+  const router = useRouter();
   useEffect(() => {
+    const verifyUser = async () => {
+      if (!user.id) {
+        toast.error("Id not found  ");
+        router.push("/");
+        return;
+      }
+      const isApproved = await checkApproval(user.id);
+
+      if (!isApproved) {
+        setBlur(true);
+        toast.error(
+          "You are not allowed until admin approves your application.",
+        );
+      }
+    };
+
+    verifyUser();
     const fetchData = async () => {
       setLoading(true);
 
@@ -194,187 +215,225 @@ export default function Step3({ next, back }: Props) {
   if (loading) return <FullPageLoader />;
 
   return (
-    <>
-      <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
-        {/* Convictions */}
-        <div className="flex flex-col items-stretch gap-4">
-          <div>
-            <Label>Any convictions?</Label>
-            <RadioGroup
-              value={formData.hasConvictions ? "yes" : "no"}
-              onValueChange={(v) => handleChange("hasConvictions", v === "yes")}
+    <div className="relative">
+      <div className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}>
+        <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
+          {/* Convictions */}
+          <div className="flex flex-col items-stretch gap-4">
+            <div>
+              <Label>Any convictions?</Label>
+              <RadioGroup
+                value={formData.hasConvictions ? "yes" : "no"}
+                onValueChange={(v) =>
+                  handleChange("hasConvictions", v === "yes")
+                }
+              >
+                <div className="flex gap-4 mt-2">
+                  <RadioGroupItem value="yes" id="convictYes" />
+                  <Label htmlFor="convictYes">Yes</Label>
+                  <RadioGroupItem value="no" id="convictNo" />
+                  <Label htmlFor="convictNo">No</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div
+              className={`transition-all duration-500 ease-in-out ${
+                formData.hasConvictions
+                  ? "h-auto! opacity-100"
+                  : "h-0! overflow-hidden! opacity-0"
+              }`}
             >
-              <div className="flex gap-4 mt-2">
-                <RadioGroupItem value="yes" id="convictYes" />
-                <Label htmlFor="convictYes">Yes</Label>
-                <RadioGroupItem value="no" id="convictNo" />
-                <Label htmlFor="convictNo">No</Label>
-              </div>
-            </RadioGroup>
+              <Label>
+                Conviction Details <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                value={formData.convictionDetails}
+                onChange={(e) =>
+                  handleChange("convictionDetails", e.target.value)
+                }
+              />
+            </div>
           </div>
 
-          <div
-            className={`transition-all duration-500 ease-in-out ${
-              formData.hasConvictions
-                ? "h-auto! opacity-100"
-                : "h-0! overflow-hidden! opacity-0"
-            }`}
-          >
-            <Label>Conviction Details *</Label>
-            <Textarea
-              value={formData.convictionDetails}
-              onChange={(e) =>
-                handleChange("convictionDetails", e.target.value)
-              }
-            />
-          </div>
-        </div>
+          {/* Unspent Convictions */}
+          <div className="flex flex-col items-stretch gap-4">
+            <div>
+              <Label>Any unspent convictions?</Label>
+              <RadioGroup
+                value={formData.hasUnspentConvictions ? "yes" : "no"}
+                onValueChange={(v) =>
+                  handleChange("hasUnspentConvictions", v === "yes")
+                }
+              >
+                <div className="flex gap-4 mt-2">
+                  <RadioGroupItem value="yes" id="unspentYes" />
+                  <Label htmlFor="unspentYes">Yes</Label>
+                  <RadioGroupItem value="no" id="unspentNo" />
+                  <Label htmlFor="unspentNo">No</Label>
+                </div>
+              </RadioGroup>
+            </div>
 
-        {/* Unspent Convictions */}
-        <div className="flex flex-col items-stretch gap-4">
+            <div
+              className={`transition-all duration-500 ease-in-out ${
+                formData.hasUnspentConvictions
+                  ? "h-auto! opacity-100"
+                  : "h-0! overflow-hidden! opacity-0"
+              }`}
+            >
+              <Label>
+                Unspent Conviction Details{" "}
+                <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                value={formData.unspentDetails}
+                onChange={(e) => handleChange("unspentDetails", e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Fitness Investigation */}
           <div>
-            <Label>Any unspent convictions?</Label>
+            <Label>Currently under fitness to practice investigation?</Label>
             <RadioGroup
-              value={formData.hasUnspentConvictions ? "yes" : "no"}
+              value={formData.fitnessInvestigation ? "yes" : "no"}
               onValueChange={(v) =>
-                handleChange("hasUnspentConvictions", v === "yes")
+                handleChange("fitnessInvestigation", v === "yes")
               }
             >
               <div className="flex gap-4 mt-2">
-                <RadioGroupItem value="yes" id="unspentYes" />
-                <Label htmlFor="unspentYes">Yes</Label>
-                <RadioGroupItem value="no" id="unspentNo" />
-                <Label htmlFor="unspentNo">No</Label>
+                <RadioGroupItem value="yes" id="fitnessYes" />
+                <Label htmlFor="fitnessYes">Yes</Label>
+                <RadioGroupItem value="no" id="fitnessNo" />
+                <Label htmlFor="fitnessNo">No</Label>
               </div>
             </RadioGroup>
           </div>
 
-          <div
-            className={`transition-all duration-500 ease-in-out ${
-              formData.hasUnspentConvictions
-                ? "h-auto! opacity-100"
-                : "h-0! overflow-hidden! opacity-0"
-            }`}
-          >
-            <Label>Unspent Conviction Details *</Label>
-            <Textarea
-              value={formData.unspentDetails}
-              onChange={(e) => handleChange("unspentDetails", e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Fitness Investigation */}
-        <div>
-          <Label>Currently under fitness to practice investigation?</Label>
-          <RadioGroup
-            value={formData.fitnessInvestigation ? "yes" : "no"}
-            onValueChange={(v) =>
-              handleChange("fitnessInvestigation", v === "yes")
-            }
-          >
-            <div className="flex gap-4 mt-2">
-              <RadioGroupItem value="yes" id="fitnessYes" />
-              <Label htmlFor="fitnessYes">Yes</Label>
-              <RadioGroupItem value="no" id="fitnessNo" />
-              <Label htmlFor="fitnessNo">No</Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        {/* Removed From Register */}
-        <div>
-          <Label>Removed from professional register before?</Label>
-          <RadioGroup
-            value={formData.removedFromRegister ? "yes" : "no"}
-            onValueChange={(v) =>
-              handleChange("removedFromRegister", v === "yes")
-            }
-          >
-            <div className="flex gap-4 mt-2">
-              <RadioGroupItem value="yes" id="removedYes" />
-              <Label htmlFor="removedYes">Yes</Label>
-              <RadioGroupItem value="no" id="removedNo" />
-              <Label htmlFor="removedNo">No</Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        {/* CRB */}
-        <div className="flex flex-col items-stretch gap-4 md:col-span-2">
+          {/* Removed From Register */}
           <div>
-            <Label>Any CRB?</Label>
+            <Label>Removed from professional register before?</Label>
             <RadioGroup
-              value={formData.crb ? "yes" : "no"}
-              onValueChange={(v) => handleChange("crb", v === "yes")}
+              value={formData.removedFromRegister ? "yes" : "no"}
+              onValueChange={(v) =>
+                handleChange("removedFromRegister", v === "yes")
+              }
             >
-              <div className="flex gap-4 mt-2 items-center">
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="yes" id="crbYes" />
-                  <Label htmlFor="crbYes">Yes</Label>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="no" id="crbNo" />
-                  <Label htmlFor="crbNo">No</Label>
-                </div>
+              <div className="flex gap-4 mt-2">
+                <RadioGroupItem value="yes" id="removedYes" />
+                <Label htmlFor="removedYes">Yes</Label>
+                <RadioGroupItem value="no" id="removedNo" />
+                <Label htmlFor="removedNo">No</Label>
               </div>
             </RadioGroup>
           </div>
 
-          {/* Conditional Fields */}
-          <div
-            className={`transition-all duration-500 ease-in-out ${
-              formData.crb
-                ? "opacity-100 max-h-[500px]"
-                : "opacity-0 max-h-0 overflow-hidden"
-            }`}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
-              <div>
-                <Label>Surname *</Label>
-                <Input
-                  value={formData.surname}
-                  onChange={(e) => handleChange("surname", e.target.value)}
-                  placeholder="Enter surname"
-                />
-              </div>
+          {/* CRB */}
+          <div className="flex flex-col items-stretch gap-4 md:col-span-2">
+            <div>
+              <Label>Any CRB?</Label>
+              <RadioGroup
+                value={formData.crb ? "yes" : "no"}
+                onValueChange={(v) => handleChange("crb", v === "yes")}
+              >
+                <div className="flex gap-4 mt-2 items-center">
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="yes" id="crbYes" />
+                    <Label htmlFor="crbYes">Yes</Label>
+                  </div>
 
-              <div>
-                <Label>Date of Birth *</Label>
-                <Input
-                  type="date"
-                  value={formData.dob}
-                  onChange={(e) => handleChange("dob", e.target.value)}
-                />
-              </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="no" id="crbNo" />
+                    <Label htmlFor="crbNo">No</Label>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
 
-              <div>
-                <Label>Upload CRB *</Label>
-                <Input
-                  type="file"
-                  accept=".pdf,.jpg,.png"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files.length > 0) {
-                      handleChange("crbFile", e.target.files[0]);
-                      setExistingCRB(undefined); // 🔥 same as CV
-                    }
-                  }}
-                />
-                {existingCRB && (
-                  <a href={existingCRB} target="_blank">
-                    <Button type="button" className="mt-2" size="sm">
-                      View Existing CRB
-                    </Button>
-                  </a>
-                )}
+            {/* Conditional Fields */}
+            <div
+              className={`transition-all duration-500 ease-in-out ${
+                formData.crb
+                  ? "opacity-100 max-h-[500px]"
+                  : "opacity-0 max-h-0 overflow-hidden"
+              }`}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
+                <div>
+                  <Label>
+                    Surname <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    value={formData.surname}
+                    onChange={(e) => handleChange("surname", e.target.value)}
+                    placeholder="Enter surname"
+                  />
+                </div>
+
+                <div>
+                  <Label>
+                    Date of Birth <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="date"
+                    value={formData.dob}
+                    onChange={(e) => handleChange("dob", e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <Label>
+                    Upload CRB <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="file"
+                    accept=".pdf,.jpg,.png"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        handleChange("crbFile", e.target.files[0]);
+                        setExistingCRB(undefined); // 🔥 same as CV
+                      }
+                    }}
+                  />
+                  {existingCRB && (
+                    <a href={existingCRB} target="_blank">
+                      <Button type="button" className="mt-2" size="sm">
+                        View Existing CRB
+                      </Button>
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <SignupNavButtons onBack={back} onNext={handleSubmitStep3} />
       </div>
 
-      <SignupNavButtons onBack={back} onNext={handleSubmitStep3} />
-    </>
+      {/* Overlay */}
+      {blur && (
+        <div className="absolute inset-0 flex items-center justify-center  z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
+            <h2 className="text-lg font-semibold mb-2">
+              Appliaction Approval Pending
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Your appliaction is under review. You’ll gain full access once
+              approved and will let you know by email.
+            </p>
+
+            {/* Optional action */}
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-1 bg-primary text-white rounded-full"
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

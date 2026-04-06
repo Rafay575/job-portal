@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import { getUserPDF } from "@/lib/getUserPdf";
-// 1. Create transporter (connection to email service)
+
 export const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
@@ -10,8 +10,12 @@ export const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
-
-// 2. Function to send OTP email
+const capitalizeName = (name: string) => {
+  return name
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
 export async function sendOTPEmail(email: string, otp: string) {
   await transporter.sendMail({
     from: `"Hayaibu Talent" <${process.env.EMAIL_USER}>`,
@@ -113,16 +117,16 @@ export async function sendOTPEmail(email: string, otp: string) {
 }
 
 export async function sendFormSubmissionEmail(
-  userId:any,
+  userId: any,
   email: string,
   name: string,
-  submittedAt: string
+  submittedAt: string,
 ) {
   const { buffer, filename } = await getUserPDF(userId);
   await transporter.sendMail({
     from: `"Hayaibu Talent" <${process.env.EMAIL_USER}>`,
     to: email,
-    cc: process.env.EMAIL_CC, 
+    cc: process.env.ADMIN_MAIL,
     subject: "Form Submitted Successfully",
     html: `
     <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center" bgcolor="#F4F6FA">
@@ -156,14 +160,14 @@ export async function sendFormSubmissionEmail(
 
                 <!-- Message -->
                 <p style="color: #6B7280; font-size: 16px; margin-bottom: 24px;">
-                  Thank you <strong>${name}</strong>, your form has been submitted successfully.
+                  Thank you <strong>${capitalizeName(name)}</strong>, your form has been submitted successfully.
                 </p>
 
                 <!-- Info Card -->
                 <div style="background: #F9FAFB; border-radius: 20px; padding: 20px; text-align: left;">
                   
                   <p style="margin: 8px 0; font-size: 14px;">
-                    <strong>Name:</strong> ${name}
+                    <strong>Name:</strong> ${capitalizeName(name)}
                   </p>
 
                   <p style="margin: 8px 0; font-size: 14px;">
@@ -199,12 +203,260 @@ export async function sendFormSubmissionEmail(
       </tr>
     </table>
     `,
-     attachments: [
+    attachments: [
       {
         filename,
         content: buffer,
         contentType: "application/pdf",
       },
-    ]
+    ],
+  });
+}
+
+export async function sendUserApprovalEmail(email: string, name: string) {
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_API_URL}/user/dashboard`;
+
+  await transporter.sendMail({
+    from: `"Hayaibu Talent" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "Application Approved 🎉",
+    html: `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center" bgcolor="#F4F6FA">
+      <tr>
+        <td align="center" style="padding: 40px 20px;">
+          
+          <table width="100%" style="max-width: 560px; background-color: #FFFFFF; border-radius: 32px; box-shadow: 0 25px 45px -12px rgba(0,0,0,0.15); overflow: hidden;">
+            
+            <!-- Top bar -->
+            <tr>
+              <td>
+                <div style="height: 6px; background: linear-gradient(90deg, #5C49D8, #8B7AEE);"></div>
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style="padding: 40px 32px; text-align: center;">
+
+                <!-- Icon -->
+                <div style="margin-bottom: 16px;">
+                  <div style="display:inline-block; background:#ECFDF5; width:64px; height:64px; border-radius:50%; line-height:64px;">
+                    <span style="font-size:32px;">🎉</span>
+                  </div>
+                </div>
+
+                <!-- Title -->
+                <h1 style="font-size: 28px; color: #111827; margin-bottom: 10px;">
+                  Congratulations ${capitalizeName(name)}!
+                </h1>
+
+                <!-- Message -->
+                <p style="color:#6B7280; font-size:16px; margin-bottom:24px;">
+                  Your application has been <strong style="color:#10B981;">approved</strong> by our admin team.
+                  You can now proceed to the next steps and complete your profile.
+                </p>
+
+                <!-- Button -->
+                <a href="${dashboardUrl}" style="
+                  display:inline-block;
+                  padding:12px 24px;
+                  background:#5C49D8;
+                  color:#fff;
+                  border-radius:12px;
+                  text-decoration:none;
+                  font-weight:600;
+                ">
+                  Go to Dashboard
+                </a>
+
+                <!-- Footer note -->
+                <p style="margin-top:24px; font-size:13px; color:#9CA3AF;">
+                  We’re excited to have you onboard!
+                </p>
+
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="text-align:center; padding: 20px;">
+                <p style="font-size:12px; color:#9CA3AF;">
+                  © 2025 Hayaibu Talent
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+    `,
+  });
+}
+
+export async function sendUserRejectionEmail(email: string, name: string) {
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_API_URL}/user/dashboard`;
+
+  await transporter.sendMail({
+    from: `"Hayaibu Talent" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "Application Update",
+    html: `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center" bgcolor="#F4F6FA">
+      <tr>
+        <td align="center" style="padding: 40px 20px;">
+          
+          <table width="100%" style="max-width: 560px; background-color: #FFFFFF; border-radius: 32px; box-shadow: 0 25px 45px -12px rgba(0,0,0,0.15); overflow: hidden;">
+            
+            <!-- Top bar -->
+            <tr>
+              <td>
+                <div style="height: 6px; background: linear-gradient(90deg, #EF4444, #F87171);"></div>
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style="padding: 40px 32px; text-align: center;">
+
+                <!-- Icon -->
+                <div style="margin-bottom: 16px;">
+                  <div style="display:inline-block; background:#FEF2F2; width:64px; height:64px; border-radius:50%; line-height:64px;">
+                    <span style="font-size:32px;">❌</span>
+                  </div>
+                </div>
+
+                <!-- Title -->
+                <h1 style="font-size: 28px; color: #111827; margin-bottom: 10px;">
+                  Application Not Approved
+                </h1>
+
+                <!-- Message -->
+                <p style="color:#6B7280; font-size:16px; margin-bottom:24px;">
+                  Dear <strong>${capitalizeName(name)}</strong>, unfortunately your application was <strong style="color:#EF4444;">not approved</strong> at this time.
+                  This may be due to incorrect or incomplete information.
+                </p>
+
+                <p style="color:#6B7280; font-size:14px; margin-bottom:24px;">
+                  Please review your details carefully and resubmit your application.
+                </p>
+
+                <!-- Button -->
+                <a href="${dashboardUrl}" style="
+                  display:inline-block;
+                  padding:12px 24px;
+                  background:#EF4444;
+                  color:#fff;
+                  border-radius:12px;
+                  text-decoration:none;
+                  font-weight:600;
+                ">
+                  Review Application
+                </a>
+
+                <!-- Footer note -->
+                <p style="margin-top:24px; font-size:13px; color:#9CA3AF;">
+                  You can contact support if you believe this was a mistake.
+                </p>
+
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="text-align:center; padding: 20px;">
+                <p style="font-size:12px; color:#9CA3AF;">
+                  © 2025 Hayaibu Talent
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+    `,
+  });
+}
+
+export async function sendAccountCreatedEmail(email: string, name: string) {
+  const loginUrl = `${process.env.NEXT_PUBLIC_API_URL}/auth/login`;
+
+  await transporter.sendMail({
+    from: `"Hayaibu Talent" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "Account Created Successfully 🎉",
+    html: `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center" bgcolor="#F4F6FA">
+      <tr>
+        <td align="center" style="padding: 40px 20px;">
+
+          <table width="100%" style="max-width: 560px; background-color: #FFFFFF; border-radius: 32px; box-shadow: 0 25px 45px -12px rgba(0,0,0,0.15); overflow: hidden;">
+
+            <!-- Top gradient bar -->
+            <tr>
+              <td>
+                <div style="height: 6px; background: linear-gradient(90deg, #5C49D8, #8B7AEE);"></div>
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style="padding: 40px 32px; text-align: center;">
+
+                <!-- Icon -->
+                <div style="margin-bottom: 16px;">
+                  <div style="display:inline-block; background:#EEF2FF; width:64px; height:64px; border-radius:50%; line-height:64px;">
+                    <span style="font-size:32px;">👤</span>
+                  </div>
+                </div>
+
+                <!-- Title -->
+                <h1 style="font-size: 28px; color: #111827; margin-bottom: 10px;">
+                 Welcome, ${capitalizeName(name)}!
+                </h1>
+
+                <!-- Message -->
+                <p style="color:#6B7280; font-size:16px; margin-bottom:24px;">
+                  Your account has been <strong style="color:#5C49D8;">created successfully</strong>.
+                  You can now log in and start using your dashboard.
+                </p>
+
+                <!-- Button -->
+                <a href="${loginUrl}" style="
+                  display:inline-block;
+                  padding:12px 24px;
+                  background:#5C49D8;
+                  color:#fff;
+                  border-radius:12px;
+                  text-decoration:none;
+                  font-weight:600;
+                ">
+                  Login to Your Account
+                </a>
+
+                <!-- Footer note -->
+                <p style="margin-top:24px; font-size:13px; color:#9CA3AF;">
+                  If you did not create this account, please contact support immediately.
+                </p>
+
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="text-align:center; padding: 20px;">
+                <p style="font-size:12px; color:#9CA3AF;">
+                  © 2025 Hayaibu Talent
+                </p>
+              </td>
+            </tr>
+
+          </table>
+
+        </td>
+      </tr>
+    </table>
+    `,
   });
 }

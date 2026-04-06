@@ -20,8 +20,16 @@ const registerSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().min(1, "Email is required").email("Enter a valid email"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string().min(8, "Confirm password must be at least 8 characters"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Must contain at least 1 uppercase letter")
+      .regex(/[a-z]/, "Must contain at least 1 lowercase letter")
+      .regex(/[0-9]/, "Must contain at least 1 number")
+      .regex(/[^A-Za-z0-9]/, "Must contain at least 1 special character"),
+    confirmPassword: z
+      .string()
+      .min(8, "Confirm password must be at least 8 characters"),
   })
   .refine((d) => d.password === d.confirmPassword, {
     message: "Passwords do not match",
@@ -44,61 +52,72 @@ export default function RegisterPage() {
 
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
-  const { register, handleSubmit, formState } = useForm<RegisterForm>({
+  const { register, handleSubmit, formState, watch  } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
     mode: "onSubmit",
   });
 
   const { errors } = formState;
+  const password = watch("password") || "";
+
+  const passwordRules = useMemo(() => {
+    return {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[^A-Za-z0-9]/.test(password),
+    };
+  }, [password]);
 
   const inputBase =
     "h-12 rounded-full px-4 pr-12 border-2 border-primary focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary";
 
   // --- Mutations ---
-const signupMutation = useMutation({
-  mutationFn: async (payload: RegisterForm) => {
-    const res = await api.post("/api/register", payload);
-    return res.data;
-  },
+  const signupMutation = useMutation({
+    mutationFn: async (payload: RegisterForm) => {
+      const res = await api.post("/api/register", payload);
+      return res.data;
+    },
 
-  onSuccess: (_data, variables) => {
-    setRegisterData(variables); // 🔥 SAVE NAME + EMAIL + PASSWORD
-    setEmailForOtp(variables.email);
+    onSuccess: (_data, variables) => {
+      setRegisterData(variables); // 🔥 SAVE NAME + EMAIL + PASSWORD
+      setEmailForOtp(variables.email);
 
-    toast.success("OTP sent to your email.");
-    setStep("otp");
+      toast.success("OTP sent to your email.");
+      setStep("otp");
 
-    setTimeout(() => otpRefs.current?.[0]?.focus(), 50);
-  },
+      setTimeout(() => otpRefs.current?.[0]?.focus(), 50);
+    },
 
-  onError: (err: any) => {
-    const msg = err?.response?.data?.message || "Signup failed";
-    toast.error(msg);
-  },
-});
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || "Signup failed";
+      toast.error(msg);
+    },
+  });
 
   const verifyOtpMutation = useMutation({
-  mutationFn: async (payload: {
-    email: string;
-    otp: string;
-    name: string;
-    password: string;
-  }) => {
-    const res = await api.post("/api/auth/verify-otp", payload);
-    return res.data;
-  },
+    mutationFn: async (payload: {
+      email: string;
+      otp: string;
+      name: string;
+      password: string;
+    }) => {
+      const res = await api.post("/api/auth/verify-otp", payload);
+      return res.data;
+    },
 
-  onSuccess: () => {
-    toast.success("Verified! 🎉");
-    setStep("done");
-  },
+    onSuccess: () => {
+      toast.success("Verified! 🎉");
+      setStep("done");
+    },
 
-  onError: (err: any) => {
-    const msg = err?.response?.data?.message || "OTP verification failed";
-    toast.error(msg);
-  },
-});
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || "OTP verification failed";
+      toast.error(msg);
+    },
+  });
 
   const onSubmit = (values: RegisterForm) => {
     console.log("Register submit:", values);
@@ -135,7 +154,10 @@ const signupMutation = useMutation({
     setTimeout(() => otpRefs.current?.[nextIndex]?.focus(), 0);
   };
 
-  const handleOtpKeyDown = (idx: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleOtpKeyDown = (
+    idx: number,
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
     if (e.key === "Backspace") {
       if (otp[idx]) {
         setOtpAt(idx, "");
@@ -151,25 +173,25 @@ const signupMutation = useMutation({
     if (e.key === "ArrowRight" && idx < 5) otpRefs.current?.[idx + 1]?.focus();
   };
 
- const submitOtp = () => {
-  if (otpValue.length !== 6) {
-    toast.error("Please enter 6-digit OTP");
-    return;
-  }
+  const submitOtp = () => {
+    if (otpValue.length !== 6) {
+      toast.error("Please enter 6-digit OTP");
+      return;
+    }
 
-  if (!registerData) {
-    toast.error("Missing registration data. Please register again.");
-    setStep("register");
-    return;
-  }
+    if (!registerData) {
+      toast.error("Missing registration data. Please register again.");
+      setStep("register");
+      return;
+    }
 
-  verifyOtpMutation.mutate({
-    email: emailForOtp,
-    otp: otpValue,
-    name: registerData.name,
-    password: registerData.password,
-  });
-};
+    verifyOtpMutation.mutate({
+      email: emailForOtp,
+      otp: otpValue,
+      name: registerData.name,
+      password: registerData.password,
+    });
+  };
 
   const apiUrl = useMemo(() => process.env.NEXT_PUBLIC_API_URL, []);
 
@@ -201,11 +223,15 @@ const signupMutation = useMutation({
 
             {/* Title */}
             <div className="text-center mb-5">
-              <h1 className="text-[34px] leading-9.5 font-bold text-black">Register</h1>
+              <h1 className="text-[34px] leading-9.5 font-bold text-black">
+                Register
+              </h1>
             </div>
 
             <div className="mb-3">
-              <p className="text-sm font-semibold text-gray-800">Register with email</p>
+              <p className="text-sm font-semibold text-gray-800">
+                Register with email
+              </p>
             </div>
 
             {/* Form */}
@@ -220,7 +246,9 @@ const signupMutation = useMutation({
                   {...register("name")}
                 />
                 {errors.name?.message && (
-                  <p className="mt-1 text-xs text-red-500 px-2">{errors.name.message}</p>
+                  <p className="mt-1 text-xs text-red-500 px-2">
+                    {errors.name.message}
+                  </p>
                 )}
               </div>
 
@@ -234,7 +262,9 @@ const signupMutation = useMutation({
                   {...register("email")}
                 />
                 {errors.email?.message && (
-                  <p className="mt-1 text-xs text-red-500 px-2">{errors.email.message}</p>
+                  <p className="mt-1 text-xs text-red-500 px-2">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
 
@@ -252,13 +282,17 @@ const signupMutation = useMutation({
                     type="button"
                     onClick={() => setShowPassword((s) => !s)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
                 {errors.password?.message && (
-                  <p className="mt-1 text-xs text-red-500 px-2">{errors.password.message}</p>
+                  <p className="mt-1 text-xs text-red-500 px-2">
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
 
@@ -276,16 +310,62 @@ const signupMutation = useMutation({
                     type="button"
                     onClick={() => setShowConfirm((s) => !s)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800"
-                    aria-label={showConfirm ? "Hide confirm password" : "Show confirm password"}
+                    aria-label={
+                      showConfirm
+                        ? "Hide confirm password"
+                        : "Show confirm password"
+                    }
                   >
                     {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
                 {errors.confirmPassword?.message && (
-                  <p className="mt-1 text-xs text-red-500 px-2">{errors.confirmPassword.message}</p>
+                  <p className="mt-1 text-xs text-red-500 px-2">
+                    {errors.confirmPassword.message}
+                  </p>
                 )}
               </div>
+              <div className="mt-2 space-y-1 text-xs">
+                <p
+                  className={
+                    passwordRules.length ? "text-green-600" : "text-red-500"
+                  }
+                >
+                  ✔ At least 8 characters
+                </p>
 
+                <p
+                  className={
+                    passwordRules.uppercase ? "text-green-600" : "text-red-500"
+                  }
+                >
+                  ✔ At least 1 uppercase letter
+                </p>
+
+                <p
+                  className={
+                    passwordRules.lowercase ? "text-green-600" : "text-red-500"
+                  }
+                >
+                  ✔ At least 1 lowercase letter
+                </p>
+
+                <p
+                  className={
+                    passwordRules.number ? "text-green-600" : "text-red-500"
+                  }
+                >
+                  ✔ At least 1 number
+                </p>
+
+                <p
+                  className={
+                    passwordRules.special ? "text-green-600" : "text-red-500"
+                  }
+                >
+                  ✔ At least 1 special character
+                </p>
+              </div>
               {/* Submit */}
               <Button
                 type="submit"
@@ -348,7 +428,8 @@ const signupMutation = useMutation({
               <Link href="/privacy" className="text-primary underline">
                 Privacy Policy
               </Link>{" "}
-              which will apply to the processing of your personal data in the provision of our services
+              which will apply to the processing of your personal data in the
+              provision of our services
             </p>
           </motion.div>
         )}
@@ -368,7 +449,8 @@ const signupMutation = useMutation({
                 Verify OTP
               </h2>
               <p className="text-center text-sm text-gray-600 mt-2">
-                We sent a 6-digit code to <span className="font-semibold">{emailForOtp}</span>
+                We sent a 6-digit code to{" "}
+                <span className="font-semibold">{emailForOtp}</span>
               </p>
             </div>
 

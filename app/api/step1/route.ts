@@ -126,6 +126,11 @@ export async function POST(req: NextRequest) {
     if (existing.length > 0) {
       const id = existing[0].id;
 
+      // First reset the approved status
+      // await pool.execute(`UPDATE users SET is_approved = FALSE WHERE id = ?`, [
+      //   userId,
+      // ]);
+
       await pool.execute(
         `
         UPDATE employee_basic_information SET

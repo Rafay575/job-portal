@@ -34,6 +34,8 @@ import { Step9Type } from "@/types/Form";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
+import { useRouter } from "next/navigation";
+import { checkApproval } from "@/lib/usersApproval";
 
 // ─── Nav Buttons ─────────────────────────────────────────────────────────────
 
@@ -205,7 +207,9 @@ function SortableCard(props: CardProps) {
       {entry.kind === "experience" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <Label className="text-sm">Name of Employer</Label>
+            <Label className="text-sm">
+              Name of Employer<span className="text-red-500">*</span>
+            </Label>
             <Input
               className="mt-2"
               value={entry.employerName}
@@ -218,7 +222,9 @@ function SortableCard(props: CardProps) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-sm">Date From</Label>
+              <Label className="text-sm">
+                Date From<span className="text-red-500">*</span>{" "}
+              </Label>
               <Input
                 type="date"
                 className="mt-2"
@@ -229,7 +235,9 @@ function SortableCard(props: CardProps) {
               />
             </div>
             <div>
-              <Label className="text-sm">Date To</Label>
+              <Label className="text-sm">
+                Date To<span className="text-red-500">*</span>
+              </Label>
               <Input
                 type="date"
                 className="mt-2"
@@ -242,7 +250,9 @@ function SortableCard(props: CardProps) {
           </div>
 
           <div>
-            <Label className="text-sm">Job Title</Label>
+            <Label className="text-sm">
+              Job Title<span className="text-red-500">*</span>
+            </Label>
             <Input
               className="mt-2"
               value={entry.jobTitle}
@@ -254,7 +264,9 @@ function SortableCard(props: CardProps) {
           </div>
 
           <div className="md:col-span-2">
-            <Label className="text-sm">Brief Description of Duties</Label>
+            <Label className="text-sm">
+              Brief Description of Duties<span className="text-red-500">*</span>
+            </Label>
             <Textarea
               className="mt-2 min-h-[110px]"
               value={entry.duties}
@@ -271,7 +283,9 @@ function SortableCard(props: CardProps) {
       {entry.kind === "gap" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <Label className="text-sm">Gap From *</Label>
+            <Label className="text-sm">
+              Gap From <span className="text-red-500">*</span>
+            </Label>
             <Input
               type="date"
               className="mt-2"
@@ -280,7 +294,9 @@ function SortableCard(props: CardProps) {
             />
           </div>
           <div>
-            <Label className="text-sm">Gap To *</Label>
+            <Label className="text-sm">
+              Gap To <span className="text-red-500">*</span>
+            </Label>
             <Input
               type="date"
               className="mt-2"
@@ -289,7 +305,9 @@ function SortableCard(props: CardProps) {
             />
           </div>
           <div className="md:col-span-2">
-            <Label className="text-sm">Reason *</Label>
+            <Label className="text-sm">
+              Reason <span className="text-red-500">*</span>
+            </Label>
             <Textarea
               className="mt-2 min-h-[90px]"
               value={entry.reason}
@@ -312,6 +330,7 @@ type Props = { next: () => void; back: () => void };
 export default function Step9({ next, back }: Props) {
   const [loading, setLoading] = useState(false);
   const user = useSelector((state: RootState) => state.user);
+  const [blur, setBlur] = useState(false);
 
   const [data, setData] = useState<Step9Type>({
     areas: [],
@@ -464,9 +483,27 @@ export default function Step9({ next, back }: Props) {
       : null;
 
   // ✅ Fixed: getStep9 returns Step9Data directly (areas + timeline), not a {success, data} wrapper
+  const router = useRouter();
   useEffect(() => {
+    const verifyUser = async () => {
+      if (!user.id) {
+        toast.error("Id not found  ");
+        router.push("/");
+        return;
+      }
+      const isApproved = await checkApproval(user.id);
+
+      if (!isApproved) {
+        setBlur(true);
+        toast.error(
+          "You are not allowed until admin approves your application.",
+        );
+      }
+    };
+
+    verifyUser();
     const load = async () => {
-      setLoading(true)
+      setLoading(true);
 
       try {
         const res = await getStep9(user.id);
@@ -479,8 +516,7 @@ export default function Step9({ next, back }: Props) {
         console.error("Failed to load Step 9:", err);
         toast.error("Failed to load saved data");
       }
-      setLoading(false)
-
+      setLoading(false);
     };
 
     load();
@@ -493,7 +529,7 @@ export default function Step9({ next, back }: Props) {
       return;
     }
     try {
-      setLoading(true)
+      setLoading(true);
       const res = await saveStep9(user.id, data);
 
       // saveStep9 throws on failure, so reaching here means success
@@ -502,114 +538,145 @@ export default function Step9({ next, back }: Props) {
     } catch (err) {
       console.error(err);
       toast.error("Server error");
-    }finally{
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
   };
 
-    if (loading) return <FullPageLoader />;
+  if (loading) return <FullPageLoader />;
 
   return (
-    <div className="min-w-full space-y-4 p-2 flex flex-col">
-      {/* Areas */}
-      <div className="rounded-xl border bg-white p-4">
-        <Label className="text-base font-semibold">Areas of Experience *</Label>
-        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {areas.map((area) => (
-            <label
-              key={area}
-              className="flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer hover:bg-muted/40"
-            >
-              <input
-                type="checkbox"
-                checked={data.areas.includes(area)}
-                onChange={() => toggleArea(area)}
-                className="h-4 w-4"
-              />
-              <span className="text-sm">{area}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Timeline section */}
-      <div className="rounded-xl border bg-white p-4">
-        <p className="text-base font-semibold mb-1">
-          Experience &amp; Employment Gaps
-        </p>
-        <p className="text-xs text-muted-foreground mb-4">
-          Add your work history and any employment gaps. Drag the ⠿ handle on
-          each card to reorder entries.
-        </p>
-
-        {/* Action buttons */}
-        <div className="flex flex-wrap gap-3 mb-5">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={addExperience}
-            className="gap-2 text-primary"
-          >
-            <Briefcase className="h-4 w-4" />+ Add Experience
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={addGap}
-            className="gap-2 border-primary text-primary hover:bg-amber-50"
-          >
-            <CalendarOff className="h-4 w-4" />+ Add Gap
-          </Button>
-        </div>
-
-        {/* Drag-and-drop list */}
-        {data.timeline.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-            No entries yet. Use the buttons above to add your experience or
-            employment gaps.
-          </div>
-        ) : (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={data.timeline.map((e) => e.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <div className="space-y-3">
-                {data.timeline.map((entry) => (
-                  <SortableCard
-                    key={entry.id}
-                    entry={entry}
-                    label={getLabel(entry, data.timeline)}
-                    onRemove={removeEntry}
-                    onUpdateExperience={updateExperience}
-                    onUpdateGap={updateGap}
+    <div className="relative">
+      <div
+        className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
+      >
+        <div className="min-w-full space-y-4 p-2 flex flex-col">
+          {/* Areas */}
+          <div className="rounded-xl border bg-white p-4">
+            <Label className="text-base font-semibold">
+              Areas of Experience *
+            </Label>
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {areas.map((area) => (
+                <label
+                  key={area}
+                  className="flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer hover:bg-muted/40"
+                >
+                  <input
+                    type="checkbox"
+                    checked={data.areas.includes(area)}
+                    onChange={() => toggleArea(area)}
+                    className="h-4 w-4"
                   />
-                ))}
-              </div>
-            </SortableContext>
+                  <span className="text-sm">{area}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
-            <DragOverlay>
-              {activeEntry ? (
-                <SortableCard
-                  entry={activeEntry}
-                  label={getLabel(activeEntry, data.timeline)}
-                  isDragOverlay
-                  onRemove={() => {}}
-                  onUpdateExperience={() => {}}
-                  onUpdateGap={() => {}}
-                />
-              ) : null}
-            </DragOverlay>
-          </DndContext>
-        )}
+          {/* Timeline section */}
+          <div className="rounded-xl border bg-white p-4">
+            <p className="text-base font-semibold mb-1">
+              Experience &amp; Employment Gaps
+            </p>
+            <p className="text-xs text-muted-foreground mb-4">
+              Add your work history and any employment gaps. Drag the ⠿ handle
+              on each card to reorder entries.
+            </p>
+
+            {/* Action buttons */}
+            <div className="flex flex-wrap gap-3 mb-5">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addExperience}
+                className="gap-2 text-primary"
+              >
+                <Briefcase className="h-4 w-4" />+ Add Experience
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addGap}
+                className="gap-2 border-primary text-primary hover:bg-amber-50"
+              >
+                <CalendarOff className="h-4 w-4" />+ Add Gap
+              </Button>
+            </div>
+
+            {/* Drag-and-drop list */}
+            {data.timeline.length === 0 ? (
+              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                No entries yet. Use the buttons above to add your experience or
+                employment gaps.
+              </div>
+            ) : (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={data.timeline.map((e) => e.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-3">
+                    {data.timeline.map((entry) => (
+                      <SortableCard
+                        key={entry.id}
+                        entry={entry}
+                        label={getLabel(entry, data.timeline)}
+                        onRemove={removeEntry}
+                        onUpdateExperience={updateExperience}
+                        onUpdateGap={updateGap}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+
+                <DragOverlay>
+                  {activeEntry ? (
+                    <SortableCard
+                      entry={activeEntry}
+                      label={getLabel(activeEntry, data.timeline)}
+                      isDragOverlay
+                      onRemove={() => {}}
+                      onUpdateExperience={() => {}}
+                      onUpdateGap={() => {}}
+                    />
+                  ) : null}
+                </DragOverlay>
+              </DndContext>
+            )}
+          </div>
+
+          <SignupNavButtons onBack={back} onNext={handleNext} />
+        </div>
       </div>
 
-      <SignupNavButtons onBack={back} onNext={handleNext} />
+      {/* Overlay */}
+      {blur && (
+        <div className="absolute inset-0 flex items-center justify-center  z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
+            <h2 className="text-lg font-semibold mb-2">
+              Appliaction Approval Pending
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Your appliaction is under review. You’ll gain full access once
+              approved and will let you know by email.
+            </p>
+
+            {/* Optional action */}
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-1 bg-primary text-white rounded-full"
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
