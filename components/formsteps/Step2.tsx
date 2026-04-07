@@ -65,14 +65,14 @@ export default function Step2({ next, back }: Props) {
   const [loading, setLoading] = useState(false);
   const user = useSelector((state: RootState) => state.user);
   const [formData, setFormData] = useState<Step2Type>({
-    availabilityIssue: false,
-    workRestrictions: false,
+    availabilityIssue: null,
+    workRestrictions: null,
     restrictionDetails: "",
-    overtime: true,
+    overtime: null,
     hoursAvoid: "",
     noticePeriod: "",
-    workedBefore: false,
-    appliedBefore: false,
+    workedBefore: null,
+    appliedBefore: null,
     appliedDetails: "",
   });
 
@@ -160,9 +160,6 @@ export default function Step2({ next, back }: Props) {
 
       if (!isApproved) {
         setBlur(true);
-        toast.error(
-          "You are not allowed until admin approves your application.",
-        );
       }
     };
 
@@ -202,14 +199,22 @@ export default function Step2({ next, back }: Props) {
     <>
       <div className="relative">
         <div
-          className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
+          className={
+            blur ? "blur-[3px] pointer-events-none select-none p-2" : ""
+          }
         >
           <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
             {/* Availability Issue */}
             <div>
               <Label>Involved in activity limiting availability?</Label>
               <RadioGroup
-                value={formData.availabilityIssue ? "yes" : "no"}
+                value={
+                  formData.availabilityIssue === null
+                    ? undefined
+                    : formData.availabilityIssue
+                      ? "yes"
+                      : "no"
+                }
                 onValueChange={(v) =>
                   handleChange("availabilityIssue", v === "yes")
                 }
@@ -231,7 +236,13 @@ export default function Step2({ next, back }: Props) {
             <div>
               <Label>Willing to work overtime & weekends?</Label>
               <RadioGroup
-                value={formData.overtime ? "yes" : "no"}
+                value={
+                  formData.overtime === null
+                    ? undefined
+                    : formData.overtime
+                      ? "yes"
+                      : "no"
+                }
                 onValueChange={(v) => handleChange("overtime", v === "yes")}
               >
                 <div className="flex gap-4 mt-1">
@@ -256,7 +267,6 @@ export default function Step2({ next, back }: Props) {
               <Input
                 value={formData.hoursAvoid}
                 onChange={(e) => handleChange("hoursAvoid", e.target.value)}
-                placeholder="e.g. Nights"
                 className="py-5"
               />
             </div>
@@ -269,7 +279,6 @@ export default function Step2({ next, back }: Props) {
               <Input
                 value={formData.noticePeriod}
                 onChange={(e) => handleChange("noticePeriod", e.target.value)}
-                placeholder="e.g. 2 weeks"
                 className="py-5"
               />
             </div>
@@ -279,7 +288,14 @@ export default function Step2({ next, back }: Props) {
               <div>
                 <Label>Applied before?</Label>
                 <RadioGroup
-                  value={formData.appliedBefore ? "yes" : "no"}
+                  
+                  value={
+                  formData.appliedBefore === null
+                    ? undefined
+                    : formData.appliedBefore
+                      ? "yes"
+                      : "no"
+                }
                   onValueChange={(v) =>
                     handleChange("appliedBefore", v === "yes")
                   }
@@ -312,7 +328,7 @@ export default function Step2({ next, back }: Props) {
                   onChange={(e) =>
                     handleChange("appliedDetails", e.target.value)
                   }
-                  placeholder="Provide details"
+                  
                 />
               </div>
             </div>
@@ -322,7 +338,14 @@ export default function Step2({ next, back }: Props) {
               <div>
                 <Label>Subject to work restrictions / covenants?</Label>
                 <RadioGroup
-                  value={formData.workRestrictions ? "yes" : "no"}
+                  
+                  value={
+                  formData.workRestrictions === null
+                    ? undefined
+                    : formData.workRestrictions
+                      ? "yes"
+                      : "no"
+                }
                   onValueChange={(v) =>
                     handleChange("workRestrictions", v === "yes")
                   }
@@ -355,7 +378,7 @@ export default function Step2({ next, back }: Props) {
                   onChange={(e) =>
                     handleChange("restrictionDetails", e.target.value)
                   }
-                  placeholder="Provide details"
+                  
                 />
               </div>
             </div>
@@ -364,7 +387,13 @@ export default function Step2({ next, back }: Props) {
             <div>
               <Label>Have you worked for us before?</Label>
               <RadioGroup
-                value={formData.workedBefore ? "yes" : "no"}
+                value={
+                  formData.workedBefore === null
+                    ? undefined
+                    : formData.workedBefore
+                      ? "yes"
+                      : "no"
+                }
                 onValueChange={(v) => handleChange("workedBefore", v === "yes")}
               >
                 <div className="flex gap-4 mt-1">

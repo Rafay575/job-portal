@@ -78,9 +78,7 @@ export default function Step10({ next, back }: Props) {
 
       if (!isApproved) {
         setBlur(true);
-        toast.error(
-          "You are not allowed until admin approves your application.",
-        );
+        
       }
     };
 
@@ -147,7 +145,7 @@ export default function Step10({ next, back }: Props) {
             onChange={(e) =>
               setFormData({ ...formData, supportingStatement: e.target.value })
             }
-            placeholder="Why are you applying & how do you match the role?"
+           
             className="py-3 min-h-[150px] mt-2"
           />
           <SignupNavButtons onBack={back} onNext={handleSubmitStep10} />

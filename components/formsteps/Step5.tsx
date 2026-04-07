@@ -57,7 +57,7 @@ export default function Step5({ next, back }: Props) {
   const user = useSelector((state: RootState) => state.user);
 
   const [formData, setFormData] = useState<Step5Type>({
-    isNurse: false,
+    isNurse: null,
     professionalBody: "",
     registrationType: "",
     registrationNumber: "",
@@ -88,9 +88,6 @@ export default function Step5({ next, back }: Props) {
 
       if (!isApproved) {
         setBlur(true);
-        toast.error(
-          "You are not allowed until admin approves your application.",
-        );
       }
     };
 
@@ -179,7 +176,13 @@ export default function Step5({ next, back }: Props) {
           <Label>Are you a Nurse?</Label>
 
           <RadioGroup
-            value={formData.isNurse ? "yes" : "no"}
+            value={
+              formData.isNurse === null
+                ? undefined
+                : formData.isNurse
+                  ? "yes"
+                  : "no"
+            }
             onValueChange={(v) => handleChange("isNurse", v === "yes")}
           >
             <div className="flex gap-4 mt-2 items-center">

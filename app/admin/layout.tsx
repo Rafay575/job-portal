@@ -39,10 +39,8 @@ export default function RootLayout({
     }
   }, [user, router]);
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <div className="dashboard-layout">
+      
         <div className="">
           <SidebarProvider>
             <TooltipProvider>
@@ -55,7 +53,6 @@ export default function RootLayout({
             </TooltipProvider>
           </SidebarProvider>
         </div>
-      </body>
-    </html>
+    </div>
   );
 }

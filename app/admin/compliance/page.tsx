@@ -39,7 +39,8 @@ import { toast } from "sonner";
 import { FiCheck } from "react-icons/fi";
 import { RxCross1 } from "react-icons/rx";
 import { useDebouncedCallback } from "use-debounce";
-
+import { FullPageLoader } from "@/components/Loading";
+import { Loader2 } from "lucide-react";
 type User = {
   id: number;
   name: string | null;
@@ -58,7 +59,7 @@ type StatusFilter = "all" | "approved" | "unapproved";
 type TypeFilter = "all" | "permanent" | "agency-work" | "both";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
-const getTypeStyles = (type: string|null) => {
+const getTypeStyles = (type: string | null) => {
   switch (type) {
     case "permanent":
       return "bg-primary text-white";
@@ -75,6 +76,7 @@ export default function UsersTable() {
   const [users, setUsers] = useState<User[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingForStatus, setLoadingForStatus] = useState(false);
 
   // ── Filter state ──
   const [searchInput, setSearchInput] = useState("");
@@ -133,16 +135,22 @@ export default function UsersTable() {
 
   // Reset to page 1 when filters change (but not on page change itself)
   const handleStatusChange = (v: string) => {
+    setLoading(true);
     setStatusFilter(v as StatusFilter);
     setCurrentPage(1);
+    setLoading(false);
   };
   const handleTypeChange = (v: string) => {
+    setLoading(true);
     setTypeFilter(v as TypeFilter);
     setCurrentPage(1);
+    setLoading(false);
   };
   const handlePageSizeChange = (v: string) => {
+    setLoading(true);
     setPageSize(Number(v));
     setCurrentPage(1);
+    setLoading(false);
   };
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -157,6 +165,7 @@ export default function UsersTable() {
   const left = Math.max(1, currentPage - delta);
   const right = Math.min(totalPages, currentPage + delta);
   for (let i = left; i <= right; i++) pageNumbers.push(i);
+  if (loadingForStatus) return <FullPageLoader />;
 
   return (
     <Card className="border-0 shadow-none max-w-[100%]">
@@ -217,7 +226,6 @@ export default function UsersTable() {
             </SelectContent>
           </Select>
         </div>
-    
 
         {/* ── Table ── */}
         <div className="max-w-full overflow-x-auto ">
@@ -241,9 +249,12 @@ export default function UsersTable() {
                 <TableRow>
                   <TableCell
                     colSpan={9}
-                    className="text-center py-6 text-muted-foreground"
+                    className="text-center py-10 text-muted-foreground"
                   >
-                    Loading…
+                    <div className="flex flex-col items-center justify-center gap-2 ">
+                      <Loader2 className="h-13 w-13 animate-spin text-primary" />
+                      <span className="text-sm">Loading data...</span>
+                    </div>
                   </TableCell>
                 </TableRow>
               )}
@@ -265,18 +276,19 @@ export default function UsersTable() {
                     key={user.id}
                     className="hover:bg-gray-50 transition"
                   >
-                    
                     <TableCell className="text-muted-foreground text-sm">
                       {(currentPage - 1) * pageSize + index + 1}
                     </TableCell>
 
-                    <TableCell className="font-medium capitalize" >
+                    <TableCell className="font-medium capitalize">
                       {user.name || "N/A"}
                     </TableCell>
                     <TableCell> {user.email || "N/A"}</TableCell>
 
                     <TableCell className="text-center">
-                      <span className={` text-white px-2 font-[500] py-1    rounded-full text-xs text-center ${getTypeStyles(user.type)}`}>
+                      <span
+                        className={` text-white px-2 font-[500] py-1    rounded-full text-xs text-center ${getTypeStyles(user.type)}`}
+                      >
                         {user.type || "N/A"}
                       </span>
                     </TableCell>
@@ -304,7 +316,7 @@ export default function UsersTable() {
                     <TableCell className="text-center">
                       <ActionsMenu
                         id={user.id}
-                        status={user.is_approved}
+                        setLoading={setLoadingForStatus}
                         onUpdate={fetchUsers}
                       />
                     </TableCell>
@@ -398,16 +410,17 @@ export default function UsersTable() {
 // ── Actions Menu ──
 const ActionsMenu = ({
   id,
-  status,
+  setLoading,
   onUpdate,
 }: {
   id: number;
-  status: number | boolean | null;
+  setLoading: any;
   onUpdate: () => void;
 }) => {
   const router = useRouter();
 
   const handleApprove = async () => {
+    setLoading(true);
     const res = await approveUser(id);
     if (res.success) {
       toast.success("User approved");
@@ -415,9 +428,11 @@ const ActionsMenu = ({
     } else {
       toast.error(res.message);
     }
+    setLoading(false);
   };
 
   const handleReject = async () => {
+    setLoading(true);
     const res = await rejectUser(id);
     if (res.success) {
       toast.success("User rejected");
@@ -425,6 +440,7 @@ const ActionsMenu = ({
     } else {
       toast.error(res.message);
     }
+    setLoading(false);
   };
 
   return (
@@ -444,12 +460,12 @@ const ActionsMenu = ({
           View
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={handleApprove} >
+        <DropdownMenuItem onClick={handleApprove}>
           <FiCheck className="w-4 h-4 mr-2 text-green-600" />
           <span className="text-green-600">Approve</span>
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={handleReject} >
+        <DropdownMenuItem onClick={handleReject}>
           <RxCross1 className="w-4 h-4 mr-2 text-red-600" />
           <span className="text-red-600">Reject</span>
         </DropdownMenuItem>

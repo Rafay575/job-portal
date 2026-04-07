@@ -69,8 +69,8 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
     nationality: "",
     immigrationStatus: "",
     immigrationExpiry: "",
-    workPermit: false,
-    nameChanged: false,
+    workPermit: null,
+    nameChanged: null,
     previousName: "",
     changedTo: "",
     userId: user.id,
@@ -240,7 +240,9 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
     <>
       <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 ">
         <div>
-          <Label>Full Name <span className="text-red-500">*</span></Label>
+          <Label>
+            Full Name <span className="text-red-500">*</span>
+          </Label>
           <Input
             value={formData.fullName}
             onChange={(e) => handleChange("fullName", e.target.value)}
@@ -248,7 +250,9 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         </div>
 
         <div>
-          <Label>Email Address <span className="text-red-500">*</span></Label>
+          <Label>
+            Email Address <span className="text-red-500">*</span>
+          </Label>
           <Input
             value={formData.email}
             onChange={(e) => handleChange("email", e.target.value)}
@@ -256,7 +260,9 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         </div>
 
         <div>
-          <Label>Phone Number <span className="text-red-500">*</span></Label>
+          <Label>
+            Phone Number <span className="text-red-500">*</span>
+          </Label>
           <Input
             value={formData.phone}
             onChange={(e) => handleChange("phone", e.target.value)}
@@ -264,7 +270,9 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         </div>
 
         <div>
-          <Label>Current Address <span className="text-red-500">*</span></Label>
+          <Label>
+            Current Address <span className="text-red-500">*</span>
+          </Label>
           <Input
             value={formData.address}
             onChange={(e) => handleChange("address", e.target.value)}
@@ -272,7 +280,9 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         </div>
 
         <div>
-          <Label>Postcode <span className="text-red-500">*</span></Label>
+          <Label>
+            Postcode <span className="text-red-500">*</span>
+          </Label>
           <Input
             value={formData.postcode}
             onChange={(e) => handleChange("postcode", e.target.value)}
@@ -280,7 +290,9 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         </div>
 
         <div>
-          <Label>Nationality <span className="text-red-500">*</span></Label>
+          <Label>
+            Nationality <span className="text-red-500">*</span>
+          </Label>
           <Input
             value={formData.nationality}
             onChange={(e) => handleChange("nationality", e.target.value)}
@@ -288,7 +300,9 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         </div>
 
         <div>
-          <Label>Immigration Status <span className="text-red-500">*</span></Label>
+          <Label>
+            Immigration Status <span className="text-red-500">*</span>
+          </Label>
           <Select
             value={formData.immigrationStatus}
             onValueChange={(value) => handleChange("immigrationStatus", value)}
@@ -307,7 +321,9 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         </div>
 
         <div>
-          <Label>Immigration Expiry Date <span className="text-red-500">*</span></Label>
+          <Label>
+            Immigration Expiry Date <span className="text-red-500">*</span>
+          </Label>
           <Input
             type="date"
             value={formData.immigrationExpiry}
@@ -318,7 +334,13 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         <div>
           <Label>Do you need a UK Work Permit?</Label>
           <RadioGroup
-            value={formData.workPermit ? "yes" : "no"}
+            value={
+              formData.workPermit === null
+                ? undefined
+                : formData.workPermit
+                  ? "yes"
+                  : "no"
+            }
             onValueChange={(value) =>
               handleChange("workPermit", value === "yes")
             }
@@ -339,7 +361,13 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         <div>
           <Label>Have you changed your name before?</Label>
           <RadioGroup
-            value={formData.nameChanged ? "yes" : "no"}
+            value={
+              formData.nameChanged === null
+                ? undefined
+                : formData.nameChanged
+                  ? "yes"
+                  : "no"
+            }
             onValueChange={(value) =>
               handleChange("nameChanged", value === "yes")
             }
@@ -364,7 +392,9 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
               : "h-0! overflow-hidden!  opacity-0"
           }`}
         >
-          <Label>Previous Name <span className="text-red-500">*</span></Label>
+          <Label>
+            Previous Name <span className="text-red-500">*</span>
+          </Label>
           <Input
             value={formData.previousName}
             onChange={(e) => handleChange("previousName", e.target.value)}
@@ -378,7 +408,9 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
               : "h-0! overflow-hidden!  opacity-0"
           }`}
         >
-          <Label>Changed To <span className="text-red-500">*</span></Label>
+          <Label>
+            Changed To <span className="text-red-500">*</span>
+          </Label>
           <Input
             value={formData.changedTo}
             onChange={(e) => handleChange("changedTo", e.target.value)}
@@ -392,7 +424,9 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
               : "h-0! overflow-hidden!  opacity-0"
           } transition-all duration-500 ease-in-out  md:col-span-2`}
         >
-          <Label>Upload CV <span className="text-red-500">*</span></Label>
+          <Label>
+            Upload CV <span className="text-red-500">*</span>
+          </Label>
 
           <div className="mt-2 relative border! border-dashed shadow-0 outline-0 border-primary rounded-xl p-6 text-center transition">
             <input

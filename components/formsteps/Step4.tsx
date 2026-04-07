@@ -60,15 +60,15 @@ export default function Step4({ next, back }: Props) {
   const [formData, setFormData] = useState<Step4Type>({
     absentDays: "",
     absencePeriods: "",
-    onMedication: false,
+    onMedication: null,
     medicationDetails: "",
-    healthTreatment: false,
+    healthTreatment: null,
     treatmentDetails: "",
-    medicalCondition: false,
+    medicalCondition: null,
     conditionDetails: "",
-    disabled: false,
+    disabled: null,
     impairmentType: "",
-    nightShiftFit: false,
+    nightShiftFit: null,
   });
 
   const handleChange = <K extends keyof Step4Type>(
@@ -97,9 +97,7 @@ export default function Step4({ next, back }: Props) {
 
       if (!isApproved) {
         setBlur(true);
-        toast.error(
-          "You are not allowed until admin approves your application.",
-        );
+        
       }
     };
 
@@ -207,7 +205,13 @@ export default function Step4({ next, back }: Props) {
             <div>
               <Label>Currently taking medication?</Label>
               <RadioGroup
-                value={formData.onMedication ? "yes" : "no"}
+                 value={
+                  formData.onMedication === null
+                    ? undefined
+                    : formData.onMedication
+                      ? "yes"
+                      : "no"
+                }
                 onValueChange={(v) => handleChange("onMedication", v === "yes")}
               >
                 <div className="flex gap-4 mt-2">
@@ -241,7 +245,13 @@ export default function Step4({ next, back }: Props) {
             <div>
               <Label>Physical or mental health treatment?</Label>
               <RadioGroup
-                value={formData.healthTreatment ? "yes" : "no"}
+                 value={
+                  formData.healthTreatment === null
+                    ? undefined
+                    : formData.healthTreatment
+                      ? "yes"
+                      : "no"
+                }
                 onValueChange={(v) =>
                   handleChange("healthTreatment", v === "yes")
                 }
@@ -277,7 +287,13 @@ export default function Step4({ next, back }: Props) {
             <div>
               <Label>Any injury / condition / allergy affecting duties?</Label>
               <RadioGroup
-                value={formData.medicalCondition ? "yes" : "no"}
+                 value={
+                  formData.medicalCondition === null
+                    ? undefined
+                    : formData.medicalCondition
+                      ? "yes"
+                      : "no"
+                }
                 onValueChange={(v) =>
                   handleChange("medicalCondition", v === "yes")
                 }
@@ -313,7 +329,13 @@ export default function Step4({ next, back }: Props) {
             <div>
               <Label>Do you consider yourself disabled?</Label>
               <RadioGroup
-                value={formData.disabled ? "yes" : "no"}
+                 value={
+                  formData.disabled === null
+                    ? undefined
+                    : formData.disabled
+                      ? "yes"
+                      : "no"
+                }
                 onValueChange={(v) => handleChange("disabled", v === "yes")}
               >
                 <div className="flex gap-4 mt-2">
@@ -344,7 +366,13 @@ export default function Step4({ next, back }: Props) {
           <div>
             <Label>Medical fit for Night Shift?</Label>
             <RadioGroup
-              value={formData.nightShiftFit ? "yes" : "no"}
+               value={
+                  formData.nightShiftFit === null
+                    ? undefined
+                    : formData.nightShiftFit
+                      ? "yes"
+                      : "no"
+                }
               onValueChange={(v) => handleChange("nightShiftFit", v === "yes")}
             >
               <div className="flex gap-4 mt-2">

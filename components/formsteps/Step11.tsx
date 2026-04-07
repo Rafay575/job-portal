@@ -51,7 +51,7 @@ export default function Step11({ back }: Props) {
   const [existingFile, setExistingFile] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Step11Type>({
-    declarationConfirmed: false,
+    declarationConfirmed: undefined,
     declarationDate: "",
     signatureFile: null,
   });
@@ -96,10 +96,6 @@ export default function Step11({ back }: Props) {
 
       if (!isApproved) {
         setBlur(true);
-
-        toast.error(
-          "You are not allowed until admin approves your application.",
-        );
       }
     };
 

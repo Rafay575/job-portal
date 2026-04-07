@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Step2 from "@/components/formsteps/Step2";
@@ -56,8 +55,9 @@ export default function Page() {
         toast.success(
           "Your information is submitted. Please wait for admin approval for next steps. We will inform you via email once your application is reviewed.",
         );
-        // redirect to home
-        router.push("/");
+        setDirection(1);
+        setStep((prev) => prev + 1);
+
         return;
       }
     }
@@ -126,9 +126,9 @@ export default function Page() {
         setOpen(true);
       }
     };
-
     fetchData();
   }, []);
+
   return (
     <div className="p-4 overflow-hidden">
       {/* Shadcn Modal */}
@@ -208,6 +208,7 @@ export default function Page() {
       >
         <Stepper
           currentStep={step}
+          userId={user.id}
           setCurrentStep={setStep}
           steps={stepsforStepper}
         />

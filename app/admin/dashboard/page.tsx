@@ -90,7 +90,7 @@ const groupByMonth = (data: any[]) => {
   // Step 3: Return in correct order
   return MONTHS.map((m) => map[m]);
 };
-const getTypeStyles = (type: string|null) => {
+const getTypeStyles = (type: string | null) => {
   switch (type) {
     case "permanent":
       return "bg-primary text-white";
@@ -102,36 +102,24 @@ const getTypeStyles = (type: string|null) => {
       return "bg-gray-400 text-white";
   }
 };
+const formatType = (type: string) => {
+  if (type === "permanent") return "Permanent";
+  if (type === "agency-work") return "Agency Work";
+  if (type === "both") return "Both";
+  return "Not Submitted";
+};
+const formatDate = (date: string) => {
+  return new Date(date).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
 export default function AdminDashboard() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [latestUsers, setLatestUsers] = useState([]);
-
-  const fetchData = async () => {
-    setLoading(true);
-
-    const res = await getDashboard();
-
-    if (res.success) {
-      setData(res.data);
-    } else {
-      setError(res.message);
-    }
-
-    setLoading(false);
-  };
-  const fetchLatest = async () => {
-    const res = await getLatestUsers();
-    if (res.success) {
-      setLatestUsers(res.data);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-    fetchLatest();
-  }, []);
   const totalUsers = data.length;
   const permanentUsers = data.filter((u: any) => u.type === "permanent").length;
   const agencyUsers = data.filter((u: any) => u.type === "agency-work").length;
@@ -183,19 +171,28 @@ export default function AdminDashboard() {
       highlight: true,
     },
   ];
-  const formatType = (type: string) => {
-    if (type === "permanent") return "Permanent";
-    if (type === "agency-work") return "Agency Work";
-    if (type === "both") return "Both";
-    return "Not Submitted";
+  const fetchData = async () => {
+    const res = await getDashboard();
+    if (res.success) {
+      setData(res.data);
+    } else {
+      setError(res.message);
+    }
   };
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+  const fetchLatest = async () => {
+    const res = await getLatestUsers();
+    if (res.success) {
+      setLatestUsers(res.data);
+    }
   };
+
+  useEffect(() => {
+    setLoading(true);
+    fetchData();
+    fetchLatest();
+    setLoading(false);
+  }, []);
+
   const chartData = groupByMonth(data);
 
   if (loading) return <FullPageLoader />;
@@ -381,13 +378,13 @@ export default function AdminDashboard() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                    <TableRow className="border-slate-200 bg-gray-200">
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead className="text-center">Type</TableHead>
-                      <TableHead>Date</TableHead>
-                    </TableRow>
+                  <TableRow className="border-slate-200 bg-gray-200">
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead className="text-center">Type</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
                 </TableHeader>
 
                 <TableBody>
@@ -423,7 +420,9 @@ export default function AdminDashboard() {
 
                         {/* Type */}
                         <TableCell className="text-center">
-                          <Badge className={` text-white ${getTypeStyles(user.type)}`}>
+                          <Badge
+                            className={` text-white ${getTypeStyles(user.type)}`}
+                          >
                             {formatType(user.type)}
                           </Badge>
                         </TableCell>

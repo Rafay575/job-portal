@@ -216,7 +216,7 @@ function SortableCard(props: CardProps) {
               onChange={(e) =>
                 onUpdateExperience(entry.id, "employerName", e.target.value)
               }
-              placeholder="e.g., ABC Care Services"
+             
             />
           </div>
 
@@ -259,7 +259,7 @@ function SortableCard(props: CardProps) {
               onChange={(e) =>
                 onUpdateExperience(entry.id, "jobTitle", e.target.value)
               }
-              placeholder="e.g., Support Worker"
+              
             />
           </div>
 
@@ -273,7 +273,7 @@ function SortableCard(props: CardProps) {
               onChange={(e) =>
                 onUpdateExperience(entry.id, "duties", e.target.value)
               }
-              placeholder="Describe what you did in this role..."
+              
             />
           </div>
         </div>
@@ -312,7 +312,7 @@ function SortableCard(props: CardProps) {
               className="mt-2 min-h-[90px]"
               value={entry.reason}
               onChange={(e) => onUpdateGap(entry.id, "reason", e.target.value)}
-              placeholder="e.g., studying, maternity leave, caring for family, health recovery, relocation, etc."
+             
             />
           </div>
         </div>
@@ -495,9 +495,7 @@ export default function Step9({ next, back }: Props) {
 
       if (!isApproved) {
         setBlur(true);
-        toast.error(
-          "You are not allowed until admin approves your application.",
-        );
+        
       }
     };
 

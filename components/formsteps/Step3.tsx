@@ -60,13 +60,13 @@ export default function Step3({ next, back }: Props) {
 
   const [existingCRB, setExistingCRB] = useState<string>();
   const [formData, setFormData] = useState<Step3Type>({
-    hasConvictions: false,
+    hasConvictions: null,
     convictionDetails: "",
-    hasUnspentConvictions: false,
+    hasUnspentConvictions: null,
     unspentDetails: "",
-    fitnessInvestigation: false,
-    removedFromRegister: false,
-    crb: false,
+    fitnessInvestigation: null,
+    removedFromRegister: null,
+    crb: null,
     surname: "",
     dob: "",
     crbFile: null,
@@ -125,9 +125,7 @@ export default function Step3({ next, back }: Props) {
 
       if (!isApproved) {
         setBlur(true);
-        toast.error(
-          "You are not allowed until admin approves your application.",
-        );
+        
       }
     };
 
@@ -223,7 +221,13 @@ export default function Step3({ next, back }: Props) {
             <div>
               <Label>Any convictions?</Label>
               <RadioGroup
-                value={formData.hasConvictions ? "yes" : "no"}
+                value={
+                  formData.hasConvictions === null
+                    ? undefined
+                    : formData.hasConvictions
+                      ? "yes"
+                      : "no"
+                }
                 onValueChange={(v) =>
                   handleChange("hasConvictions", v === "yes")
                 }
@@ -261,7 +265,13 @@ export default function Step3({ next, back }: Props) {
             <div>
               <Label>Any unspent convictions?</Label>
               <RadioGroup
-                value={formData.hasUnspentConvictions ? "yes" : "no"}
+                 value={
+                  formData.hasUnspentConvictions === null
+                    ? undefined
+                    : formData.hasUnspentConvictions
+                      ? "yes"
+                      : "no"
+                }
                 onValueChange={(v) =>
                   handleChange("hasUnspentConvictions", v === "yes")
                 }
@@ -297,7 +307,13 @@ export default function Step3({ next, back }: Props) {
           <div>
             <Label>Currently under fitness to practice investigation?</Label>
             <RadioGroup
-              value={formData.fitnessInvestigation ? "yes" : "no"}
+               value={
+                  formData.fitnessInvestigation === null
+                    ? undefined
+                    : formData.fitnessInvestigation
+                      ? "yes"
+                      : "no"
+                }
               onValueChange={(v) =>
                 handleChange("fitnessInvestigation", v === "yes")
               }
@@ -315,7 +331,13 @@ export default function Step3({ next, back }: Props) {
           <div>
             <Label>Removed from professional register before?</Label>
             <RadioGroup
-              value={formData.removedFromRegister ? "yes" : "no"}
+               value={
+                  formData.removedFromRegister === null
+                    ? undefined
+                    : formData.removedFromRegister
+                      ? "yes"
+                      : "no"
+                }
               onValueChange={(v) =>
                 handleChange("removedFromRegister", v === "yes")
               }
@@ -334,7 +356,13 @@ export default function Step3({ next, back }: Props) {
             <div>
               <Label>Any CRB?</Label>
               <RadioGroup
-                value={formData.crb ? "yes" : "no"}
+                 value={
+                  formData.crb === null
+                    ? undefined
+                    : formData.crb
+                      ? "yes"
+                      : "no"
+                }
                 onValueChange={(v) => handleChange("crb", v === "yes")}
               >
                 <div className="flex gap-4 mt-2 items-center">
@@ -367,7 +395,7 @@ export default function Step3({ next, back }: Props) {
                   <Input
                     value={formData.surname}
                     onChange={(e) => handleChange("surname", e.target.value)}
-                    placeholder="Enter surname"
+                    
                   />
                 </div>
 

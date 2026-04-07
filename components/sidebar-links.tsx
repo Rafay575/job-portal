@@ -6,6 +6,7 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar"
 import { useSidebar } from "@/components/ui/sidebar"
+import Link from "next/link"
 
 type LinkItem = {
   name: string
@@ -21,7 +22,7 @@ export default function SidebarLinks({ links }: { links: LinkItem[] }) {
       {links.map((item) => (
         <SidebarMenuItem key={item.name}>
           <SidebarMenuButton asChild>
-            <a
+            <Link
               href={item.url}
               className={`flex items-center w-full transition-all duration-200 mx-auto ${
                 open
@@ -32,7 +33,7 @@ export default function SidebarLinks({ links }: { links: LinkItem[] }) {
               <item.icon className="!h-5 !w-5 shrink-0 " />
               
               {open && <span>{item.name}</span>}
-            </a>
+            </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
       ))}

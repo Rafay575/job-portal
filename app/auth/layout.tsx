@@ -38,14 +38,12 @@ useEffect(() => {
   }
 }, [user, router]);
   return (
-    <html lang="en">
-      <body>
+    <div className="auth-layout">
           <>
             <TopNav />
             <Navbar />
           </>
           {children}
-      </body>
-    </html>
+    </div>
   );
 }

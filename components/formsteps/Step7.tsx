@@ -57,9 +57,7 @@ export default function Step7({ next, back }: any) {
 
       if (!isApproved) {
         setBlur(true);
-        toast.error(
-          "You are not allowed until admin approves your application.",
-        );
+       
       }
     };
 

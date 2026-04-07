@@ -298,9 +298,7 @@ export default function Step6({ next, back }: Props) {
 
       if (!isApproved) {
         setBlur(true);
-        toast.error(
-          "You are not allowed until admin approves your application.",
-        );
+        
       }
     };
 

@@ -1,30 +1,58 @@
+"use client";
+import { checkApproval } from "@/lib/usersApproval";
 import clsx from "clsx";
 import { Check } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface StepperProps {
-  steps: string[]; // <-- dynamic steps
+  steps: string[];
   currentStep: number;
+  userId: string | number | null;
   setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function Stepper({
+  userId,
   steps,
   currentStep,
   setCurrentStep,
 }: StepperProps) {
+  const [isApproved, setIsApproved] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return; // ✅ prevent undefined call
+
+    const fetchApproval = async () => {
+      const res = await checkApproval(userId);
+      setIsApproved(res); // ✅ safe
+    };
+
+    fetchApproval();
+  }, [userId]);
+
   return (
     <div className="hidden lg:flex justify-between mb-10 w-full relative">
       {steps.map((label, index) => {
         const stepNumber = index + 1;
 
+        // 🔥 lock logic
+        const isLocked = !isApproved && stepNumber > 1;
+
         return (
           <div
             key={stepNumber}
-            className="flex flex-col items-center flex-1 relative"
+            className={clsx(
+              "flex flex-col items-center flex-1 relative transition-all",
+              {
+                " blur-[3px] pointer-events-none": isLocked, // 👈 blur + disable
+              }
+            )}
           >
             {/* Step Circle */}
             <div
-              onClick={() => setCurrentStep(stepNumber)}
+              onClick={() => {
+                if (!isLocked) setCurrentStep(stepNumber); // 👈 prevent click
+              }}
               className={clsx(
                 "h-9 w-9 rounded-full flex items-center justify-center text-sm font-medium cursor-pointer transition-all duration-300 z-10",
                 {
@@ -32,6 +60,7 @@ export default function Stepper({
                     stepNumber <= currentStep,
                   "bg-gray-200 text-gray-500":
                     stepNumber > currentStep,
+                  "cursor-not-allowed": isLocked,
                 }
               )}
             >

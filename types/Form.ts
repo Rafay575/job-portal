@@ -8,8 +8,8 @@ export type Step1FullTimeType = {
   nationality: string;
   immigrationStatus: string;
   immigrationExpiry: string;
-  workPermit: boolean;
-  nameChanged: boolean;
+  workPermit: boolean | null;
+  nameChanged: boolean | null;
   previousName: string;
   changedTo: string;
   userId?: number | string | null;
@@ -17,25 +17,25 @@ export type Step1FullTimeType = {
 };
 
 export type Step2Type = {
-  availabilityIssue: boolean;
-  workRestrictions: boolean;
+  availabilityIssue: boolean | null;
+  workRestrictions: boolean | null;
   restrictionDetails: string;
-  overtime: boolean;
+  overtime: boolean | null;
   hoursAvoid: string;
   noticePeriod: string;
-  workedBefore: boolean;
-  appliedBefore: boolean;
+  workedBefore: boolean | null;
+  appliedBefore: boolean | null;
   appliedDetails: string;
 };
 
 export type Step3Type = {
-  hasConvictions: boolean;
+  hasConvictions: boolean | null;
   convictionDetails: string;
-  hasUnspentConvictions: boolean;
+  hasUnspentConvictions: boolean | null;
   unspentDetails: string;
-  fitnessInvestigation: boolean;
-  removedFromRegister: boolean;
-  crb: boolean;
+  fitnessInvestigation: boolean | null;
+  removedFromRegister: boolean | null;
+  crb: boolean | null;
   surname: string;
   dob: string;
   crbFile: File | string | null;
@@ -44,19 +44,19 @@ export type Step3Type = {
 export type Step4Type = {
   absentDays: string;
   absencePeriods: string;
-  onMedication: boolean;
+  onMedication: boolean | null;
   medicationDetails: string;
-  healthTreatment: boolean;
+  healthTreatment: boolean | null;
   treatmentDetails: string;
-  medicalCondition: boolean;
+  medicalCondition: boolean | null;
   conditionDetails: string;
-  disabled: boolean;
+  disabled: boolean | null;
   impairmentType: string;
-  nightShiftFit: boolean;
+  nightShiftFit: boolean | null;
 };
 
 export type Step5Type = {
-  isNurse: boolean;
+  isNurse: boolean | null;
   professionalBody: string;
   registrationType: string;
   registrationNumber: string;
@@ -87,9 +87,9 @@ export type EducationEntry = {
   gradeOrResult: string;
   startDate: string;
   endDate: string;
-  completed: "yes" | "no";
+  completed: "yes" | "no"| undefined;
   additionalNotes: string;
-  hasProfessionalRegistration: "yes" | "no";
+  hasProfessionalRegistration: "yes" | "no"| undefined;
   registrationBody: string;
   registrationNumber: string;
   registrationExpiry: string;
@@ -136,7 +136,7 @@ export type Step10Type = {
   supportingStatement: string;
 };
 export type Step11Type = {
-  declarationConfirmed: boolean;
+  declarationConfirmed: boolean | undefined;
   declarationDate: string;
   signatureFile: File | string | null ;
 };

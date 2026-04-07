@@ -37,6 +37,7 @@ import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
 import { checkApproval } from "@/lib/usersApproval";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 // ─── Nav Buttons ──────────────────────────────────────────────────────────────
 
@@ -95,9 +96,9 @@ const emptyEducation = (): EducationEntry => ({
   gradeOrResult: "",
   startDate: "",
   endDate: "",
-  completed: "yes",
+  completed: undefined,
   additionalNotes: "",
-  hasProfessionalRegistration: "no",
+  hasProfessionalRegistration: undefined,
   registrationBody: "",
   registrationNumber: "",
   registrationExpiry: "",
@@ -229,7 +230,7 @@ function SortableCard(props: CardProps) {
             </Label>
             <Input
               className="mt-2"
-              placeholder="e.g., BSc Computer Science"
+             
               value={entry.qualificationTitle}
               onChange={(e) =>
                 onUpdateEducation(
@@ -248,7 +249,7 @@ function SortableCard(props: CardProps) {
             </Label>
             <Input
               className="mt-2"
-              placeholder="e.g., University of Manchester"
+             
               value={entry.institutionName}
               onChange={(e) =>
                 onUpdateEducation(entry.id, "institutionName", e.target.value)
@@ -263,7 +264,7 @@ function SortableCard(props: CardProps) {
             </Label>
             <Input
               className="mt-2"
-              placeholder="e.g., United Kingdom"
+              
               value={entry.institutionCountry}
               onChange={(e) =>
                 onUpdateEducation(
@@ -282,7 +283,7 @@ function SortableCard(props: CardProps) {
             </Label>
             <Input
               className="mt-2"
-              placeholder="e.g., Pearson / City & Guilds / University"
+            
               value={entry.awardingBody}
               onChange={(e) =>
                 onUpdateEducation(entry.id, "awardingBody", e.target.value)
@@ -297,7 +298,7 @@ function SortableCard(props: CardProps) {
             </Label>
             <Input
               className="mt-2"
-              placeholder="e.g., 2:1 / Distinction / A*"
+             
               value={entry.gradeOrResult}
               onChange={(e) =>
                 onUpdateEducation(entry.id, "gradeOrResult", e.target.value)
@@ -339,18 +340,23 @@ function SortableCard(props: CardProps) {
             <Label className="text-sm">
               Completed? <span className="text-red-500">*</span>
             </Label>
-            <div className="mt-2 flex gap-3">
-              {(["yes", "no"] as const).map((v) => (
-                <label key={v} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name={`completed-${entry.id}`}
-                    checked={entry.completed === v}
-                    onChange={() => onUpdateEducation(entry.id, "completed", v)}
-                  />
-                  {v.charAt(0).toUpperCase() + v.slice(1)}
-                </label>
-              ))}
+            <div className="mt-2">
+              <RadioGroup
+                value={entry.completed ?? ""} // 👈 handles null/undefined
+                onValueChange={(value: "yes" | "no") =>
+                  onUpdateEducation(entry.id, "completed", value)
+                }
+                className="flex gap-3"
+              >
+                {(["yes", "no"] as const).map((v) => (
+                  <div key={v} className="flex items-center gap-2">
+                    <RadioGroupItem value={v} id={`${entry.id}-${v}`} />
+                    <Label htmlFor={`${entry.id}-${v}`}>
+                      {v.charAt(0).toUpperCase() + v.slice(1)}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
             </div>
           </div>
 
@@ -359,24 +365,28 @@ function SortableCard(props: CardProps) {
             <Label className="text-sm">
               Professional Registration / Licence?
             </Label>
-            <div className="mt-2 flex gap-3">
-              {(["yes", "no"] as const).map((v) => (
-                <label key={v} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name={`reg-${entry.id}`}
-                    checked={entry.hasProfessionalRegistration === v}
-                    onChange={() =>
-                      onUpdateEducation(
-                        entry.id,
-                        "hasProfessionalRegistration",
-                        v,
-                      )
-                    }
-                  />
-                  {v.charAt(0).toUpperCase() + v.slice(1)}
-                </label>
-              ))}
+
+            <div className="mt-2">
+              <RadioGroup
+                value={entry.hasProfessionalRegistration ?? ""} // 👈 handles null
+                onValueChange={(value: "yes" | "no") =>
+                  onUpdateEducation(
+                    entry.id,
+                    "hasProfessionalRegistration",
+                    value,
+                  )
+                }
+                className="flex gap-3"
+              >
+                {(["yes", "no"] as const).map((v) => (
+                  <div key={v} className="flex items-center gap-2">
+                    <RadioGroupItem value={v} id={`reg-${entry.id}-${v}`} />
+                    <Label htmlFor={`reg-${entry.id}-${v}`}>
+                      {v.charAt(0).toUpperCase() + v.slice(1)}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
             </div>
           </div>
 
@@ -388,7 +398,7 @@ function SortableCard(props: CardProps) {
                 </Label>
                 <Input
                   className="mt-2"
-                  placeholder="e.g., NMC / HCPC / GMC"
+                  
                   value={entry.registrationBody}
                   onChange={(e) =>
                     onUpdateEducation(
@@ -403,7 +413,7 @@ function SortableCard(props: CardProps) {
                 <Label className="text-sm">Registration Number *</Label>
                 <Input
                   className="mt-2"
-                  placeholder="e.g., PIN / Licence No"
+                  
                   value={entry.registrationNumber}
                   onChange={(e) =>
                     onUpdateEducation(
@@ -477,7 +487,7 @@ function SortableCard(props: CardProps) {
             <Label className="text-sm">Additional Notes (optional)</Label>
             <Textarea
               className="mt-2"
-              placeholder="Any extra details about this qualification..."
+              
               value={entry.additionalNotes}
               onChange={(e) =>
                 onUpdateEducation(entry.id, "additionalNotes", e.target.value)
@@ -520,7 +530,7 @@ function SortableCard(props: CardProps) {
               className="mt-2 min-h-[90px]"
               value={entry.reason}
               onChange={(e) => onUpdateGap(entry.id, "reason", e.target.value)}
-              placeholder="e.g., travelling, caring for family, health recovery, gap year, etc."
+              
             />
           </div>
         </div>
@@ -560,9 +570,6 @@ export default function Step8({ next, back }: Props) {
 
       if (!isApproved) {
         setBlur(true);
-        toast.error(
-          "You are not allowed until admin approves your application.",
-        );
       }
     };
 
