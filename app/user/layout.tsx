@@ -28,17 +28,16 @@ export default function RootLayout({
 }>) {
   return (
     <div className="users-layout">
-      
+      <title>Hayaibu Talent | Dashboard</title>
         <div className="">
           <SidebarProvider>
             <div className="flex-1 ">
               <TooltipProvider>
                 <Header />
                 <div className="flex container mx-auto items-start ">
-                  <JobSidebar />
-                  <div className="flex-1 p-2  ">{children}</div>
+                  {/* <JobSidebar /> */}
+                  <div className="flex-1 p-2">{children}</div>
                 </div>
-                <Toaster position="top-center" richColors />
               </TooltipProvider>
             </div>
           </SidebarProvider>

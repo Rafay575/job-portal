@@ -16,13 +16,12 @@ export async function GET(req: NextRequest) {
 
     const [rows] = await pool.execute(
       `
-      SELECT id, user_id, declaration_confirmed,  DATE_FORMAT(declaration_date, '%d-%m-%Y') AS declaration_date, signature_file
+      SELECT id, user_id, declaration_confirmed,  DATE_FORMAT(declaration_date, '%Y-%m-%d') AS declaration_date, signature_file
       FROM employee_declaration
       WHERE user_id = ?
       `,
       [userId],
     );
-    console.log("rows:", rows);
 
     return NextResponse.json({ success: true, data: rows });
   } catch (error) {
@@ -87,16 +86,15 @@ export async function POST(req: NextRequest) {
     if (existing.length > 0) {
       await pool.execute(
         `
-    UPDATE employee_declaration SET
-    declaration_confirmed = ?,
-    declaration_date = ?,
-    signature_file = COALESCE(?, signature_file),
-    updated_at = CURRENT_TIMESTAMP
-  WHERE user_id = ?
-  `,
+        UPDATE employee_declaration SET
+        declaration_confirmed = ?,
+        declaration_date = ?,
+        signature_file = COALESCE(?, signature_file),
+        updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = ?
+        `,
         [declarationConfirmed, declarationDate, filePath, userId],
       );
-      // ✅ send email from backend
       if (email && name) {
         await sendFormSubmissionEmail(id, email, name, submittedAt);
       } else {

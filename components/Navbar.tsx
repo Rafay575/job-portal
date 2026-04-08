@@ -42,6 +42,10 @@ export default function Navbar() {
         {/* DESKTOP NAV */}
         <nav className="hidden lg:flex items-center gap-8 text-md">
           {navLinks.map((link) => {
+            if (!user.loggedIn) {
+              if (link.name === "Dashboard") return false;
+              if (link.name === "Admin") return false;
+            }
             if (link.name === "Admin" && user?.role !== "admin") {
               return null;
             }
@@ -96,7 +100,7 @@ export default function Navbar() {
         {/* MOBILE MENU */}
         <Sheet>
           <SheetTrigger asChild>
-            <div  className=" flex gap-3 item-center lg:hidden">
+            <div className=" flex gap-3 item-center lg:hidden">
               {user.loggedIn && (
                 <div>
                   <Profile />

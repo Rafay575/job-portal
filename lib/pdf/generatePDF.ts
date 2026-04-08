@@ -1,4 +1,5 @@
 import jsPDF from "jspdf";
+// import logo from "@/public/logo.png"
 
 function isEmpty(val: any): boolean {
   if (!val) return true;
@@ -6,7 +7,14 @@ function isEmpty(val: any): boolean {
   if (typeof val === "object") return Object.keys(val).length === 0;
   return false;
 }
-export function generatePDFBuffer(user: any) {
+async function getBase64FromUrl(url: string): Promise<string> {
+  const res = await fetch(url);
+  const arrayBuffer = await res.arrayBuffer(); // ✅ Node-safe
+  const base64 = Buffer.from(arrayBuffer).toString("base64");
+
+  return `data:image/png;base64,${base64}`;
+}
+export async function generatePDFBuffer(user: any) {
   const {
     basic,
     questions,
@@ -22,7 +30,8 @@ export function generatePDFBuffer(user: any) {
   } = user;
 
   const isPermanent = basic?.type === "permanent";
-
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const logoBase64 = await getBase64FromUrl(`${baseUrl}/logo.png`);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
 
   const PAGE_W = 210;
@@ -49,83 +58,97 @@ export function generatePDFBuffer(user: any) {
   }
 
   function drawCoverPage() {
-    // ── Background (soft gradient feel using solid) ──
-    doc.setFillColor(92, 73, 216);
-    doc.rect(0, 0, PAGE_W, 297, "F");
+    const W = PAGE_W;
 
-    // ── Main white card ──
+    // ── White Background ──
     doc.setFillColor(255, 255, 255);
-    doc.roundedRect(18, 50, PAGE_W - 36, 185, 10, 10, "F");
+    doc.rect(0, 0, W, 297, "F");
 
-    // ── Header: Company Name ──
+    const PRIMARY = [96, 77, 227];
+    const TEXT_DARK = [40, 40, 60];
+    const TEXT_LIGHT = [120, 120, 140];
+
+    const LEFT = 25;
+
+    // ── Logo (Centered) ──
+    const logoW = 60;
+    const logoH = 20;
+    const logoX = (W - logoW) / 2;
+    doc.addImage(logoBase64, "PNG", logoX, 20, logoW, logoH);
+
+    // ── Accent Line (Centered under logo) ──
+    doc.setDrawColor(96, 77, 227);
+    doc.setLineWidth(1);
+    doc.line(W / 2 - 25, 45, W / 2 + 25, 45);
+
+    // ── Title (Primary Color) ──
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(24);
-    doc.setTextColor(92, 73, 216);
-    doc.text("Hayaibu Talent", PAGE_W / 2, 80, { align: "center" });
+    doc.setFontSize(16);
+    doc.setTextColor(96, 77, 227);
+    doc.text("Applicant Details", LEFT, 60);
 
-    // ── Subtitle ──
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.setTextColor(120, 130, 160);
-    doc.text("Form Submission Details", PAGE_W / 2, 88, { align: "center" });
-
-    // ── Divider line ──
-    doc.setDrawColor(230, 235, 245);
-    doc.setLineWidth(0.5);
-    doc.line(40, 95, PAGE_W - 40, 95);
-
-    // ── User Info Card Style ──
-    const startY = 110;
-    let dy = startY;
-
-    const fields = [
-      ["Full Name", basic.full_name || "—"],
-      ["Email Address", basic.email || "—"],
-      ["Phone Number", basic.phone || "—"],
-      ["Address", basic.address || "—"],
-      [
-        "Application Type",
-        basic.type === "permanent"
-          ? "Permanent"
-          : basic.type === "agency-work"
-            ? "Agency Work"
-            : basic.type === "both"
-              ? "Both"
-              : "—",
-      ], // ✅ moved here
+    // ── Info Fields ──
+    const infoFields = [
+      {
+        label: "Name",
+        value: (basic.full_name || "—").toUpperCase(), // ✅ CAPITALIZED
+      },
+      { label: "Email", value: basic.email || "—" },
+      { label: "Phone", value: basic.phone || "—" },
+      { label: "Address", value: basic.address || "—" },
+      {
+        label: "Type",
+        value:
+          basic.type === "permanent"
+            ? "Permanent"
+            : basic.type === "agency-work"
+              ? "Agency Work"
+              : basic.type === "both"
+                ? "Both"
+                : "—",
+      },
     ];
 
-    fields.forEach(([label, value]) => {
+    let dy = 75;
+
+    infoFields.forEach(({ label, value }) => {
       // Label
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
-      doc.setTextColor(120, 130, 160);
-      doc.text(label, 40, dy);
+      doc.setTextColor(120, 120, 140);
+      doc.text(label.toUpperCase(), LEFT, dy);
 
       // Value
       doc.setFont("helvetica", "normal");
       doc.setFontSize(12);
-      doc.setTextColor(30, 30, 30);
-      doc.text(String(value), 40, dy + 6);
+      doc.setTextColor(40, 40, 60);
 
-      dy += 16;
+      const lines = doc.splitTextToSize(String(value), W - 50);
+      doc.text(lines, LEFT, dy + 7);
 
-      // subtle divider
-      doc.setDrawColor(240, 242, 248);
-      doc.line(40, dy - 6, PAGE_W - 40, dy - 6);
+      dy += lines.length > 1 ? 18 + (lines.length - 1) * 5 : 18;
+
+      // Divider
+      doc.setDrawColor(220, 220, 230);
+      doc.setLineWidth(0.3);
+      doc.line(LEFT, dy - 5, W - 25, dy - 5);
     });
 
     // ── Footer ──
-    doc.setFontSize(9);
-    doc.setTextColor(180, 185, 210);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 170);
     doc.text(
-      `Generated on ${new Date().toLocaleDateString()}`,
-      PAGE_W / 2,
-      270,
+      `Generated on ${new Date().toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })}`,
+      W / 2,
+      285,
       { align: "center" },
     );
 
-    // ── Next page ──
     doc.addPage();
     y = 16;
   }

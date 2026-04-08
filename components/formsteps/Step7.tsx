@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -146,7 +146,7 @@ export default function Step7({ next, back }: any) {
 
   // ================= UI =================
   return (
-    <div className="relative">
+    <div className="relative px-2">
       <div
         className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
       >

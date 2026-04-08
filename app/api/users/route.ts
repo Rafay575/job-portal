@@ -66,3 +66,47 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+
+import pool from "@/lib/db";
+
+export async function POST(req: NextRequest) {
+  try {
+    const { id } = await req.json();
+
+    // ✅ Validate
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: "User ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Fetch user
+    const [rows]: any = await pool.execute(
+      "SELECT * FROM users WHERE id = ?",
+      [id]
+    );
+
+    // ✅ Check if user exists
+    if (!rows || rows.length === 0) {
+      return NextResponse.json(
+        { success: false, message: "User not found", data: null },
+        { status: 404 }
+      );
+    }
+
+    // ✅ Return user
+    return NextResponse.json({
+      success: true,
+      data: rows[0], 
+    });
+  } catch (error) {
+    console.error(error);
+
+    return NextResponse.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

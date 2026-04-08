@@ -29,6 +29,14 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { message: "Invalid email format" },
+        { status: 400 },
+      );
+    }
 
     // 2. Generate OTP
     const otp = generateOTP();
@@ -43,7 +51,7 @@ export async function POST(req: Request) {
       "INSERT INTO otp_verifications (email, otp, type, expires_at) VALUES (?, ?, 'register', ?)",
       [email, otp, expiresAt],
     );
-    
+
     // AFTER saving OTP in DB
     sendOTPEmail(email, otp);
 

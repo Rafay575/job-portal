@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
         professional_body,
         registration_type,
         registration_number,
-        DATE_FORMAT(registration_expiry, '%d-%m-%Y') AS registration_expiry,
+        DATE_FORMAT(registration_expiry, '%Y-%m-%d') AS registration_expiry,
         created_at,
         updated_at
       FROM employee_registration

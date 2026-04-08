@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -88,7 +88,7 @@ export default function Step11({ back }: Props) {
   useEffect(() => {
     const verifyUser = async () => {
       if (!user.id) {
-        toast.error("Id not found  ");
+        toast.error("Id not found ");
         router.push("/");
         return;
       }
@@ -169,7 +169,7 @@ export default function Step11({ back }: Props) {
   if (loading) return <FullPageLoader />;
 
   return (
-    <div className="relative">
+    <div className="relative px-2">
       <div
         className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
       >
@@ -191,7 +191,7 @@ export default function Step11({ back }: Props) {
           </div>
 
           {/* Info Box */}
-          <div className="border rounded-xl p-4 bg-gray-50 text-sm text-gray-600">
+          <div className="border rounded p-3 bg-primary text-sm text-white">
             Please download the signature document, sign it, and upload the
             signed file below before submitting the form.
           </div>

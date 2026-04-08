@@ -66,7 +66,7 @@ export async function getUserPDF(user_id: string | number) {
   };
 
   // Generate PDF buffer
-  const pdfBuffer = generatePDFBuffer(user);
+  const pdfBuffer = await generatePDFBuffer(user);
 
   return {
     buffer: pdfBuffer,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -213,7 +213,7 @@ export default function Step3({ next, back }: Props) {
   if (loading) return <FullPageLoader />;
 
   return (
-    <div className="relative">
+    <div className="relative px-2">
       <div className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}>
         <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
           {/* Convictions */}

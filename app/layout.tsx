@@ -1,15 +1,6 @@
 "use client";
-
 import "./globals.css";
-// import Sidebar from "@/components/Sidebar";
-
-import Header from "@/components/Header";
-
-import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
-
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster } from "sonner";
 import Navbar from "@/components/Navbar";
 import TopNav from "@/components/TopNav";
 import { usePathname } from "next/navigation";
@@ -17,15 +8,14 @@ import Footer from "@/components/Footer";
 
 import QueryProvider from "@/providers/QueryProvider";
 import ReduxProvider from "@/lib/provider";
+import { Toaster } from "react-hot-toast";
+import { CheckCircle, XCircle } from "lucide-react";
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-
-  const hideSidebar = pathname.startsWith("/auth");
-
   const isAdminRoute =
     pathname.startsWith("/admin") ||
     pathname.startsWith("/auth") ||
@@ -33,10 +23,35 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      <title>Hayaibu Talent </title>
       <body className={` antialiased`}>
         <QueryProvider>
           <TooltipProvider>
             <ReduxProvider>
+              <div>
+                <Toaster
+                  position="bottom-right"
+                  reverseOrder={true}
+                  toastOptions={{
+                    success: {
+                      icon: <CheckCircle className="size-5!" color="white" />,
+                      style: {
+                        background: "var(--primary)",
+                        color: "#fff",
+                        fontSize:"14px"
+                      },
+                    },
+                    error: {
+                      icon: <XCircle className="size-5!" color="white" />,
+                      style: {
+                        background: "red",
+                        color: "#fff",
+                        fontSize:"14px"
+                      },
+                    },
+                  }}
+                />
+              </div>
               {!isAdminRoute && (
                 <>
                   <TopNav />
@@ -49,9 +64,6 @@ export default function RootLayout({
                   <Footer />
                 </>
               )}
-
-              {/* Change position: top-right, top-left, bottom-right, bottom-left, top-center, bottom-center */}
-              <Toaster position="top-center" richColors />
             </ReduxProvider>
           </TooltipProvider>
         </QueryProvider>

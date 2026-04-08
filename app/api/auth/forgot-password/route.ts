@@ -11,36 +11,38 @@ export async function POST(req: Request) {
     const { email } = await req.json();
 
     if (!email) {
-      return NextResponse.json(
-        { message: "Email required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "Email required" }, { status: 400 });
     }
+    // ✅ Check if user exists
+    const [users]: any = await pool.execute(
+      "SELECT id FROM users WHERE email = ?",
+      [email],
+    );
 
+    if (!users || users.length === 0) {
+      return NextResponse.json({ message: "No user with this email is stored" }, { status: 404 });
+    }
     const otp = generateOTP();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     // remove old reset OTP only
     await pool.execute(
       "DELETE FROM otp_verifications WHERE email = ? AND type = 'reset'",
-      [email]
+      [email],
     );
 
     // insert new reset OTP
     await pool.execute(
       "INSERT INTO otp_verifications (email, otp, type, expires_at) VALUES (?, ?, 'reset', ?)",
-      [email, otp, expiresAt]
+      [email, otp, expiresAt],
     );
 
-     sendOTPEmail(email, otp);
+    sendOTPEmail(email, otp);
 
     return NextResponse.json({
       message: "OTP sent successfully",
     });
   } catch (err) {
-    return NextResponse.json(
-      { message: "Server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }

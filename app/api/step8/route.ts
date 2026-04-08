@@ -81,17 +81,17 @@ export async function GET(req: NextRequest) {
     institution_country,
     awarding_body,
     grade_or_result,
-    DATE_FORMAT(start_date, '%d-%m-%Y') AS start_date,
-    DATE_FORMAT(end_date, '%d-%m-%Y') AS end_date,
+    DATE_FORMAT(start_date, '%Y-%m-%d') AS start_date,
+    DATE_FORMAT(end_date, '%Y-%m-%d') AS end_date,
     completed,
     has_professional_registration,
     registration_body,
     registration_number,
-    DATE_FORMAT(registration_expiry, '%d-%m-%Y') AS registration_expiry,
+    DATE_FORMAT(registration_expiry, '%Y-%m-%d') AS registration_expiry,
     certificate_file,
     additional_notes,
-    DATE_FORMAT(gap_from, '%d-%m-%Y') AS gap_from,
-    DATE_FORMAT(gap_to, '%d-%m-%Y') AS gap_to,
+    DATE_FORMAT(gap_from, '%Y-%m-%d') AS gap_from,
+    DATE_FORMAT(gap_to, '%Y-%m-%d') AS gap_to,
     reason
 
   FROM employee_educations

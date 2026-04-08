@@ -1,7 +1,7 @@
 import { jwtVerify } from "jose";
 import { NextRequest } from "next/server";
 import axios from "axios";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { clearUser } from "./userSlice";
 
@@ -9,6 +9,16 @@ const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 // checking token and verify it
 export async function verifyToken(token?: string) {
+  if (!token) return null;
+
+  try {
+    const { payload } = await jwtVerify(token, secret);
+    return payload; 
+  } catch {
+    return null;
+  }
+}
+export async function ResendOTP(token?: string) {
   if (!token) return null;
 
   try {

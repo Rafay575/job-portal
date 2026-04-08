@@ -35,7 +35,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { approveUser, rejectUser } from "@/lib/usersApproval";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { FiCheck } from "react-icons/fi";
 import { RxCross1 } from "react-icons/rx";
 import { useDebouncedCallback } from "use-debounce";

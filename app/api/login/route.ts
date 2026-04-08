@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import pool from "@/lib/db";
-import { convertServerPatchToFullTree } from "next/dist/client/components/segment-cache/navigation";
+
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 

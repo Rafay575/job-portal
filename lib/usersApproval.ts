@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const checkApproval = async (userId: number | string |null) => {
+export const checkApproval = async (userId: any) => {
   try {
     const { data } = await axios.get(`/api/users/check-approval?id=${userId}`);
 

@@ -1,26 +1,13 @@
 "use client";
-import { Geist, Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
-import { usePathname } from "next/navigation";
-import AuthBG from "@/components/AuthBG";
-import { AnimatePresence, motion } from "framer-motion";
 import TopNav from "@/components/TopNav";
 import Navbar from "@/components/Navbar";
+import { useEffect, useRef } from "react";
+import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { toast } from "sonner";
 import { RootState } from "@/lib/store";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export default function RootLayout({
   children,
@@ -28,17 +15,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
  
-const user = useSelector((state: RootState) => state.user);
-const router = useRouter();
+  const user = useSelector((state: RootState) => state.user);
+  const navigate = useRouter();
+  const hasRun = useRef(false);
+  
+  useEffect(() => {
+    if (hasRun.current) return;
 
-useEffect(() => {
-  if (user?.loggedIn) {
-    toast.success("You are already logged in");
-    router.replace("/");
-  }
-}, [user, router]);
+    if (user?.loggedIn) {
+      hasRun.current = true;
+      toast.success("You are already logged in");
+      navigate.push("/");
+    }
+  }, []);
   return (
     <div className="auth-layout">
+      <title>Hayaibu Talent | Authentication</title>
           <>
             <TopNav />
             <Navbar />

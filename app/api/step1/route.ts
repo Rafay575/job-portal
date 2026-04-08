@@ -13,11 +13,11 @@ export async function GET(req: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         { success: false, message: "userId is required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
-    const [rows] = await pool.execute(
+    const [rows]: any = await pool.execute(
       `
       SELECT 
         id,
@@ -30,8 +30,7 @@ export async function GET(req: NextRequest) {
         postcode,
         nationality,
         immigration_status,
-        -- ✅ formatted date
-        DATE_FORMAT(immigration_expiry, '%d-%m-%Y') AS immigration_expiry,
+        DATE_FORMAT(immigration_expiry, '%Y-%m-%d') AS immigration_expiry,
         work_permit,
         name_changed,
         previous_name,
@@ -39,12 +38,23 @@ export async function GET(req: NextRequest) {
         cv_file_path,
         created_at,
         updated_at
-
       FROM employee_basic_information 
       WHERE user_id = ?
       `,
-      [userId],
+      [userId]
     );
+
+    // 🔴 CHECK IF USER EXISTS
+    if (!rows || rows.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "User not found",
+          data: null,
+        },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -55,11 +65,10 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
-
 // Create or Edit Step1
 export async function POST(req: NextRequest) {
   try {

@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Step1FullTime from "@/components/formsteps/Step1FullTime";
 import { checkApproval } from "@/lib/usersApproval";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { getStep1 } from "@/lib/api/step1";
 import { useSelector } from "react-redux";
@@ -46,14 +46,13 @@ export default function Page() {
   const [open, setOpen] = useState(false);
   const user = useSelector((state: RootState) => state.user);
 
-  const handleNext = async (userId?: number) => {
+  const handleNext = async () => {
     // 👇 Only apply logic on STEP 1
     if (step === 1 && (roleType === "agency-work" || roleType === "both")) {
-      const isApproved = await checkApproval(userId!);
-
+      const isApproved = await checkApproval(user.id);
       if (!isApproved) {
         toast.success(
-          "Your information is submitted. Please wait for admin approval for next steps. We will inform you via email once your application is reviewed.",
+          "Please wait for admin approval will inform you via email.",
         );
         setDirection(1);
         setStep((prev) => prev + 1);
@@ -130,7 +129,7 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="p-4 overflow-hidden">
+    <div className=" overflow-hidden">
       {/* Shadcn Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTitle className="text-white">.</DialogTitle>
@@ -145,7 +144,7 @@ export default function Page() {
         </DialogContent>
       </Dialog>
 
-      <div className="flex flex-col items-center gap-4 mb-3 w-full">
+      <div className="flex flex-col items-center gap-1 mb-3 w-full">
         <Label className="text-2xl text-primary">Choose Role Type</Label>
 
         <div className="flex gap-4 w-full md:w-[60%] ">

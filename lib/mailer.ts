@@ -56,7 +56,7 @@ export async function sendOTPEmail(email: string, otp: string) {
                     <p style="font-size: 16px; font-weight: 500; color: #5C49D8; margin: 0 0 24px 0; text-align: center; text-transform: uppercase; letter-spacing: 0.8px;">One-Time Password</p>
                     
                     <!-- Description text -->
-                    <p style="font-size: 16px; color: #5B677B; text-align: center; margin: 0 0 8px 0; line-height: 1.5;">Use the secure verification code below to complete your sign-in or registration or reset the password. This code is valid for the next <strong style="color: #5C49D8;">5 minutes</strong>.</p>
+                    <p style="font-size: 16px; color: #5B677B; text-align: center; margin: 0 0 8px 0; line-height: 1.5;">Use the secure verification code. This code is valid for the next <strong style="color: #5C49D8;">5 minutes</strong>.</p>
                   </td>
                 </tr>
                 
@@ -89,7 +89,7 @@ export async function sendOTPEmail(email: string, otp: string) {
                     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
                       <tr>
                         <td align="center" style="padding: 0;">
-                          <p style="font-size: 12px; color: #A5AFC0; margin: 0 0 8px 0;">&copy; 2025 Hayaibu Talent. All rights reserved.</p>
+                          <p style="font-size: 12px; color: #A5AFC0; margin: 0 0 8px 0;">&copy; 2026 Hayaibu Talent. All rights reserved.</p>
                         </td>
                       </tr>
                     </table>
@@ -192,7 +192,7 @@ export async function sendFormSubmissionEmail(
             <tr>
               <td style="text-align:center; padding: 20px;">
                 <p style="font-size: 12px; color: #9CA3AF;">
-                  © 2025 Hayaibu Solutions
+                  © 2026 Hayaibu Solutions
                 </p>
               </td>
             </tr>
@@ -281,7 +281,7 @@ export async function sendUserApprovalEmail(email: string, name: string) {
             <tr>
               <td style="text-align:center; padding: 20px;">
                 <p style="font-size:12px; color:#9CA3AF;">
-                  © 2025 Hayaibu Talent
+                  © 2026 Hayaibu Talent
                 </p>
               </td>
             </tr>
@@ -366,7 +366,7 @@ export async function sendUserRejectionEmail(email: string, name: string) {
             <tr>
               <td style="text-align:center; padding: 20px;">
                 <p style="font-size:12px; color:#9CA3AF;">
-                  © 2025 Hayaibu Talent
+                  © 2026 Hayaibu Talent
                 </p>
               </td>
             </tr>
@@ -447,7 +447,7 @@ export async function sendAccountCreatedEmail(email: string, name: string) {
             <tr>
               <td style="text-align:center; padding: 20px;">
                 <p style="font-size:12px; color:#9CA3AF;">
-                  © 2025 Hayaibu Talent
+                  © 2026 Hayaibu Talent
                 </p>
               </td>
             </tr>

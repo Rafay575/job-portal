@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FaApple } from "react-icons/fa";
@@ -8,13 +8,16 @@ import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/axios";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
+import { useRouter } from "next/navigation";
 
 const registerSchema = z
   .object({
@@ -45,6 +48,7 @@ export default function RegisterPage() {
   const [step, setStep] = useState<Step>("register");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [rules, setRules] = useState(false);
 
   // Keep email in state to send with OTP verify
   const [emailForOtp, setEmailForOtp] = useState("");
@@ -52,7 +56,7 @@ export default function RegisterPage() {
 
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
-  const { register, handleSubmit, formState, watch  } = useForm<RegisterForm>({
+  const { register, handleSubmit, formState, watch } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
     mode: "onSubmit",
@@ -120,7 +124,13 @@ export default function RegisterPage() {
   });
 
   const onSubmit = (values: RegisterForm) => {
-    console.log("Register submit:", values);
+    const result = registerSchema.safeParse(values);
+
+    if (!result.success) {
+      setRules(true);
+      return;
+    }
+
     signupMutation.mutate(values);
   };
 
@@ -194,6 +204,50 @@ export default function RegisterPage() {
   };
 
   const apiUrl = useMemo(() => process.env.NEXT_PUBLIC_API_URL, []);
+  const resendMutation = useMutation({
+    mutationFn: async (payload: { email: string }) => {
+      console.log("making request");
+      const res = await api.post("/api/auth/resend-otp", payload);
+      console.log("request Sent");
+
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("OTP resent successfully");
+    },
+    onError: (err: any) => {
+      console.log("request error");
+      toast.error(err?.response?.data?.message || "Failed to resend OTP");
+    },
+  });
+  const [cooldown, setCooldown] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const startCooldown = () => {
+    setCooldown(20);
+
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
+    intervalRef.current = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(intervalRef.current!);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+  useEffect(() => {
+    if (
+      passwordRules.length &&
+      passwordRules.uppercase &&
+      passwordRules.lowercase &&
+      passwordRules.number &&
+      passwordRules.special
+    ) {
+      setRules(false);
+    }
+  }, [password]);
 
   return (
     <div className="relative z-10 w-[95%] max-w-2xl mx-auto px-5.5 py-7 overflow-hidden">
@@ -325,47 +379,7 @@ export default function RegisterPage() {
                   </p>
                 )}
               </div>
-              <div className="mt-2 space-y-1 text-xs">
-                <p
-                  className={
-                    passwordRules.length ? "text-green-600" : "text-red-500"
-                  }
-                >
-                  ✔ At least 8 characters
-                </p>
 
-                <p
-                  className={
-                    passwordRules.uppercase ? "text-green-600" : "text-red-500"
-                  }
-                >
-                  ✔ At least 1 uppercase letter
-                </p>
-
-                <p
-                  className={
-                    passwordRules.lowercase ? "text-green-600" : "text-red-500"
-                  }
-                >
-                  ✔ At least 1 lowercase letter
-                </p>
-
-                <p
-                  className={
-                    passwordRules.number ? "text-green-600" : "text-red-500"
-                  }
-                >
-                  ✔ At least 1 number
-                </p>
-
-                <p
-                  className={
-                    passwordRules.special ? "text-green-600" : "text-red-500"
-                  }
-                >
-                  ✔ At least 1 special character
-                </p>
-              </div>
               {/* Submit */}
               <Button
                 type="submit"
@@ -398,7 +412,7 @@ export default function RegisterPage() {
                 className="w-full h-12 rounded-full border-gray-300 gap-2 font-medium"
                 onClick={() => {
                   // window.location.href = `${apiUrl}/auth/google`;
-                  toast.info("Google register click");
+                  toast.success("Google register click");
                 }}
               >
                 <FcGoogle className="text-[20px]" />
@@ -410,7 +424,7 @@ export default function RegisterPage() {
                 variant="outline"
                 className="w-full h-12 rounded-full border-gray-300 gap-2 font-medium"
                 onClick={() => {
-                  toast.info("Apple register click");
+                  toast.success("Apple register click");
                 }}
               >
                 <FaApple className="text-[20px] text-black" />
@@ -501,14 +515,16 @@ export default function RegisterPage() {
 
               <button
                 type="button"
+                disabled={cooldown > 0}
                 onClick={() => {
-                  setOtp(Array(6).fill(""));
-                  setTimeout(() => otpRefs.current?.[0]?.focus(), 50);
-                  toast.info("Please check your email for the latest OTP.");
+                  if (!emailForOtp) return;
+
+                  resendMutation.mutate({ email: emailForOtp });
+                  startCooldown();
                 }}
-                className="text-sm text-gray-600 hover:underline"
+                className="text-sm text-gray-600 hover:underline disabled:opacity-50"
               >
-                Didn’t get code?
+                {cooldown > 0 ? `Resend OTP in ${cooldown}s` : "Resend OTP"}
               </button>
             </div>
           </motion.div>

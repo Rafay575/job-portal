@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useEffect } from "react";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
@@ -129,7 +129,7 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
       (isExistingUrl && (file as string).toLowerCase().includes(".pdf")));
 
   return (
-    <div className="rounded-2xl border bg-white p-4">
+    <div className="rounded-2xl border bg-white p-4 ">
       <div className="flex items-start justify-between gap-2">
         <div>
           <Label className="text-sm font-semibold">
@@ -378,11 +378,11 @@ export default function Step6({ next, back }: Props) {
   };
   if (loading) return <FullPageLoader />;
   return (
-    <div className="relative">
+    <div className="relative px-2">
       <div
-        className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
+        className={blur ? "blur-[3px] pointer-events-none select-none " : ""}
       >
-        <div className="min-w-full space-y-4 p-2 flex flex-col">
+        <div className="min-w-full space-y-4 flex flex-col">
           <div className="rounded-2xl border bg-white p-5">
             <h2 className="text-lg font-semibold mb-1">
               Identity & Verification Documents

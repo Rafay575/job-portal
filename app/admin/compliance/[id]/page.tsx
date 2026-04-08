@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import jsPDF from "jspdf";
 import { approveUser, checkApproval, rejectUser } from "@/lib/usersApproval";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -113,121 +113,84 @@ async function generatePDF(user: any) {
   function drawCoverPage() {
     const W = PAGE_W;
 
-    // ── Dark background ──
-    doc.setFillColor(15, 15, 25);
+    // ── White Background ──
+    doc.setFillColor(255, 255, 255);
     doc.rect(0, 0, W, 297, "F");
 
-    // ── Blobs ──
-    doc.setFillColor(92, 73, 216);
-    doc.ellipse(30, 40, 55, 40, "F");
+    const PRIMARY = [96, 77, 227];
+    const TEXT_DARK = [40, 40, 60];
+    const TEXT_LIGHT = [120, 120, 140];
 
-    doc.setFillColor(20, 180, 160);
-    doc.ellipse(W - 25, 265, 50, 35, "F");
+    const LEFT = 25;
 
-    // ── Main card ──
-    doc.setFillColor(22, 22, 38);
-    doc.roundedRect(14, 14, W - 28, 269, 10, 10, "F");
+    // ── Logo (Centered) ──
+    const logoW = 60;
+    const logoH = 20;
+    const logoX = (W - logoW) / 2;
+    doc.addImage(logoBase64, "PNG", logoX, 20, logoW, logoH);
 
-    doc.setDrawColor(60, 60, 90);
-    doc.setLineWidth(0.4);
-    doc.roundedRect(14, 14, W - 28, 269, 10, 10, "S");
+    // ── Accent Line (Centered under logo) ──
+    doc.setDrawColor(96, 77, 227);
+    doc.setLineWidth(1);
+    doc.line(W / 2 - 25, 45, W / 2 + 25, 45);
 
-    // ── LEFT ALIGN START POINT ──
-    const LEFT = 28;
-
-    // ── Logo (LEFT aligned) ──
-    const logoW = 70;
-    const logoH = 24;
-    doc.addImage(logoBase64, "PNG", LEFT, 28, logoW, logoH);
-
-    // ── Accent line under logo ──
-    doc.setDrawColor(92, 73, 216);
-    doc.setLineWidth(0.8);
-    doc.line(LEFT, 55, LEFT + 40, 55);
-
-    // ── Small label ──
-    doc.setFillColor(35, 30, 65);
-    doc.roundedRect(LEFT, 60, 60, 9, 3, 3, "F");
-
+    // ── Title (Primary Color) ──
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
-    doc.setTextColor(140, 120, 255);
-    doc.text("APPLICANT PROFILE", LEFT + 30, 66, { align: "center" });
+    doc.setFontSize(16);
+    doc.setTextColor(96, 77, 227);
+    doc.text("Applicant Details", LEFT, 60);
 
-    // ── Name (LEFT aligned) ──
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(24);
-    doc.setTextColor(240, 240, 255);
-    doc.text(basic.full_name || "Unknown Applicant", LEFT, 85);
-
-    // ── Type badge (LEFT aligned + bigger) ──
-    const typeLabel =
-      basic.type === "permanent"
-        ? "Permanent"
-        : basic.type === "agency-work"
-          ? "Agency Work"
-          : basic.type === "both"
-            ? "Both"
-            : "—";
-
-    const badgeW = doc.getTextWidth(typeLabel) + 18;
-
-    doc.setFillColor(92, 73, 216);
-    doc.roundedRect(LEFT, 90, badgeW, 10, 3, 3, "F");
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(255, 255, 255);
-    doc.text(typeLabel, LEFT + badgeW / 2, 96, { align: "center" });
-
-    // ── Divider ──
-    doc.setDrawColor(45, 45, 70);
-    doc.setLineWidth(0.4);
-    doc.line(LEFT, 110, W - 28, 110);
-
-    // ── Info fields (bigger text) ──
+    // ── Info Fields ──
     const infoFields = [
+      {
+        label: "Name",
+        value: (basic.full_name || "—").toUpperCase(), // ✅ CAPITALIZED
+      },
       { label: "Email", value: basic.email || "—" },
       { label: "Phone", value: basic.phone || "—" },
       { label: "Address", value: basic.address || "—" },
+      {
+        label: "Type",
+        value:
+          basic.type === "permanent"
+            ? "Permanent"
+            : basic.type === "agency-work"
+              ? "Agency Work"
+              : basic.type === "both"
+                ? "Both"
+                : "—",
+      },
     ];
 
-    let dy = 125;
+    let dy = 75;
 
     infoFields.forEach(({ label, value }) => {
-      // Dot
-      doc.setFillColor(92, 73, 216);
-      doc.circle(LEFT, dy - 2, 1.5, "F");
-
       // Label
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      doc.setTextColor(120, 120, 160);
-      doc.text(label.toUpperCase(), LEFT + 6, dy - 1);
+      doc.setFontSize(10);
+      doc.setTextColor(120, 120, 140);
+      doc.text(label.toUpperCase(), LEFT, dy);
 
-      // Value (⬆ increased size)
+      // Value
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(15); // 🔥 increased by ~5px feel
-      doc.setTextColor(230, 230, 250);
+      doc.setFontSize(12);
+      doc.setTextColor(40, 40, 60);
 
-      const lines = doc.splitTextToSize(String(value), W - 70);
-      doc.text(lines, LEFT + 6, dy + 7);
+      const lines = doc.splitTextToSize(String(value), W - 50);
+      doc.text(lines, LEFT, dy + 7);
 
-      dy += lines.length > 1 ? 20 + (lines.length - 1) * 6 : 20;
+      dy += lines.length > 1 ? 18 + (lines.length - 1) * 5 : 18;
 
       // Divider
-      doc.setDrawColor(35, 35, 55);
+      doc.setDrawColor(220, 220, 230);
       doc.setLineWidth(0.3);
-      doc.line(LEFT, dy - 6, W - 28, dy - 6);
+      doc.line(LEFT, dy - 5, W - 25, dy - 5);
     });
 
-    // ── Footer strip ──
-    doc.setFillColor(18, 18, 30);
-    doc.roundedRect(14, 256, W - 28, 20, 0, 0, "F");
-
+    // ── Footer ──
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.setTextColor(90, 90, 120);
+    doc.setTextColor(150, 150, 170);
     doc.text(
       `Generated on ${new Date().toLocaleDateString("en-GB", {
         day: "numeric",
@@ -235,7 +198,7 @@ async function generatePDF(user: any) {
         year: "numeric",
       })}`,
       W / 2,
-      268,
+      285,
       { align: "center" },
     );
 
@@ -247,12 +210,12 @@ async function generatePDF(user: any) {
     checkPageBreak(16);
     doc.setFillColor(...HEADER_BG);
     doc.rect(MARGIN, y, PAGE_W - MARGIN * 2, 10, "F");
-    doc.setDrawColor(...PRIMARY);
+    doc.setDrawColor(96, 77, 227);
     doc.setLineWidth(0.6);
     doc.line(MARGIN, y, MARGIN, y + 10);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
-    doc.setTextColor(...PRIMARY);
+    doc.setTextColor(96, 77, 227);
     doc.text(title, MARGIN + 4, y + 7);
     y += 14;
   }
@@ -310,7 +273,7 @@ async function generatePDF(user: any) {
     checkPageBreak(10);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9.5);
-    doc.setTextColor(...PRIMARY);
+    doc.setTextColor(96, 77, 227);
     doc.text(title, MARGIN, y);
     y += 5;
   }
@@ -848,7 +811,7 @@ export default function UserDetailPage() {
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center sm:gap-2 flex-wrap">
-            <h1 className="text-2xl md:text-4xl font-bold text-primary">
+            <h1 className="text-2xl md:text-4xl font-bold text-primary capitalize">
               {basic.full_name || "Unknown Applicant"}
             </h1>
             <span className="text-white bg px-2 py-0.5 text-[11px] rounded-full">
@@ -863,7 +826,7 @@ export default function UserDetailPage() {
         <button
           onClick={handleDownloadPDF}
           disabled={downloading}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg shadow hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded shadow hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {downloading ? (
             <>
@@ -1520,7 +1483,9 @@ const ActionsButtons = ({
 
   return (
     <div className="flex flex-col flex-wrap gap-2 items-start">
-      <div className="font-[600] text-md">Status :{isApproved ? "Approved" : "	Unapproved"}</div>
+      <div className="font-[600] text-md">
+        Status :{isApproved ? "Approved" : "	Unapproved"}
+      </div>
       <div className="flex flex-wrap gap-2 items-center">
         <Button onClick={handleApprove}>Approve User</Button>
 

@@ -1,4 +1,4 @@
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -161,7 +161,7 @@ function SortableCard(props: CardProps) {
     <div
       ref={setNodeRef}
       style={isDragOverlay ? undefined : style}
-      className={`rounded-xl border p-4 ${
+      className={`rounded-xl border px-2 p-4 ${
         entry.kind === "gap" ? "border-primary bg-amber-50/40" : "bg-white"
       } ${isDragOverlay ? "shadow-2xl rotate-1 scale-[1.02] opacity-95" : ""}`}
     >

@@ -15,6 +15,8 @@ import { useDispatch } from "react-redux";
 import { clearUser } from "@/lib/userSlice";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import { useEffect } from "react";
+import toast from "react-hot-toast";
 
 export default function Profile() {
   const router = useRouter();
@@ -30,18 +32,15 @@ export default function Profile() {
     }
   };
   const getInitials = (name?: string | null) => {
-  if (!name) return "U";
+    if (!name) return "U";
 
-  const parts = name.trim().split(" ");
+    const parts = name.trim().split(" ");
 
-  const initials =
-    parts.length === 1
-      ? parts[0][0]
-      : parts[0][0] + parts[1][0];
+    const initials =
+      parts.length === 1 ? parts[0][0] : parts[0][0] + parts[1][0];
 
-  return initials.toUpperCase();
-};
-
+    return initials.toUpperCase();
+  };
   return (
     <div className="flex items-center gap-[5px] md:gap-[10px] z-[999] cursor-pointer">
       <DropdownMenu>
@@ -75,7 +74,7 @@ export default function Profile() {
 
           {/* Links */}
           {user.role == "employee" && (
-            <Link href="/user/dashboard">
+            <Link href="/profile">
               <DropdownMenuItem>Profile</DropdownMenuItem>
             </Link>
           )}

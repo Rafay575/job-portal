@@ -18,7 +18,7 @@ import {
 import { FaGlobe, FaCity } from "react-icons/fa";
 import { MdOutlineLocalPhone } from "react-icons/md";
 import { LuUserPen } from "react-icons/lu";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
 export default function ProfileEditForm() {
   const [firstName, setFirstName] = useState("Abdullah");

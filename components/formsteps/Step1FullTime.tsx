@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { Step1FullTimeType } from "@/types/Form";
 import { submitStep1 } from "@/lib/api/step1";
@@ -21,28 +21,32 @@ import { getStep1 } from "@/lib/api/step1";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
+
 type NavProps = {
   onNext: () => void;
   onBack: () => void;
+  type: string;
   disableBack?: boolean;
 };
 
-function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
+function SignupNavButtons({ onNext, onBack, type, disableBack }: NavProps) {
   return (
     <div className="flex gap-2 mt-3 justify-between">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onBack}
-        disabled={disableBack}
-      >
-        <IoIosArrowBack />
-        Back
-      </Button>
+      {type !== "permanent" && (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onBack}
+          disabled={disableBack}
+        >
+          <IoIosArrowBack />
+          Back
+        </Button>
+      )}
 
-      <Button type="button" onClick={onNext}>
-        Next
-        <IoIosArrowForward />
+      <Button type="button" onClick={onNext} className="ml-auto">
+        {type == "permanent" ? "Submit" : "Next"}
+        {type !== "permanent" && <IoIosArrowForward />}
       </Button>
     </div>
   );
@@ -188,6 +192,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
       form.append("roleType", roleType);
 
       // 3. API CALL
+      console.log("form", form);
       const res = await submitStep1(form);
 
       // 4. Handle response
@@ -235,10 +240,11 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
     fetchData();
   }, []);
+
   if (loading) return <FullPageLoader />;
   return (
     <>
-      <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 ">
+      <div className="min-w-full space-y-5  grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 px-2">
         <div>
           <Label>
             Full Name <span className="text-red-500">*</span>
@@ -326,7 +332,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
           </Label>
           <Input
             type="date"
-            value={formData.immigrationExpiry}
+            value={formData.immigrationExpiry ?? ""}
             onChange={(e) => handleChange("immigrationExpiry", e.target.value)}
           />
         </div>
@@ -457,7 +463,12 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         </div>
       </div>
 
-      <SignupNavButtons disableBack onBack={back} onNext={handleSubmitStep1} />
+      <SignupNavButtons
+        disableBack
+        onBack={back}
+        onNext={handleSubmitStep1}
+        type={type}
+      />
     </>
   );
 }

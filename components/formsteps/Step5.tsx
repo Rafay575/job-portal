@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -167,7 +167,7 @@ export default function Step5({ next, back }: Props) {
   if (loading) return <FullPageLoader />;
 
   return (
-    <div className="relative min-h-[250px]">
+    <div className="relative min-h-[250px] px-2">
       <div
         className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
       >

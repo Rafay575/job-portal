@@ -23,6 +23,7 @@ export default function Stepper({
     if (!userId) return; // ✅ prevent undefined call
 
     const fetchApproval = async () => {
+      console.log("userId",userId)
       const res = await checkApproval(userId);
       setIsApproved(res); // ✅ safe
     };

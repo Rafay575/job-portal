@@ -3,14 +3,13 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
 // import Sidebar from "@/components/Sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster } from "@/components/ui/sonner";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AdminHeader from "@/components/AdminHeader";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { RootState } from "@/lib/store";
 
 const geistSans = Geist({
@@ -40,7 +39,7 @@ export default function RootLayout({
   }, [user, router]);
   return (
     <div className="dashboard-layout">
-      
+      <title>Hayaibu Talent | Admin Portal</title>
         <div className="">
           <SidebarProvider>
             <TooltipProvider>
@@ -49,7 +48,6 @@ export default function RootLayout({
                 <AdminHeader />
                 {children}
               </div>
-              <Toaster position="top-center" richColors />
             </TooltipProvider>
           </SidebarProvider>
         </div>

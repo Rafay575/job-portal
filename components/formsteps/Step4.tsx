@@ -10,7 +10,7 @@ import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { Step4Type } from "@/types/Form";
 import { submitStep4, getStep4 } from "@/lib/api/step4";
 import { useEffect } from "react";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
@@ -169,7 +169,7 @@ export default function Step4({ next, back }: Props) {
   if (loading) return <FullPageLoader />;
 
   return (
-    <div className="relative">
+    <div className="relative px-2">
       <div
         className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
       >

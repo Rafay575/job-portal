@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect,  useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FaApple } from "react-icons/fa";
@@ -8,15 +8,16 @@ import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/axios";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "@/lib/userSlice";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { RootState } from "@/lib/store";
 
 // -------------------- Schemas --------------------
 const signInSchema = z.object({
@@ -180,13 +181,15 @@ export default function SignInPage() {
 
   const resendMutation = useMutation({
     mutationFn: async (payload: { email: string }) => {
-      const res = await api.post("/auth/resend-otp", payload);
+      const res = await api.post("/api/auth/resend-otp", payload);
+
       return res.data;
     },
     onSuccess: () => {
       toast.success("OTP resent successfully");
     },
     onError: (err: any) => {
+      console.log("request error");
       toast.error(err?.response?.data?.message || "Failed to resend OTP");
     },
   });
@@ -194,6 +197,23 @@ export default function SignInPage() {
     const email = localStorage.getItem("forgotEmail");
     if (email) setForgotEmail(email);
   }, []);
+  const [cooldown, setCooldown] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const startCooldown = () => {
+    setCooldown(20);
+
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
+    intervalRef.current = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(intervalRef.current!);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   // -------------------- UI --------------------
   return (
@@ -332,7 +352,7 @@ export default function SignInPage() {
                 className="w-full h-12 rounded-full border-gray-300 gap-2 font-medium"
                 onClick={() => {
                   // window.location.href = `${apiUrl}/auth/google`;
-                  toast.info("Google sign in click");
+                  toast.success("Google sign in click");
                 }}
               >
                 <FcGoogle className="text-[20px]" />
@@ -344,7 +364,7 @@ export default function SignInPage() {
                 variant="outline"
                 className="w-full h-12 rounded-full border-gray-300 gap-2 font-medium"
                 onClick={() => {
-                  toast.info("Apple sign in click");
+                  toast.success("Apple sign in click");
                 }}
               >
                 <FaApple className="text-[20px] text-black" />
@@ -555,13 +575,16 @@ export default function SignInPage() {
 
               <button
                 type="button"
+                disabled={cooldown > 0}
                 onClick={() => {
                   if (!forgotEmail) return;
+
                   resendMutation.mutate({ email: forgotEmail });
+                  startCooldown();
                 }}
-                className="text-sm text-gray-600 hover:underline"
+                className="text-sm text-gray-600 hover:underline disabled:opacity-50"
               >
-                Resend OTP
+                {cooldown > 0 ? `Resend OTP in ${cooldown}s` : "Resend OTP"}
               </button>
             </div>
           </motion.div>
