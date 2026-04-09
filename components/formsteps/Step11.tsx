@@ -13,7 +13,7 @@ import { useEffect } from "react";
 import { RootState } from "@/lib/store";
 import { useSelector } from "react-redux";
 import { FullPageLoader } from "../Loading";
-import { checkApproval } from "@/lib/usersApproval";
+import { checkApproval } from "@/lib/users";
 
 type NavProps = {
   onBack: () => void;

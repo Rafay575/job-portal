@@ -36,7 +36,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
-import { checkApproval } from "@/lib/usersApproval";
+import { checkApproval } from "@/lib/users";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 // ─── Nav Buttons ──────────────────────────────────────────────────────────────

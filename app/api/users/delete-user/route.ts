@@ -2,8 +2,9 @@ import pool from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { sendUserApprovalEmail } from "@/lib/mailer";
 
-// Single User Approve 
-export async function POST(req: NextRequest) {
+
+//🗑️ SINGLE DELETE USER (DELETE)
+export async function DELETE(req: NextRequest) {
   try {
     const { id } = await req.json();
 
@@ -14,9 +15,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ get user from DB
     const [rows]: any = await pool.execute(
-      `SELECT name, email, is_approved FROM users WHERE id = ?`,
+      `SELECT id FROM users WHERE id = ?`,
       [id]
     );
 
@@ -27,27 +27,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = rows[0];
-
-
-    if (user.is_approved === "approved") {
-      return NextResponse.json({
-        success: false,
-        message: "User already approved",
-      });
-    }
-
-    await pool.execute(
-      `UPDATE users SET is_approved = 'approved' WHERE id = ?`,
-      [id]
-    );
-
-    // ✅ send email
-    await sendUserApprovalEmail(user.email, user.name);
+    await pool.execute(`DELETE FROM users WHERE id = ?`, [id]);
 
     return NextResponse.json({
       success: true,
-      message: "User approved successfully & email sent",
+      message: "User deleted successfully",
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -57,10 +41,11 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Bulk Users Approve 
+
+// 🗑️ BULK DELETE USERS (PATCH - /delete route usage)
 export async function PATCH(req: NextRequest) {
   try {
-    const { ids } = await req.json(); // array of user IDs
+    const { ids } = await req.json();
 
     if (!Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json(
@@ -69,9 +54,10 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // ✅ fetch users
+    const placeholders = ids.map(() => "?").join(",");
+
     const [users]: any = await pool.execute(
-      `SELECT id, name, email, is_approved FROM users WHERE id IN (${ids.map(() => "?").join(",")})`,
+      `SELECT id FROM users WHERE id IN (${placeholders})`,
       ids
     );
 
@@ -82,23 +68,15 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // ✅ update all users
     await pool.execute(
-      `UPDATE users SET is_approved = 'approved' WHERE id IN (${ids.map(() => "?").join(",")})`,
+      `DELETE FROM users WHERE id IN (${placeholders})`,
       ids
-    );
-
-    // ✅ send emails (parallel)
-    await Promise.all(
-      users.map((user: any) =>
-        sendUserApprovalEmail(user.email, user.name)
-      )
     );
 
     return NextResponse.json({
       success: true,
-      message: "Users approved successfully",
-      updated: ids.length,
+      message: "Users deleted successfully",
+      deleted: ids.length,
     });
   } catch (error: any) {
     return NextResponse.json(

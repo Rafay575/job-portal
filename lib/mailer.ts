@@ -10,12 +10,14 @@ export const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
+
 const capitalizeName = (name: string) => {
   return name
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 };
+
 export async function sendOTPEmail(email: string, otp: string) {
   await transporter.sendMail({
     from: `"Hayaibu Talent" <${process.env.EMAIL_USER}>`,
@@ -160,7 +162,7 @@ export async function sendFormSubmissionEmail(
 
                 <!-- Message -->
                 <p style="color: #6B7280; font-size: 16px; margin-bottom: 24px;">
-                  Thank you <strong>${capitalizeName(name)}</strong>, your form has been submitted successfully.
+                  Thank you <strong>${capitalizeName(name)}</strong>, your form has been submitted successfully. Our team wil contact you soon.
                 </p>
 
                 <!-- Info Card -->
@@ -192,7 +194,7 @@ export async function sendFormSubmissionEmail(
             <tr>
               <td style="text-align:center; padding: 20px;">
                 <p style="font-size: 12px; color: #9CA3AF;">
-                  © 2026 Hayaibu Solutions
+                  © 2026 Hayaibu Talent
                 </p>
               </td>
             </tr>
@@ -210,6 +212,107 @@ export async function sendFormSubmissionEmail(
         contentType: "application/pdf",
       },
     ],
+  });
+}
+
+export async function sendApprovalPendingEmail(
+  name: string,
+  email: string,
+  submittedAt: string
+) {
+  await transporter.sendMail({
+    from: `"Hayaibu Talent" <${process.env.EMAIL_USER}>`,
+    to: email,
+    cc: process.env.ADMIN_MAIL,
+    subject: "Approval Pending - Action Required",
+
+    html: `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" align="center" bgcolor="#F4F6FA">
+      <tr>
+        <td align="center" style="padding: 40px 20px;">
+          
+          <table width="100%" style="max-width: 560px; background-color: #FFFFFF; border-radius: 32px; box-shadow: 0 25px 45px -12px rgba(0,0,0,0.15); overflow: hidden;">
+            
+            <!-- Top bar -->
+            <tr>
+              <td>
+                <div style="height: 6px; background: linear-gradient(90deg, #F59E0B, #F97316);"></div>
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style="padding: 40px 32px; text-align: center;">
+
+                <!-- Icon -->
+                <div style="margin-bottom: 16px;">
+                  <div style="display: inline-block; background: #FFFBEB; width: 64px; height: 64px; border-radius: 50%; line-height: 64px;">
+                    <span style="font-size: 32px;">⏳</span>
+                  </div>
+                </div>
+
+                <!-- Title -->
+                <h1 style="font-size: 26px; color: #111827; margin-bottom: 10px;">
+                  Approval Pending
+                </h1>
+
+                <!-- Message -->
+                <p style="color: #6B7280; font-size: 16px; margin-bottom: 24px;">
+                  Hello <strong>${capitalizeName(name)}</strong>, your submission is currently under review by our admin team.
+                  You are not yet eligible to proceed to the next step until approval is granted.
+                </p>
+
+                <!-- Info Card -->
+                <div style="background: #F9FAFB; border-radius: 20px; padding: 20px; text-align: left;">
+                  
+                  <p style="margin: 8px 0; font-size: 14px;">
+                    <strong>Name:</strong> ${capitalizeName(name)}
+                  </p>
+
+                  <p style="margin: 8px 0; font-size: 14px;">
+                    <strong>Email:</strong> ${email}
+                  </p>
+
+                  <p style="margin: 8px 0; font-size: 14px;">
+                    <strong>Status:</strong> Pending Approval
+                  </p>
+
+                  <p style="margin: 8px 0; font-size: 14px;">
+                    <strong>Submitted At:</strong> ${submittedAt}
+                  </p>
+
+                </div>
+
+                <!-- Warning Box -->
+                <div style="margin-top: 20px; padding: 14px; background: #FEF3C7; border-radius: 12px;">
+                  <p style="margin: 0; font-size: 13px; color: #92400E;">
+                    ⚠️ You will not be able to proceed to the next steps until the admin approves your application.
+                  </p>
+                </div>
+
+                <!-- Footer message -->
+                <p style="margin-top: 24px; font-size: 13px; color: #9CA3AF;">
+                  You will be notified immediately once your application is reviewed.
+                </p>
+
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="text-align:center; padding: 20px;">
+                <p style="font-size: 12px; color: #9CA3AF;">
+                  © 2026 Hayaibu Talent
+                </p>
+              </td>
+            </tr>
+
+          </table>
+
+        </td>
+      </tr>
+    </table>
+    `,
   });
 }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
 
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = req.nextUrl;
@@ -26,11 +27,16 @@ export async function GET(req: NextRequest) {
       params.push(like, like, like, like);
     }
 
-    if (status === "approved")   conditions.push("u.is_approved = 1");
-    if (status === "unapproved") conditions.push("u.is_approved = 0");
+    // 🔥 CHANGE: boolean → ENUM values
+    
+    if (status === "approved")   conditions.push("u.is_approved = 'approved'");
+    if (status === "pending")    conditions.push("u.is_approved = 'pending'");   // 🔥 NEW
+    if (status === "rejected")   conditions.push("u.is_approved = 'rejected'");  // 🔥 NEW
+
+    // ❌ REMOVE THIS OLD LINE
     if (type === "permanent")    conditions.push("e.type = 'permanent'");
     if (type === "agency-work")  conditions.push("e.type = 'agency-work'");
-    if (type === "both")  conditions.push("e.type = 'both'");
+    if (type === "both")         conditions.push("e.type = 'both'");
 
     const whereClause = conditions.join(" AND ");
 
@@ -66,7 +72,6 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-
 
 import pool from "@/lib/db";
 

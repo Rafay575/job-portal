@@ -25,9 +25,12 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const status = rows[0].is_approved;
+
     return NextResponse.json({
       success: true,
-      isApproved: Boolean(rows[0].is_approved),
+      status: status, // 'pending' | 'approved' | 'rejected'
+      isApproved: status === "approved", // boolean (optional)
     });
 
   } catch (error: any) {

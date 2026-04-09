@@ -1,5 +1,5 @@
 "use client";
-import { checkApproval } from "@/lib/usersApproval";
+import { checkApproval } from "@/lib/users";
 import clsx from "clsx";
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -24,8 +24,8 @@ export default function Stepper({
 
     const fetchApproval = async () => {
       console.log("userId",userId)
-      const res = await checkApproval(userId);
-      setIsApproved(res); // ✅ safe
+      const {isApproved} = await checkApproval(userId);
+      setIsApproved(isApproved); // ✅ safe
     };
 
     fetchApproval();

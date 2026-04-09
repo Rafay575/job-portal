@@ -95,6 +95,7 @@ export async function POST(req: NextRequest) {
         `,
         [declarationConfirmed, declarationDate, filePath, userId],
       );
+      
       if (email && name) {
         await sendFormSubmissionEmail(id, email, name, submittedAt);
       } else {

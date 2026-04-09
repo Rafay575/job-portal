@@ -18,7 +18,7 @@ import RoleSelector from "@/components/RoleSelector";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Step1FullTime from "@/components/formsteps/Step1FullTime";
-import { checkApproval } from "@/lib/usersApproval";
+import { checkApproval } from "@/lib/users";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { getStep1 } from "@/lib/api/step1";
@@ -49,7 +49,7 @@ export default function Page() {
   const handleNext = async () => {
     // 👇 Only apply logic on STEP 1
     if (step === 1 && (roleType === "agency-work" || roleType === "both")) {
-      const isApproved = await checkApproval(user.id);
+      const {isApproved} = await checkApproval(user.id);
       if (!isApproved) {
         toast.success(
           "Please wait for admin approval will inform you via email.",

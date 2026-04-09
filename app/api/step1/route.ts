@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
 import path from "path";
 import pool from "@/lib/db";
-import { sendFormSubmissionEmail } from "@/lib/mailer";
+import {
+  sendApprovalPendingEmail,
+  sendFormSubmissionEmail,
+} from "@/lib/mailer";
 
 // Get Step1
 export async function GET(req: NextRequest) {
@@ -13,7 +16,7 @@ export async function GET(req: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         { success: false, message: "userId is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -41,7 +44,7 @@ export async function GET(req: NextRequest) {
       FROM employee_basic_information 
       WHERE user_id = ?
       `,
-      [userId]
+      [userId],
     );
 
     // 🔴 CHECK IF USER EXISTS
@@ -52,7 +55,7 @@ export async function GET(req: NextRequest) {
           message: "User not found",
           data: null,
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -65,7 +68,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -135,11 +138,6 @@ export async function POST(req: NextRequest) {
     if (existing.length > 0) {
       const id = existing[0].id;
 
-      // First reset the approved status
-      // await pool.execute(`UPDATE users SET is_approved = FALSE WHERE id = ?`, [
-      //   userId,
-      // ]);
-
       await pool.execute(
         `
         UPDATE employee_basic_information SET
@@ -178,6 +176,15 @@ export async function POST(req: NextRequest) {
           id,
         ],
       );
+      if (!email || !fullName) {
+      console.log("no email or name found in email block");
+    } else {
+      if (type === "permanent") {
+        await sendFormSubmissionEmail(userId, email, fullName, submittedAt);
+      } else {
+        await sendApprovalPendingEmail(fullName, email, submittedAt);
+      }
+    }
 
       return NextResponse.json({
         success: true,
@@ -228,11 +235,13 @@ export async function POST(req: NextRequest) {
       ],
     );
 
-    if (type == "permanent") {
-      if (email && fullName) {
+    if (!email || !fullName) {
+      console.log("no email or name found in email block");
+    } else {
+      if (type === "permanent") {
         await sendFormSubmissionEmail(userId, email, fullName, submittedAt);
       } else {
-        console.log("no email or name found in email block");
+        await sendApprovalPendingEmail(fullName, email, submittedAt);
       }
     }
 

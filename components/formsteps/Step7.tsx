@@ -14,7 +14,7 @@ import { RootState } from "@/lib/store";
 import { useSelector } from "react-redux";
 import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
-import { checkApproval } from "@/lib/usersApproval";
+import { checkApproval } from "@/lib/users";
 
 // ================= NAV BUTTONS =================
 function SignupNavButtons({ onNext, onBack }: any) {

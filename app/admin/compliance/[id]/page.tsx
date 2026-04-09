@@ -14,9 +14,19 @@ import { getStep11 } from "@/lib/api/step11";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import jsPDF from "jspdf";
-import { approveUser, checkApproval, rejectUser } from "@/lib/usersApproval";
+import {
+  approveUser,
+  checkApproval,
+  deleteUser,
+  rejectUser,
+} from "@/lib/users";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
+import { FullPageLoader } from "@/components/Loading";
+import { boolean } from "zod";
+import { Trash2 } from "lucide-react";
+import { FiCheck } from "react-icons/fi";
+import { RxCross1 } from "react-icons/rx";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -698,6 +708,10 @@ export default function UserDetailPage() {
   const params = useParams();
   const user_id = params?.id as string | undefined;
   const [isApproved, setIsApproved] = useState<boolean | null>(null);
+  const [status, setStatus] = useState<
+    "pending" | "approved" | "rejected" | null
+  >(null);
+
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [user, setUser] = useState<any>({
@@ -713,13 +727,18 @@ export default function UserDetailPage() {
     statement: {},
     declaration: {},
   });
+  const fetchApproval = async () => {
+    setLoading(true);
+    const { status, isApproved } = await checkApproval(user_id);
+    setIsApproved(isApproved);
+    setStatus(status);
+    setLoading(false);
+  };
 
   useEffect(() => {
     if (!user_id) return;
-
+    fetchApproval();
     const fetchData = async () => {
-      setIsApproved(await checkApproval(user_id));
-      setLoading(true);
       const step1 = await safeFetch(() => getStep1(user_id), {
         success: false,
         data: [],
@@ -784,12 +803,6 @@ export default function UserDetailPage() {
         Invalid page — no user ID found in the URL.
       </div>
     );
-  if (loading)
-    return (
-      <div className="p-6 text-gray-400 text-sm animate-pulse">
-        Loading applicant data…
-      </div>
-    );
 
   const {
     basic,
@@ -804,7 +817,7 @@ export default function UserDetailPage() {
     statement,
     declaration,
   } = user;
-
+  if (loading) return <FullPageLoader />;
   return (
     <div className="p-6 space-y-6">
       {/* ── Header + Download Button ─────────────────────────────────────── */}
@@ -871,6 +884,13 @@ export default function UserDetailPage() {
           )}
         </button>
       </div>
+      <ActionsButtons
+        id={user_id}
+        status={status}
+        fetchApproval={fetchApproval}
+        setStatus={setStatus}
+        setLoading={setLoading}
+      />
 
       {/* ── Step 1 – Personal Info ─────────────────────────────────────────── */}
       <Card>
@@ -1432,11 +1452,6 @@ export default function UserDetailPage() {
           </CardContent>
         </Card>
       )}
-      <ActionsButtons
-        id={user_id}
-        isApproved={isApproved}
-        setIsApproved={setIsApproved}
-      />
     </div>
   );
 }
@@ -1449,48 +1464,178 @@ function Info({ label, value }: { label: string; value: any }) {
     </div>
   );
 }
-
 const ActionsButtons = ({
   id,
-  isApproved,
-  setIsApproved,
+  status,
+  setStatus,
+  fetchApproval,
+  setLoading,
 }: {
   id: number | string;
-  isApproved: boolean | null;
-  setIsApproved: React.Dispatch<React.SetStateAction<boolean | null>>;
+  status: "pending" | "approved" | "rejected" | null;
+  setStatus: React.Dispatch<
+    React.SetStateAction<"pending" | "approved" | "rejected" | null>
+  >;
+  fetchApproval: () => void | Promise<void>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
+  const router = useRouter();
   const handleApprove = async () => {
-    const res = await approveUser(id);
+    toast.custom((t) => (
+      <div className="bg-white shadow-lg rounded-lg p-4 border w-[280px]">
+        <p className="text-sm font-medium mb-3">
+          Are you sure you want to approve this user?
+        </p>
 
-    if (res.success) {
-      toast.success("User approved");
-      setIsApproved(true); // update UI instantly
-    } else {
-      toast.error(res.message);
-    }
+        <div className="flex justify-end gap-2">
+          <button
+            className="px-3 py-1 text-sm rounded bg-gray-200"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+
+          <button
+            className="px-3 py-1 text-sm rounded bg-primary text-white"
+            onClick={async () => {
+              toast.dismiss(t.id);
+
+              setLoading(true);
+              const res = await approveUser(id);
+
+              if (res.success) {
+                toast.success("User approved");
+                fetchApproval();
+              } else {
+                toast.error(res.message);
+              }
+
+              setLoading(false);
+            }}
+          >
+            Approve
+          </button>
+        </div>
+      </div>
+    ));
   };
-
   const handleReject = async () => {
-    const res = await rejectUser(id);
+    toast.custom((t) => (
+      <div className="bg-white shadow-lg rounded-lg p-4 border w-[280px]">
+        <p className="text-sm font-medium mb-3">
+          Are you sure you want to reject this user?
+        </p>
 
-    if (res.success) {
-      toast.success("User rejected");
-      setIsApproved(false); // update UI instantly
-    } else {
-      toast.error(res.message);
-    }
+        <div className="flex justify-end gap-2">
+          <button
+            className="px-3 py-1 text-sm rounded bg-gray-200"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+
+          <button
+            className="px-3 py-1 text-sm rounded bg-red-600 text-white"
+            onClick={async () => {
+              toast.dismiss(t.id);
+
+              setLoading(true);
+              const res = await rejectUser(id);
+
+              if (res.success) {
+                toast.success("User rejected");
+                fetchApproval();
+              } else {
+                toast.error(res.message);
+              }
+
+              setLoading(false);
+            }}
+          >
+            Reject
+          </button>
+        </div>
+      </div>
+    ));
+  };
+  const handleDelete = async () => {
+    toast.custom((t) => (
+      <div className="bg-white shadow-lg rounded-lg p-4 border w-[280px]">
+        <p className="text-sm font-medium mb-3">
+          Are you sure you want to delete this user?
+        </p>
+
+        <div className="flex justify-end gap-2">
+          <button
+            className="px-3 py-1 text-sm rounded bg-gray-200"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+
+          <button
+            className="px-3 py-1 text-sm rounded bg-red-600 text-white"
+            onClick={async () => {
+              toast.dismiss(t.id);
+
+              setLoading(true);
+
+              const res = await deleteUser(id);
+
+              if (res.success) {
+                toast.success("User deleted");
+                router.push("/admin/compliance");
+              } else {
+                toast.error(res.message);
+              }
+
+              setLoading(false);
+            }}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ));
   };
 
   return (
-    <div className="flex flex-col flex-wrap gap-2 items-start">
-      <div className="font-[600] text-md">
-        Status :{isApproved ? "Approved" : "	Unapproved"}
+    <div className="flex flex-col gap-2 items-start">
+      {/* STATUS */}
+      <div className="font-semibold text-md">
+        Status:{" "}
+        <span className="font-medium underline">
+          {status === "approved"
+            ? "Approved"
+            : status === "rejected"
+              ? "Rejected"
+              : "Pending"}
+        </span>
       </div>
-      <div className="flex flex-wrap gap-2 items-center">
-        <Button onClick={handleApprove}>Approve User</Button>
 
-        <Button variant="destructive" onClick={handleReject}>
-          Unapprove User
+      <div className="flex gap-2 flex-wrap">
+        {/* APPROVE BUTTON */}
+        {(status === "pending" || status === "rejected") && (
+          <Button onClick={handleApprove}>
+            <FiCheck className="w-4 h-4  text-white gap-2" />
+            Approve User
+          </Button>
+        )}
+
+        {/* REJECT BUTTON */}
+        {(status === "pending" || status === "approved") && (
+          <Button variant="destructive" onClick={handleReject}>
+            <RxCross1 className="w-4 h-4  text-white" />
+            Reject User
+          </Button>
+        )}
+        <Button
+          onClick={handleDelete}
+          variant="destructive"
+          className=" text-white "
+        >
+          <Trash2 className="w-4 h-4  text-white" />
+          Delete User
         </Button>
       </div>
     </div>
