@@ -47,12 +47,6 @@ export async function POST(req: NextRequest) {
     const email = formData.get("email") as string;
     const name = formData.get("name") as string;
 
-    // 🕒 generate time here (SERVER SIDE)
-    const submittedAt = new Date().toLocaleString("en-PK", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-
     if (!userId) {
       return NextResponse.json(
         { success: false, message: "userId is required" },
@@ -96,11 +90,11 @@ export async function POST(req: NextRequest) {
         [declarationConfirmed, declarationDate, filePath, userId],
       );
       
-      if (email && name) {
-        await sendFormSubmissionEmail(id, email, name, submittedAt);
-      } else {
-        console.log("no email or name found in email block");
-      }
+      // if (email && name) {
+      //   await sendFormSubmissionEmail(id, email, name);
+      // } else {
+      //   console.log("no email or name found in email block");
+      // }
 
       return NextResponse.json({
         success: true,
@@ -123,7 +117,7 @@ export async function POST(req: NextRequest) {
 
     // ✅ send email from backend
     if (email && name) {
-      await sendFormSubmissionEmail(id, email, name, submittedAt);
+      await sendFormSubmissionEmail(id, email, name);
     } else {
       console.log("no email or name found in email block");
     }

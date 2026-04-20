@@ -2,8 +2,6 @@ import { jwtVerify } from "jose";
 import { NextRequest } from "next/server";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import { useDispatch } from "react-redux";
-import { clearUser } from "./userSlice";
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
 

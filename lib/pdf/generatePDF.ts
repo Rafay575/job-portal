@@ -28,7 +28,19 @@ export async function generatePDFBuffer(user: any) {
     statement,
     declaration,
   } = user;
+const capitalize = (str: string) => {
+  if (!str) return "—";
 
+  return str
+    .trim()
+    .split(" ")
+    .filter(Boolean)
+    .map(
+      (word) =>
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    )
+    .join(" ");
+};
   const isPermanent = basic?.type === "permanent";
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const logoBase64 = await getBase64FromUrl(`${baseUrl}/logo.png`);
@@ -86,12 +98,14 @@ export async function generatePDFBuffer(user: any) {
     doc.setFontSize(16);
     doc.setTextColor(96, 77, 227);
     doc.text("Applicant Details", LEFT, 60);
+    
 
     // ── Info Fields ──
     const infoFields = [
       {
         label: "Name",
-        value: (basic.full_name || "—").toUpperCase(), // ✅ CAPITALIZED
+        value: (capitalize(basic.full_name) || "—"), 
+       
       },
       { label: "Email", value: basic.email || "—" },
       { label: "Phone", value: basic.phone || "—" },
@@ -231,7 +245,7 @@ export async function generatePDFBuffer(user: any) {
   // Step 1 – Personal Info (always shown)
   sectionHeader("Step 1 – Personal Info");
   fieldGrid([
-    ["Full Name", basic.full_name],
+    ["Full Name",capitalize(basic.full_name)],
     ["Email", basic.email],
     ["Phone", basic.phone],
     ["Address", basic.address],

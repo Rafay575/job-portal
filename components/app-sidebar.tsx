@@ -22,8 +22,10 @@ import {
 import { useSidebar } from "@/components/ui/sidebar";
 import Image from "next/image";
 import SidebarLinks from "./sidebar-links";
-import { HiOutlineUserGroup } from "react-icons/hi2";
+import { GrCompliance } from "react-icons/gr";
 import { VscGraph } from "react-icons/vsc";
+import { PiUsers } from "react-icons/pi";
+import { BsEnvelopeAt } from "react-icons/bs";
 
 const links = [
   {
@@ -32,9 +34,19 @@ const links = [
     icon: VscGraph  ,
   },
   {
+    name: "All Users",
+    url: "/admin/users",
+    icon: PiUsers,
+  },
+  {
     name: "Compliance",
     url: "/admin/compliance",
-    icon: HiOutlineUserGroup,
+    icon: GrCompliance,
+  },
+  {
+    name: "Email Templates",
+    url: "/admin/email_template",
+    icon: BsEnvelopeAt,
   }
 ];
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

@@ -86,12 +86,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 🕒 generate time here (SERVER SIDE)
-    const submittedAt = new Date().toLocaleString("en-PK", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-
     const type = formData.get("type") as string;
     const fullName = formData.get("fullName") as string;
     const email = formData.get("email") as string;
@@ -132,32 +126,38 @@ export async function POST(req: NextRequest) {
       [userId],
     );
 
-    // =========================
     // 🟢 IF EXISTS → UPDATE
-    // =========================
     if (existing.length > 0) {
       const id = existing[0].id;
 
+      // 🔍 Get current type before update
+      const [currentRows]: any = await pool.execute(
+        `SELECT type FROM employee_basic_information WHERE id = ?`,
+        [id],
+      );
+
+      const currentType = currentRows?.[0]?.type;
+      const typeChanged = currentType !== type;
       await pool.execute(
         `
-        UPDATE employee_basic_information SET
-        type=?,
-          full_name = ?,
-          email = ?,
-          phone = ?,
-          address = ?,
-          postcode = ?,
-          nationality = ?,
-          immigration_status = ?,
-          immigration_expiry = ?,
-          work_permit = ?,
-          name_changed = ?,
-          previous_name = ?,
-          changed_to = ?,
-          cv_file_path = COALESCE(?, cv_file_path),
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-        `,
+    UPDATE employee_basic_information SET
+      type=?,
+      full_name = ?,
+      email = ?,
+      phone = ?,
+      address = ?,
+      postcode = ?,
+      nationality = ?,
+      immigration_status = ?,
+      immigration_expiry = ?,
+      work_permit = ?,
+      name_changed = ?,
+      previous_name = ?,
+      changed_to = ?,
+      cv_file_path = COALESCE(?, cv_file_path),
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+    `,
         [
           type,
           fullName,
@@ -176,16 +176,31 @@ export async function POST(req: NextRequest) {
           id,
         ],
       );
-      if (!email || !fullName) {
-      console.log("no email or name found in email block");
-    } else {
-      if (type === "permanent") {
-        await sendFormSubmissionEmail(userId, email, fullName, submittedAt);
-      } else {
-        await sendApprovalPendingEmail(fullName, email, submittedAt);
-      }
-    }
 
+      await pool.execute(
+        `UPDATE users SET is_approved = 'pending' WHERE id = ?`,
+        [userId],
+      );
+
+     
+
+      if (
+        typeChanged &&
+        (type === "agency-work" || type === "both") &&
+        email &&
+        fullName
+      ) {
+        await sendApprovalPendingEmail(fullName, email);
+      }
+
+
+      if (
+        typeChanged &&
+        (type === "permanent") &&
+        email && fullName && userId
+      ) {
+        await sendFormSubmissionEmail(userId, email, fullName);
+      }
       return NextResponse.json({
         success: true,
         message: "Step 1 updated successfully",
@@ -239,9 +254,9 @@ export async function POST(req: NextRequest) {
       console.log("no email or name found in email block");
     } else {
       if (type === "permanent") {
-        await sendFormSubmissionEmail(userId, email, fullName, submittedAt);
+        await sendFormSubmissionEmail(userId, email, fullName);
       } else {
-        await sendApprovalPendingEmail(fullName, email, submittedAt);
+        await sendApprovalPendingEmail(fullName, email);
       }
     }
 

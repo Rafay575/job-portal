@@ -47,7 +47,6 @@ export default function Step11({ back }: Props) {
   const [blur, setBlur] = useState(false);
   const router = useRouter();
   const user = useSelector((state: RootState) => state.user);
-  const submittedAt = new Date().toLocaleString();
   const [existingFile, setExistingFile] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Step11Type>({

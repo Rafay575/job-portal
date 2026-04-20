@@ -42,6 +42,8 @@ import {
 import { useEffect, useState } from "react";
 import { getDashboard, getLatestUsers } from "@/lib/api/Dashboard";
 import { FullPageLoader } from "@/components/Loading";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const MONTHS = [
   "Jan",
@@ -115,6 +117,18 @@ const formatDate = (date: string) => {
     year: "numeric",
   });
 };
+const getStatusStyles = (status: string) => {
+  switch (status) {
+    case "approved":
+      return "bg-green-600 text-white ";
+    case "pending":
+      return "bg-gray-500 text-white ";
+    case "rejected":
+      return "bg-red-500 text-white ";
+    default:
+      return "bg-gray-400 text-white ";
+  }
+};
 export default function AdminDashboard() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -174,6 +188,7 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     const res = await getDashboard();
     if (res.success) {
+      console.log("res.data", res.data);
       setData(res.data);
     } else {
       setError(res.message);
@@ -383,6 +398,7 @@ export default function AdminDashboard() {
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead className="text-center">Type</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
                     <TableHead>Date</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -415,16 +431,27 @@ export default function AdminDashboard() {
 
                         {/* Phone */}
                         <TableCell className="text-gray-600">
-                          {user.phone}
+                          {user.phone || "NA"}
                         </TableCell>
 
                         {/* Type */}
                         <TableCell className="text-center">
                           <Badge
-                            className={` text-white ${getTypeStyles(user.type)}`}
+                            className={` text-white w-[100px] ${getTypeStyles(user.type)}`}
                           >
                             {formatType(user.type)}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div
+                            className={`font-[500] py-0.5 w-[65px] mx-auto rounded-full text-[11px] text-center ${getStatusStyles(user.is_approved)}`}
+                          >
+                            {user.is_approved === "approved"
+                              ? "Approved"
+                              : user.is_approved === "pending"
+                                ? "Pending"
+                                : "Rejected"}
+                          </div>
                         </TableCell>
 
                         {/* Date */}
@@ -437,6 +464,11 @@ export default function AdminDashboard() {
                 </TableBody>
               </Table>
             </div>
+            <Link href={"/admin/users"} className="">
+              <Button className="mt-3" size={"sm"}>
+                View All Users
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

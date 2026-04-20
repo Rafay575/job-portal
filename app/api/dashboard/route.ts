@@ -41,6 +41,7 @@ export async function POST() {
     u.name,
     u.email,
     u.created_at,
+    u.is_approved,
     COALESCE(e.type, 'Not Submitted') AS type,
     e.phone AS phone
   FROM users u

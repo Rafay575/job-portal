@@ -73,6 +73,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
+
 import pool from "@/lib/db";
 
 export async function POST(req: NextRequest) {

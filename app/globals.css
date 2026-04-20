@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap");
 
 @import "tailwindcss";
 @import "shadcn/tailwind.css";
@@ -6,9 +6,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
-
 :root {
-  --primary:rgb(92, 73, 216);
+  --primary: rgb(92, 73, 216);
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: #585858;
@@ -85,41 +84,39 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-html{
+html {
   box-sizing: border-box;
 }
 
-.bg{
+.bg {
   background: var(--primary);
 }
-.color{
+.color {
   color: var(--primary);
 }
 
-input{
-  @apply focus-visible:outline-0 
-} 
-.container{
-  @apply max-w-[95%] md:max-w-[87%]
+input {
+  @apply focus-visible:outline-0;
 }
-
+.container {
+  @apply max-w-[95%] md:max-w-[87%];
+}
 
 .heading {
-  @apply text-[30px] lg:text-[38px] 2xl:text-[45px]  ;
+  @apply text-[30px] lg:text-[38px] 2xl:text-[45px];
 }
 .subheading {
-  @apply  text-[18px] md:text-[19px] lg:text-[21px] ;
+  @apply text-[18px] md:text-[19px] lg:text-[21px];
+}
+p {
+  @apply text-[14px] md:text-[15px];
+}
 
+.pad {
+  @apply py-[50px] lg:py-[80px];
 }
-p{
-  @apply text-[14px] md:text-[15px]
-}
-
-.pad{
-  @apply py-[50px] lg:py-[80px]
-}
-.mar{
-  @apply my-[50px] lg:my-[80px]
+.mar {
+  @apply my-[50px] lg:my-[80px];
 }
 
 @keyframes floatUp {
@@ -144,23 +141,90 @@ p{
 }
 
 @layer base {
-  
   body {
     @apply bg-background text-foreground;
-     font-family: "Poppins", sans-serif;
+    font-family: "Plus Jakarta Sans", sans-serif;
   }
 }
 
-input:focus-visible{
-  box-shadow:0px !important;
-  border:none !important;
+input:focus-visible {
+  box-shadow: 0px !important;
+  border: none !important;
 }
 button:focus-visible {
   outline: none !important;
   box-shadow: none !important;
   border: none !important;
 }
-.border{
-  @apply border-border
+.border {
+  @apply border-border;
 }
 
+/* Thin modern scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f3f4f6; /* light gray */
+  border-radius: 10px;
+}
+
+/* Thumb */
+::-webkit-scrollbar-thumb {
+  background: #4f46e5; /* PRIMARY color (indigo-600) */
+  border-radius: 10px;
+}
+
+/* Hover effect */
+::-webkit-scrollbar-thumb:hover {
+  background: #4338ca; /* darker primary */
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4f46e5;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #4338ca;
+}
+span[style*="font-size"] {
+  line-height: 1.4;
+}
+
+h1 {
+  font-size: 32px !important;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 28px !important;
+  line-height: 1.25;
+}
+
+h3 {
+  font-size: 24px !important;
+  line-height: 1.3 !important;
+}
+
+h4 {
+  font-size: 20px !important;
+  line-height: 1.35;
+}
+
+h5 {
+  font-size: 16px !important;
+  line-height: 1.4;
+}

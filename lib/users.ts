@@ -1,11 +1,8 @@
 import axios from "axios";
 
-
 export const checkApproval = async (userId: any) => {
   try {
-    const { data } = await axios.get(
-      `/api/users/check-approval?id=${userId}`
-    );
+    const { data } = await axios.get(`/api/users/check-approval?id=${userId}`);
 
     return {
       status: data.status as "pending" | "approved" | "rejected",
@@ -22,7 +19,7 @@ export const checkApproval = async (userId: any) => {
 export const approveUser = async (id: number | string) => {
   try {
     const { data } = await axios.post("/api/users/approve-user", {
-      id
+      id,
     });
 
     return data;
@@ -34,10 +31,10 @@ export const approveUser = async (id: number | string) => {
   }
 };
 
-export const rejectUser = async (id: number| string) => {
+export const rejectUser = async (id: number | string) => {
   try {
     const { data } = await axios.post("/api/users/reject-user", {
-      id
+      id,
     });
 
     return data;
@@ -63,7 +60,6 @@ export const deleteUser = async (id: number | string) => {
     };
   }
 };
-
 
 export const bulkApproveUsers = async (ids: (number | string)[]) => {
   try {
@@ -106,6 +102,48 @@ export const bulkDeleteUsers = async (ids: (number | string)[]) => {
     return {
       success: false,
       message: error?.response?.data?.message || "Something went wrong",
+    };
+  }
+};
+type FetchParams = {
+  search?: string;
+  status?: string;
+  page?: number;
+  type?: string;
+  pageSize?: number;
+};
+export const fetchAllUsers = async ({
+  search = "",
+  status = "all",
+  type = "all", // ✅ ADD THIS
+  page = 1,
+  pageSize = 10,
+}: FetchParams) => {
+  try {
+    const params = new URLSearchParams();
+
+    if (search) params.set("search", search);
+    if (status !== "all") params.set("status", status);
+    if (type !== "all") params.set("type", type); // ✅ ADD THIS
+    params.set("page", String(page));
+    params.set("pageSize", String(pageSize));
+
+    const { data } = await axios.get(
+      `/api/users/all-users?${params.toString()}`,
+    );
+
+    // ✅ IMPORTANT: return response
+    return {
+      success: true,
+      data: data.data,
+      total: data.total,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      data: [],
+      total: 0,
+      message: error?.response?.data?.message || "Failed to fetch users",
     };
   }
 };

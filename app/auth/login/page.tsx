@@ -13,11 +13,10 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/axios";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setUser } from "@/lib/userSlice";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { RootState } from "@/lib/store";
 
 // -------------------- Schemas --------------------
 const signInSchema = z.object({
@@ -84,8 +83,11 @@ export default function SignInPage() {
           loggedIn: true,
         }),
       );
-
-      router.push("/user/dashboard");
+      if (data?.user?.role  !== "admin") {
+        router.push("/user/dashboard");
+      }else{
+        router.push("/admin/dashboard");
+      }
     },
 
     onError: (err: any) => {
@@ -467,8 +469,8 @@ export default function SignInPage() {
                 Reset Password
               </h2>
               <p className="text-sm text-gray-600 mt-2">
-                Enter the OTP sent to{" "}
-                <span className="font-semibold">{forgotEmail}</span>
+                Enter the OTP sent to 
+                <span className="font-semibold"> {forgotEmail}</span>
               </p>
             </div>
 
