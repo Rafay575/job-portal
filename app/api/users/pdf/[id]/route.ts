@@ -1,12 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getUserPDF } from "@/lib/getUserPdf";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { buffer, filename } = await getUserPDF(params.id);
+    const { id } = await context.params; // 👈 IMPORTANT: await params
+
+    const { buffer, filename } = await getUserPDF(id);
 
     return new NextResponse(buffer, {
       headers: {
@@ -15,6 +17,9 @@ export async function GET(
       },
     });
   } catch (err) {
-    return NextResponse.json({ error: "Failed to generate PDF" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to generate PDF" },
+      { status: 500 }
+    );
   }
 }

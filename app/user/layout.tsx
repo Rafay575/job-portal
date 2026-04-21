@@ -1,15 +1,10 @@
 "use client";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
-// import Sidebar from "@/components/Sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { usePathname } from "next/navigation";
 import Header from "@/components/Header";
-import { Toaster } from "@/components/ui/sonner";
-import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import TopNav from "@/components/TopNav";
-import { JobSidebar } from "@/components/job-sidebar";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

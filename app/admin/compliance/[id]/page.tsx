@@ -120,6 +120,16 @@ async function generatePDF(user: any) {
       y = 16;
     }
   }
+  const capitalize = (str: string) => {
+    if (!str) return "—";
+
+    return str
+      .trim()
+      .split(" ")
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
   function drawCoverPage() {
     const W = PAGE_W;
 
@@ -154,7 +164,7 @@ async function generatePDF(user: any) {
     const infoFields = [
       {
         label: "Name",
-        value: (basic.full_name || "—").toUpperCase(), // ✅ CAPITALIZED
+        value: capitalize(basic.full_name) || "—",
       },
       { label: "Email", value: basic.email || "—" },
       { label: "Phone", value: basic.phone || "—" },
@@ -687,12 +697,15 @@ async function generatePDF(user: any) {
   }
 
   // Page numbers
-  const pageCount = doc.getNumberOfPages();
+  // Page numbers
+  const pageCount = doc.internal.pages.length - 1;
+
   for (let p = 1; p <= pageCount; p++) {
     doc.setPage(p);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(160, 160, 180);
+
     doc.text(`Page ${p} of ${pageCount}`, PAGE_W - MARGIN, 291, {
       align: "right",
     });
@@ -739,6 +752,7 @@ export default function UserDetailPage() {
     if (!user_id) return;
     fetchApproval();
     const fetchData = async () => {
+      setLoading(true);
       const step1 = await safeFetch(() => getStep1(user_id), {
         success: false,
         data: [],

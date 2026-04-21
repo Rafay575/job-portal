@@ -636,17 +636,20 @@ const capitalize = (str: string) => {
     }
   }
 
-  // Page numbers
-  const pageCount = doc.getNumberOfPages();
-  for (let p = 1; p <= pageCount; p++) {
-    doc.setPage(p);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(160, 160, 180);
-    doc.text(`Page ${p} of ${pageCount}`, PAGE_W - MARGIN, 291, {
-      align: "right",
-    });
-  }
+
+ // Page numbers
+const pageCount = doc.internal.pages.length - 1;
+
+for (let p = 1; p <= pageCount; p++) {
+  doc.setPage(p);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(160, 160, 180);
+
+  doc.text(`Page ${p} of ${pageCount}`, PAGE_W - MARGIN, 291, {
+    align: "right",
+  });
+}
 
   const filename = `${(basic.full_name || "applicant").replace(/\s+/g, "_")}_application.pdf`;
   const pdfBuffer = doc.output("arraybuffer");
