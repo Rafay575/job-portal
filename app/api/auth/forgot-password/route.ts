@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       [email, otp, expiresAt],
     );
 
-    sendOTPEmail(email, otp);
+    await sendOTPEmail(email, otp);
 
     return NextResponse.json({
       message: "OTP sent successfully",

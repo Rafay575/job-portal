@@ -35,11 +35,12 @@ export async function POST(req: Request) {
     }
 
     // 3. Hash password (IMPORTANT)
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // 4. Create user
     const [result]: any = await pool.execute(
       "INSERT INTO users (name, email, password, is_verified) VALUES (?, ?, ?, ?)",
-      [name || "User", email, password, true],
+      [name || "User", email, hashedPassword, true],
     );
 
     if (email && name) {

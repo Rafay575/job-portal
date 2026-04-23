@@ -43,7 +43,7 @@ export async function POST(req: Request) {
 
     // 3. Send email (replace with real email service)
     
-    sendOTPEmail(email, otp);
+    await sendOTPEmail(email, otp);
     console.log("opt Sent")
     return NextResponse.json({
       message: "OTP resent successfully",

@@ -115,7 +115,7 @@ type FetchParams = {
 export const fetchAllUsers = async ({
   search = "",
   status = "all",
-  type = "all", // ✅ ADD THIS
+  type = "all", 
   page = 1,
   pageSize = 10,
 }: FetchParams) => {
@@ -124,7 +124,7 @@ export const fetchAllUsers = async ({
 
     if (search) params.set("search", search);
     if (status !== "all") params.set("status", status);
-    if (type !== "all") params.set("type", type); // ✅ ADD THIS
+    if (type !== "all") params.set("type", type); 
     params.set("page", String(page));
     params.set("pageSize", String(pageSize));
 

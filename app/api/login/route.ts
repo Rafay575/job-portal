@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import pool from "@/lib/db";
-
+import bcrypt from "bcryptjs";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
 export async function POST(req: Request) {
   const { email, password } = await req.json();
-  console.log(email, password);
 
   try {
     // 1. Find user in MySQL
@@ -22,22 +21,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
-    // 2. CHECK IF VERIFIED (🔥 ADD THIS)
+    // 2. CHECK IF VERIFIED
     if (!user.is_verified) {
       return NextResponse.json(
         { message: "Email not verified" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
-    // 2. Direct password check (NO bcrypt)
-    if (user.password !== password) {
+    // 🔐 Compare hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
       return NextResponse.json(
         { message: "Invalid password" },
         { status: 401 },
       );
     }
-
     // 3. Create JWT token
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
       expiresIn: "7d",
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
       user: {
         id: user.id,
         name: user.name,
-        role:user.role,
+        role: user.role,
         email: user.email,
       },
     });
