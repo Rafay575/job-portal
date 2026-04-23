@@ -42,13 +42,12 @@ export default function ProfilePage() {
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState<"edit" | "otp">("edit");
   const [submitting, setSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   // fetch user
   const fetchUser = async () => {
     try {
       setLoading(true);
       const res = await getUserById(user.id);
-      console.log("res",res)
+      console.log("res", res);
       if (res.success) setData(res.data);
     } finally {
       setLoading(false);
@@ -127,7 +126,9 @@ export default function ProfilePage() {
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-primary">Profile</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-primary">
+          Profile
+        </h1>
         <p className="text-muted-foreground text-sm">
           Manage your account information
         </p>
@@ -179,18 +180,9 @@ export default function ProfilePage() {
         <div className="flex justify-between items-center">
           <div>
             <p className="text-xs text-muted-foreground">Password</p>
-            {
-                showPassword ?  <p>{data.password}</p>:<p className="font-semibold">••••••••</p>
-            }
-            
+            <p className="font-semibold">••••••••</p>
           </div>
           <div className="flex gap-2 items-center">
-            {showPassword ? (
-              <Eye size={18} onClick={() => setShowPassword(false)} />
-            ) : (
-              <EyeOff size={18} onClick={() => setShowPassword(true)} />
-            )}
-
             <Button
               variant="ghost"
               size="sm"

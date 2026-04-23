@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     );
 
     // AFTER saving OTP in DB
-    sendOTPEmail(email, otp);
+    await sendOTPEmail(email, otp);
 
     return NextResponse.json({
       message: "OTP sent successfully",
