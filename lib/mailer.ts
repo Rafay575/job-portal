@@ -38,8 +38,6 @@ const capitalizeName = (name: string) => {
 };
 
 
-
-
 export async function sendOTPEmail(email: string, otp: string) {
   try {
     const { subject, template } = await getEmailTemplateBySlug("otp_code");

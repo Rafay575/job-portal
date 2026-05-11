@@ -43,8 +43,13 @@ export async function POST(req: Request) {
 
     // 3. Send email (replace with real email service)
     
-    await sendOTPEmail(email, otp);
-    console.log("opt Sent")
+    try {
+      await sendOTPEmail(email, otp);
+    } catch (error) {
+      console.error("Failed to send OTP");
+      return NextResponse.json({ message: "Failed to send OTP" }, { status: 500 })
+    }
+
     return NextResponse.json({
       message: "OTP resent successfully",
     });

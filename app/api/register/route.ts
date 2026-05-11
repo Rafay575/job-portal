@@ -53,7 +53,13 @@ export async function POST(req: Request) {
     );
 
     // AFTER saving OTP in DB
-    await sendOTPEmail(email, otp);
+   try {
+      await sendOTPEmail(email, otp);
+    } catch (error) {
+      console.error("Failed to send OTP");
+      return NextResponse.json({ message: "Failed to send OTP" }, { status: 500 })
+    }
+
 
     return NextResponse.json({
       message: "OTP sent successfully",

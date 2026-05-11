@@ -10,20 +10,20 @@ export async function POST(req: NextRequest) {
     if (!id) {
       return NextResponse.json(
         { success: false, message: "Id is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // ✅ fetch user from DB
     const [rows]: any = await pool.execute(
       `SELECT name, email, is_approved FROM users WHERE id = ?`,
-      [id]
+      [id],
     );
 
     if (rows.length === 0) {
       return NextResponse.json(
         { success: false, message: "User not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -40,11 +40,20 @@ export async function POST(req: NextRequest) {
     // ✅ update user (ENUM value)
     await pool.execute(
       `UPDATE users SET is_approved = 'rejected' WHERE id = ?`,
-      [id]
+      [id],
     );
 
     // ✅ send rejection email
-    await sendUserRejectionEmail(user.email, user.name);
+
+    try {
+      await sendUserRejectionEmail(user.email, user.name);
+    } catch (error) {
+      console.error("Failed to send Form approval rejected email");
+      return NextResponse.json(
+        { message: "Failed to send Form approval rejected email" },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -53,12 +62,12 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     return NextResponse.json(
       { success: false, message: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-// Bulk Users Reject 
+// Bulk Users Reject
 export async function PATCH(req: NextRequest) {
   try {
     const { ids } = await req.json();
@@ -66,34 +75,42 @@ export async function PATCH(req: NextRequest) {
     if (!Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json(
         { success: false, message: "User IDs are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // ✅ fetch users
     const [users]: any = await pool.execute(
       `SELECT id, name, email, is_approved FROM users WHERE id IN (${ids.map(() => "?").join(",")})`,
-      ids
+      ids,
     );
 
     if (!users.length) {
       return NextResponse.json(
         { success: false, message: "No users found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // ❌ update all users
     await pool.execute(
       `UPDATE users SET is_approved = 'rejected' WHERE id IN (${ids.map(() => "?").join(",")})`,
-      ids
+      ids,
     );
 
     // ❌ send emails
+
     await Promise.all(
-      users.map((user: any) =>
-        sendUserRejectionEmail(user.email, user.name)
-      )
+      users.map(async (user: any) => {
+        try {
+          sendUserRejectionEmail(user.email, user.name);
+        } catch (err) {
+          console.error(
+            `Failed to send Form approval rejected email ${user.email}`,
+            err,
+          );
+        }
+      }),
     );
 
     return NextResponse.json({
@@ -104,7 +121,7 @@ export async function PATCH(req: NextRequest) {
   } catch (error: any) {
     return NextResponse.json(
       { success: false, message: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
