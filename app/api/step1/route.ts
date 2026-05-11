@@ -182,24 +182,35 @@ export async function POST(req: NextRequest) {
         [userId],
       );
 
-     
-
       if (
         typeChanged &&
         (type === "agency-work" || type === "both") &&
         email &&
         fullName
       ) {
-        await sendApprovalPendingEmail(fullName, email);
+        
+        try {
+          await sendApprovalPendingEmail(fullName, email);
+        } catch (error) {
+          console.error("Failed to send email of approval pending.", error);
+          return NextResponse.json(
+            { message: "Failed to send email of approval pending." },
+            { status: 500 },
+          );
+        }
       }
 
+      if (typeChanged && type === "permanent" && email && fullName && userId) {
+        try {
+          await sendFormSubmissionEmail(userId, email, fullName);
+        } catch (error) {
+          console.error("Email sending failed:", error);
 
-      if (
-        typeChanged &&
-        (type === "permanent") &&
-        email && fullName && userId
-      ) {
-        await sendFormSubmissionEmail(userId, email, fullName);
+          return NextResponse.json(
+            { message: "Failed to send email on form submission." },
+            { status: 500 },
+          );
+        }
       }
       return NextResponse.json({
         success: true,
@@ -254,9 +265,26 @@ export async function POST(req: NextRequest) {
       console.log("no email or name found in email block");
     } else {
       if (type === "permanent") {
-        await sendFormSubmissionEmail(userId, email, fullName);
+        try {
+          await sendFormSubmissionEmail(userId, email, fullName);
+        } catch (error) {
+          console.error("Email sending failed:", error);
+
+          return NextResponse.json(
+            { message: "Failed to send email on form submission." },
+            { status: 500 },
+          );
+        }
       } else {
-        await sendApprovalPendingEmail(fullName, email);
+        try {
+          await sendApprovalPendingEmail(fullName, email);
+        } catch (error) {
+          console.error("Failed to send email of approval pending.", error);
+          return NextResponse.json(
+            { message: "Failed to send email of approval pending." },
+            { status: 500 },
+          );
+        }
       }
     }
 
@@ -269,7 +297,7 @@ export async function POST(req: NextRequest) {
     console.error("API Error:", error);
 
     return NextResponse.json(
-      { success: false, message: "Something went wrong" },
+      { success: false, message: "Something went wrong in backend" },
       { status: 500 },
     );
   }

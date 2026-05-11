@@ -3,7 +3,7 @@ import { getUserPDF } from "@/lib/getUserPdf";
 import { getEmailTemplateBySlug } from "./email_template";
 
 export const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  host: "premium274.web-hosting.com",
   port: 465,
   secure: true,
   auth: {
@@ -11,6 +11,7 @@ export const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
+
 function decodeHTML(html: string) {
   return html
     .replace(/<p>/g, "")
@@ -42,17 +43,12 @@ const capitalizeName = (name: string) => {
 export async function sendOTPEmail(email: string, otp: string) {
   try {
     const { subject, template } = await getEmailTemplateBySlug("otp_code");
-
-    // ✅ Step 1: Decode HTML
     const decodedTemplate = decodeHTML(template);
-
-    // ✅ Step 2: Inject variables
     const finalHTML = replaceVariables(decodedTemplate, {
       email,
       otp,
     });
 
-    // ✅ Step 3: Send email
     await transporter.sendMail({
       from: `"Hayaibu Talent" <${process.env.EMAIL_USER}>`,
       to: email,

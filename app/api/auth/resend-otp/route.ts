@@ -16,15 +16,15 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    // ✅ Check if user exists
-    const [users]: any = await pool.execute(
-      "SELECT id FROM users WHERE email = ?",
-      [email],
-    );
+    // // ✅ Check if user exists
+    // const [users]: any = await pool.execute(
+    //   "SELECT id FROM users WHERE email = ?",
+    //   [email],
+    // );
 
-    if (!users || users.length === 0) {
-      return NextResponse.json({ message: "No user with this email is stored" }, { status: 404 });
-    }
+    // if (!users || users.length === 0) {
+    //   return NextResponse.json({ message: "No user with this email is stored" }, { status: 404 });
+    // }
 
     // 1. Generate new OTP
     const otp = generateOTP();
@@ -42,8 +42,15 @@ export async function POST(req: Request) {
     );
 
     // 3. Send email (replace with real email service)
+    try {
+  await sendOTPEmail(email, otp);
+} catch (error) {
+  return NextResponse.json(
+    { message: "Email error" },
+    { status: 500 }
+  );
+}
     
-    await sendOTPEmail(email, otp);
     console.log("opt Sent")
     return NextResponse.json({
       message: "OTP resent successfully",

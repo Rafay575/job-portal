@@ -44,7 +44,15 @@ export async function POST(req: NextRequest) {
     );
 
     // ✅ send rejection email
-    await sendUserRejectionEmail(user.email, user.name);
+    try {
+      await sendUserRejectionEmail(user.email, user.name);
+    } catch (error) {
+      console.error("Failed to send email of user rejected", error);
+      return NextResponse.json(
+        { message: "Failed to send email of user rejected" },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -90,11 +98,20 @@ export async function PATCH(req: NextRequest) {
     );
 
     // ❌ send emails
-    await Promise.all(
-      users.map((user: any) =>
+    try {
+      await Promise.all(
+        users.map((user: any) =>
         sendUserRejectionEmail(user.email, user.name)
-      )
-    );
+        )
+      );
+    } catch (error) {
+      console.error("Failed to send email of user rejected", error);
+
+      return NextResponse.json(
+        { message: "Failed to send email of user rejected" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,

@@ -51,9 +51,9 @@ export default function Stepper({
           >
             {/* Step Circle */}
             <div
-              onClick={() => {
-                if (!isLocked) setCurrentStep(stepNumber); // 👈 prevent click
-              }}
+              // onClick={() => {
+              //   if (!isLocked) setCurrentStep(stepNumber); // 👈 prevent click
+              // }}
               className={clsx(
                 "h-9 w-9 rounded-full flex items-center justify-center text-sm font-medium cursor-pointer transition-all duration-300 z-10",
                 {

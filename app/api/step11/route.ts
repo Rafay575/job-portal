@@ -90,11 +90,6 @@ export async function POST(req: NextRequest) {
         [declarationConfirmed, declarationDate, filePath, userId],
       );
       
-      // if (email && name) {
-      //   await sendFormSubmissionEmail(id, email, name);
-      // } else {
-      //   console.log("no email or name found in email block");
-      // }
 
       return NextResponse.json({
         success: true,
@@ -117,7 +112,16 @@ export async function POST(req: NextRequest) {
 
     // ✅ send email from backend
     if (email && name) {
-      await sendFormSubmissionEmail(id, email, name);
+      try {
+          await sendFormSubmissionEmail(id, email, name);
+        } catch (error) {
+          console.error("Email sending failed:", error);
+
+          return NextResponse.json(
+            { message: "Failed to send email on form submission." },
+            { status: 500 },
+          );
+        }
     } else {
       console.log("no email or name found in email block");
     }
