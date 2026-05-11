@@ -1,7 +1,6 @@
 import axios from "axios";
 import { toast } from "react-hot-toast";
 
-
 const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/email-template`;
 
 // ✅ CREATE Email Template

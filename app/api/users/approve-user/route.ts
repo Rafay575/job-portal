@@ -1,9 +1,8 @@
 import pool from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { sendUserApprovalEmail } from "@/lib/mailer";
-import { emailQueue } from "@/lib/emailQueue";
 
-// Single User Approve
+// Single User Approve 
 export async function POST(req: NextRequest) {
   try {
     const { id } = await req.json();
@@ -11,24 +10,25 @@ export async function POST(req: NextRequest) {
     if (!id) {
       return NextResponse.json(
         { success: false, message: "Id is required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     // ✅ get user from DB
     const [rows]: any = await pool.execute(
       `SELECT name, email, is_approved FROM users WHERE id = ?`,
-      [id],
+      [id]
     );
 
     if (rows.length === 0) {
       return NextResponse.json(
         { success: false, message: "User not found" },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     const user = rows[0];
+
 
     if (user.is_approved === "approved") {
       return NextResponse.json({
@@ -39,39 +39,11 @@ export async function POST(req: NextRequest) {
 
     await pool.execute(
       `UPDATE users SET is_approved = 'approved' WHERE id = ?`,
-      [id],
+      [id]
     );
 
     // ✅ send email
-
-    try {
-      await sendUserApprovalEmail(user.email, user.name);
-    } catch (error) {
-      console.error("Failed to send email of user approval.", error);
-      return NextResponse.json(
-        { message: "Failed to send email of user approval." },
-        { status: 500 },
-      );
-    }
-    // await emailQueue.add(
-    //   "user-approval",
-    //   {
-    //     email: user.email,
-    //     name: user.name,
-    //     userId: id,
-    //   },
-    //   {
-    //     attempts: 3,
-
-    //     backoff: {
-    //       type: "exponential",
-    //       delay: 5000,
-    //     },
-
-    //     removeOnComplete: true,
-    //     removeOnFail: false,
-    //   },
-    // );
+    await sendUserApprovalEmail(user.email, user.name);
 
     return NextResponse.json({
       success: true,
@@ -80,12 +52,12 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     return NextResponse.json(
       { success: false, message: error.message },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
-// Bulk Users Approve
+// Bulk Users Approve 
 export async function PATCH(req: NextRequest) {
   try {
     const { ids } = await req.json(); // array of user IDs
@@ -93,66 +65,35 @@ export async function PATCH(req: NextRequest) {
     if (!Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json(
         { success: false, message: "User IDs are required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     // ✅ fetch users
     const [users]: any = await pool.execute(
       `SELECT id, name, email, is_approved FROM users WHERE id IN (${ids.map(() => "?").join(",")})`,
-      ids,
+      ids
     );
 
     if (!users.length) {
       return NextResponse.json(
         { success: false, message: "No users found" },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
     // ✅ update all users
     await pool.execute(
       `UPDATE users SET is_approved = 'approved' WHERE id IN (${ids.map(() => "?").join(",")})`,
-      ids,
+      ids
     );
 
     // ✅ send emails (parallel)
-    try {
-      await Promise.all(
-        users.map((user: any) => sendUserApprovalEmail(user.email, user.name)),
-      );
-    } catch (error) {
-      console.error("Failed to send email of user approval.", error);
-
-      return NextResponse.json(
-        { message: "Failed to send email of user approval." },
-        { status: 500 },
-      );
-    }
-
-    // await Promise.all(
-    //   users.map((user: any) =>
-    //     emailQueue.add(
-    //       "user-approval",
-    //       {
-    //         email: user.email,
-    //         name: user.name,
-    //         userId: user.id,
-    //       },
-    //       {
-    //         attempts: 3,
-
-    //         backoff: {
-    //           type: "exponential",
-    //           delay: 5000,
-    //         },
-
-    //         removeOnComplete: true,
-    //         removeOnFail: false,
-    //       },
-    //     ),
-    //   ),
-    // );
+    await Promise.all(
+      users.map((user: any) =>
+        sendUserApprovalEmail(user.email, user.name)
+      )
+    );
 
     return NextResponse.json({
       success: true,
@@ -162,7 +103,7 @@ export async function PATCH(req: NextRequest) {
   } catch (error: any) {
     return NextResponse.json(
       { success: false, message: error.message },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

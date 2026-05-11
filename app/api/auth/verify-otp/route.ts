@@ -44,15 +44,7 @@ export async function POST(req: Request) {
     );
 
     if (email && name) {
-      try {
-        await sendAccountCreatedEmail(email, name);
-      } catch (error) {
-        console.error("Failed to send email of Account creation", error);
-        return NextResponse.json(
-          { message: "Failed to send email of Account creation" },
-          { status: 500 },
-        );
-      }
+      await sendAccountCreatedEmail(email, name);
     } else {
       console.log("no email or name found in email block");
     }

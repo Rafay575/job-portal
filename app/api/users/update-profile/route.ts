@@ -18,10 +18,10 @@ export async function POST(req: NextRequest) {
 
     // ✅ UPDATE NAME DIRECTLY
     if (type === "name") {
-      await pool.execute("UPDATE users SET name = ? WHERE id = ?", [
-        value,
-        userId,
-      ]);
+      await pool.execute(
+        "UPDATE users SET name = ? WHERE id = ?",
+        [value, userId]
+      );
 
       return NextResponse.json({ message: "Name updated successfully" });
     }
@@ -31,21 +31,18 @@ export async function POST(req: NextRequest) {
       const otp = generateOTP();
       const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-      await pool.execute("DELETE FROM otp_verifications WHERE email = ? ", [
-        email,
-      ]);
+      await pool.execute(
+        "DELETE FROM otp_verifications WHERE email = ? ",
+        [email]
+      );
 
       await pool.execute(
         `INSERT INTO otp_verifications (email, otp, type, expires_at, meta_value)
          VALUES (?, ?, ?, ?, ?)`,
-        [email, otp, `update-${type}`, expiresAt, value],
+        [email, otp, `update-${type}`, expiresAt, value]
       );
 
-      try {
-        await sendOTPEmail(email, otp);
-      } catch (error) {
-        return NextResponse.json({ message: "Email error" }, { status: 500 });
-      }
+      await sendOTPEmail(email, otp);
 
       return NextResponse.json({
         message: "OTP sent for verification",

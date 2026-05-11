@@ -20,10 +20,7 @@ export async function POST(req: Request) {
     );
 
     if (!users || users.length === 0) {
-      return NextResponse.json(
-        { message: "No user with this email is stored" },
-        { status: 404 },
-      );
+      return NextResponse.json({ message: "No user with this email is stored" }, { status: 404 });
     }
     const otp = generateOTP();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
@@ -40,14 +37,7 @@ export async function POST(req: Request) {
       [email, otp, expiresAt],
     );
 
-    try {
-  await sendOTPEmail(email, otp);
-} catch (error) {
-  return NextResponse.json(
-    { message: "Email error" },
-    { status: 500 }
-  );
-}
+    await sendOTPEmail(email, otp);
 
     return NextResponse.json({
       message: "OTP sent successfully",
