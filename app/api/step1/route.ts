@@ -104,19 +104,50 @@ export async function POST(req: NextRequest) {
 
     const file = formData.get("cvFile") as File | null;
 
+    // ✅ ALLOWED FILE TYPES
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    // ✅ MAX SIZE = 5MB
+    const MAX_SIZE = 5 * 1024 * 1024;
+
+    if (file && file.size > 0) {
+      // ✅ Validate file type
+      if (!allowedTypes.includes(file.type)) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Only PDF, DOC and DOCX are allowed",
+          },
+          { status: 400 },
+        );
+      }
+
+      // ✅ Validate file size
+      if (file.size > MAX_SIZE) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "File size must be maximum 5MB",
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     // 📁 FILE UPLOAD
     let filePath: string | null = null;
 
     if (file && file.size > 0) {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-
       const uploadDir = path.join(process.cwd(), "public/uploads");
-      const fileName = `${Date.now()}-${file.name}`;
+      const fileName = `${Date.now()}hayaibudocs`;
       const fullPath = path.join(uploadDir, fileName);
-
       await writeFile(fullPath, buffer);
-
       filePath = `/uploads/${fileName}`;
     }
 
@@ -140,24 +171,24 @@ export async function POST(req: NextRequest) {
       const typeChanged = currentType !== type;
       await pool.execute(
         `
-    UPDATE employee_basic_information SET
-      type=?,
-      full_name = ?,
-      email = ?,
-      phone = ?,
-      address = ?,
-      postcode = ?,
-      nationality = ?,
-      immigration_status = ?,
-      immigration_expiry = ?,
-      work_permit = ?,
-      name_changed = ?,
-      previous_name = ?,
-      changed_to = ?,
-      cv_file_path = COALESCE(?, cv_file_path),
-      updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
-    `,
+        UPDATE employee_basic_information SET
+          type=?,
+          full_name = ?,
+          email = ?,
+          phone = ?,
+          address = ?,
+          postcode = ?,
+          nationality = ?,
+          immigration_status = ?,
+          immigration_expiry = ?,
+          work_permit = ?,
+          name_changed = ?,
+          previous_name = ?,
+          changed_to = ?,
+          cv_file_path = COALESCE(?, cv_file_path),
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+        `,
         [
           type,
           fullName,

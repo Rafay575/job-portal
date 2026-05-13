@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
-      const fileName = `${Date.now()}-${file.name}`;
+      const fileName = `${Date.now()}`;
       const path = `./public/uploads/${fileName}`;
 
       const fs = require("fs");

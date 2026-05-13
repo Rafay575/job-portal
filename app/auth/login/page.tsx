@@ -162,12 +162,10 @@ export default function SignInPage() {
 
   // -------------------- Handlers --------------------
   const onSignIn = async (values: SignInForm) => {
-    console.log("Sign In:", values);
     loginMutation.mutate(values);
   };
 
   const onForgotEmail = async (values: ForgotForm) => {
-    console.log("Forgot Password (email):", values);
     forgotMutation.mutate(values);
   };
 
@@ -177,7 +175,6 @@ export default function SignInPage() {
       otp: values.otp,
       password: values.password,
     };
-    console.log("Reset Password:", payload);
     resetMutation.mutate(payload);
   };
 

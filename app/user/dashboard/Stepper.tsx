@@ -43,7 +43,7 @@ export default function Stepper({
           <div
             key={stepNumber}
             className={clsx(
-              "flex flex-col items-center flex-1 relative transition-all",
+              "flex flex-col items-center flex-1 relative transition-all p-1",
               {
                 " blur-[3px] pointer-events-none": isLocked, // 👈 blur + disable
               }
@@ -88,7 +88,7 @@ export default function Stepper({
             {stepNumber !== steps.length && (
               <div
                 className={clsx(
-                  "absolute top-4 left-1/2 w-full h-[2px] -z-0 transition-colors duration-300",
+                  "absolute top-5 left-1/2 w-full h-[2px] -z-0 transition-colors duration-300",
                   stepNumber < currentStep
                     ? "bg-primary"
                     : "bg-gray-200"
