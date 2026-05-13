@@ -7,11 +7,13 @@ const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 // checking token and verify it
 export async function verifyToken(token?: string) {
-  if (!token) return null;
-
+  if (!token) {
+    console.log("no token");
+    return null;
+  }
   try {
     const { payload } = await jwtVerify(token, secret);
-    return payload; 
+    return payload;
   } catch {
     return null;
   }
@@ -21,7 +23,7 @@ export async function ResendOTP(token?: string) {
 
   try {
     const { payload } = await jwtVerify(token, secret);
-    return payload; 
+    return payload;
   } catch {
     return null;
   }
@@ -29,8 +31,13 @@ export async function ResendOTP(token?: string) {
 
 export async function getUserFromRequest(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
+  if (!token) {
+    console.log("no token");
+  }
   return verifyToken(token);
 }
+
+
 
 // Auth APIS ----------------------------
 // ✅ Check Authentication

@@ -35,10 +35,11 @@ export async function POST(req: NextRequest) {
         email,
       ]);
 
+
       await pool.execute(
-        `INSERT INTO otp_verifications (email, otp, type, expires_at, meta_value)
-         VALUES (?, ?, ?, ?, ?)`,
-        [email, otp, `update-${type}`, expiresAt, value],
+        `INSERT INTO otp_verifications (email, otp, expires_at, meta_value)
+         VALUES (?, ?, ?, ?)`,
+        [email, otp, expiresAt, value],
       );
 
       try {

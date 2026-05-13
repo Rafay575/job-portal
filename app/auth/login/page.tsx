@@ -377,13 +377,11 @@ export default function SignInPage() {
             {/* Terms */}
             <p className="mt-5 text-[11px] leading-4 text-gray-500">
               By clicking next, you agree to Hayabiu Talent&apos;s{" "}
-              <Link href="/terms" className="text-primary underline">
-                Terms &amp; Conditions
-              </Link>{" "}
+              <span className="text-primary underline">
+                Terms &amp; Conditions{" "}
+              </span>
               and you acknowledge that you have read Hayabiu Talent&apos;s{" "}
-              <Link href="/privacy" className="text-primary underline">
-                Privacy Policy
-              </Link>{" "}
+              <span className="text-primary underline">Privacy Policy</span>{" "}
               which will apply to the processing of your personal data in the
               provision of our services
             </p>

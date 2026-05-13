@@ -1,15 +1,15 @@
 import { generatePDFBuffer } from "@/lib/pdf/generatePDF";
-import { getStep1 } from "@/lib/api/step1";
-import { getStep2 } from "@/lib/api/step2";
-import { getStep3 } from "@/lib/api/step3";
-import { getStep4 } from "@/lib/api/step4";
-import { getStep5 } from "@/lib/api/step5";
-import { getStep6 } from "@/lib/api/step6";
-import { getTrainings } from "@/lib/api/step7";
-import { getTimeline } from "@/lib/api/step8";
-import { getStep9 } from "@/lib/api/step9";
-import { getStep10 } from "@/lib/api/step10";
-import { getStep11 } from "@/lib/api/step11";
+import { getStep1DB } from "@/lib/server/step1";
+import { getStep2DB } from "@/lib/server/step2";
+import { getStep3DB } from "@/lib/server/step3";
+import { getStep4DB } from "@/lib/server/step4";
+import { getStep5DB } from "@/lib/server/step5";
+import { getStep6DB } from "@/lib/server/step6";
+import { getStep7DB } from "@/lib/server/step7";
+import { getStep8DB } from "@/lib/server/step8";
+import { getStep9DB } from "@/lib/server/step9";
+import { getStep10DB } from "@/lib/server/step10";
+import { getStep11DB } from "@/lib/server/step11";
 
 async function safeFetch<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -20,11 +20,12 @@ async function safeFetch<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   }
 }
 export async function getUserPDF(user_id: string | number) {
-  // Step 1
-  const step1 = await safeFetch(() => getStep1(user_id), { success: false, data: [] });
-//   console.log("step1:", step1);
+  const step1 = await safeFetch(() => getStep1DB(user_id), {
+    success: false,
+    data: [],
+  });
   const isPermanent = step1?.data?.[0]?.type === "permanent";
-//   console.log("isPermanent:", isPermanent);
+  const empty = { success: false, data: [] };
   const [
     step2,
     step3,
@@ -37,18 +38,18 @@ export async function getUserPDF(user_id: string | number) {
     step10,
     step11,
   ] = isPermanent
-    ? Array(10).fill(null)
+    ? Array(10).fill(empty)
     : await Promise.all([
-        getStep2(user_id),
-        getStep3(user_id),
-        getStep4(user_id),
-        getStep5(user_id),
-        getStep6(user_id),
-        getTrainings(user_id),
-        getTimeline(user_id),
-        getStep9(user_id),
-        getStep10(user_id),
-        getStep11(user_id),
+        getStep2DB(user_id),
+        getStep3DB(user_id),
+        getStep4DB(user_id),
+        getStep5DB(user_id),
+        getStep6DB(user_id),
+        getStep7DB(user_id),
+        getStep8DB(user_id),
+        getStep9DB(user_id),
+        getStep10DB(user_id),
+        getStep11DB(user_id),
       ]);
 
   const user = {
@@ -59,11 +60,13 @@ export async function getUserPDF(user_id: string | number) {
     registration: step5?.data?.[0] ?? {},
     documents: step6?.data?.[0] ?? {},
     trainings: step7?.data ?? [],
-    educations: Array.isArray(step8) ? step8 : [],
-    experience: step9 ?? {},
+    educations: step8?.data ?? [],
+    experience: step9.data ?? {},
     statement: step10?.data?.[0] ?? {},
     declaration: step11?.data?.[0] ?? {},
   };
+
+console.log(user);
 
   // Generate PDF buffer
   const pdfBuffer = await generatePDFBuffer(user);

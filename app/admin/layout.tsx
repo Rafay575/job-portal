@@ -11,7 +11,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { RootState } from "@/lib/store";
-import AdminCheck from "@/components/AdminCheck";
 import { FullPageLoader } from "@/components/Loading";
 
 const geistSans = Geist({
@@ -29,26 +28,33 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
- const user = useSelector((state: RootState) => state.user);
-   const router = useRouter();
-   const [checking, setChecking] = useState(true);
- 
-   useEffect(() => {
-     // ⛔ Wait until Redux is hydrated
-     if (user === undefined) return;
- 
-     if (!user || user.role !== "admin") {
-       toast.error("Access denied: Admins only");
-       router.replace("/");
-     } else {
-       setChecking(false);
-     }
-   }, [user, router]);
- 
-   // 🚫 Block rendering completely
-   if (checking) {
-     return <FullPageLoader/>; // or loader
-   }
+  const user = useSelector((state: RootState) => state.user);
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
+
+useEffect(() => {
+    if (user === undefined) return;
+
+    if (user.loggedIn === false) {
+      console.log("logout")
+      router.replace("/auth/login");
+      return;
+
+    }
+    if (user.role !== "admin") {
+      toast.error("Access denied", {
+        id: "admin-access",
+      });
+
+      router.replace("/");
+      return;
+    }
+    setChecking(false);
+  }, [user]);
+
+  if (checking) {
+    return <FullPageLoader />; // or loader
+  }
   return (
     <div className="dashboard-layout">
       <title>Hayaibu Talent | Admin Portal</title>
@@ -58,7 +64,7 @@ export default function RootLayout({
             <AppSidebar />
             <div className="flex-1  ">
               <AdminHeader />
-              <AdminCheck>{children}</AdminCheck>
+              {children}
             </div>
           </TooltipProvider>
         </SidebarProvider>

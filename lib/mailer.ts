@@ -1,16 +1,27 @@
 import nodemailer from "nodemailer";
 import { getUserPDF } from "@/lib/getUserPdf";
-import { getEmailTemplateBySlug } from "./email_template";
+import { getEmailTemplateBySlug2 } from "./server/emailTemplates";
 
 export const transporter = nodemailer.createTransport({
-  host: "premium274.web-hosting.com",
-  port: 465,
+  host: process.env.EMAIL_HOST,
+  port: Number(process.env.EMAIL_PORT),
   secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+logger: true,
+debug: true,
 });
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.log("❌ SMTP Connection Failed:", error.message);
+  } else {
+    console.log("✅ SMTP Connected Successfully");
+  }
+});
+
  
 function decodeHTML(html: string) {
   return html
@@ -37,21 +48,14 @@ const capitalizeName = (name: string) => {
     .join(" ");
 };
 
-
 export async function sendOTPEmail(email: string, otp: string) {
   try {
-    const { subject, template } = await getEmailTemplateBySlug("otp_code");
-
-    // ✅ Step 1: Decode HTML
+    const { subject, template } = await getEmailTemplateBySlug2("otp_code");
     const decodedTemplate = decodeHTML(template);
-
-    // ✅ Step 2: Inject variables
     const finalHTML = replaceVariables(decodedTemplate, {
       email,
       otp,
     });
-
-    // ✅ Step 3: Send email
     await transporter.sendMail({
       from: `"Hayaibu Talent" <${process.env.EMAIL_USER}>`,
       to: email,
@@ -64,16 +68,15 @@ export async function sendOTPEmail(email: string, otp: string) {
   }
 }
 
+
 export async function sendFormSubmissionEmail(
   userId: any,
   email: string,
   name: string,
 ) {
   try {
-    console.log("sent the fomr submition mail");
     const { buffer, filename } = await getUserPDF(userId);
-    const { subject, template } =
-      await getEmailTemplateBySlug("form_submission");
+    const { subject, template } = await getEmailTemplateBySlug2("form_submission");
     const decodedTemplate = decodeHTML(template);
     const finalHTML = replaceVariables(decodedTemplate, {
       name: capitalizeName(name),
@@ -96,16 +99,22 @@ export async function sendFormSubmissionEmail(
         },
       ],
     });
+
   } catch (error) {
     console.error("Form Email Error:", error);
   }
 }
 
+
+
+
+
+
 export async function sendApprovalPendingEmail(name: string, email: string) {
   try {
     // ✅ 1. Fetch template from API
     const { subject, template } =
-      await getEmailTemplateBySlug("approval_pending");
+      await getEmailTemplateBySlug2("approval_pending");
 
     // ⚠️ Make sure slug exists in DB
 
@@ -135,7 +144,7 @@ export async function sendApprovalPendingEmail(name: string, email: string) {
 export async function sendUserApprovalEmail(email: string, name: string) {
   try {
     const dashboardUrl = `${process.env.NEXT_PUBLIC_API_URL}/user/dashboard`;
-    const { subject, template } = await getEmailTemplateBySlug("application_approved");
+    const { subject, template } = await getEmailTemplateBySlug2("application_approved");
     const decodedTemplate = decodeHTML(template);
     const finalHTML = replaceVariables(decodedTemplate, {
       name: capitalizeName(name),
@@ -161,7 +170,7 @@ export async function sendUserRejectionEmail(email: string, name: string) {
     const dashboardUrl = `${process.env.NEXT_PUBLIC_API_URL}/user/dashboard`;
 
     // ✅ 2. Fetch template
-    const { subject, template } = await getEmailTemplateBySlug("application_rejected");
+    const { subject, template } = await getEmailTemplateBySlug2("application_rejected");
 
     // ⚠️ Make sure slug = "user_rejected" exists in DB
 
@@ -194,7 +203,7 @@ export async function sendAccountCreatedEmail(email: string, name: string) {
 
     // ✅ 2. Fetch template from API
     const { subject, template } =
-      await getEmailTemplateBySlug("account_created");
+      await getEmailTemplateBySlug2("account_created");
 
     // ⚠️ Make sure slug = "account_created" exists in DB
 

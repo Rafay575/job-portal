@@ -10,4 +10,15 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
+
+// const pool = mysql.createPool({
+//   host: 'localhost',
+//   user: 'backend_user',
+//   password: 'admin@123',
+//   database: 'hayaibu_talent',
+//   waitForConnections: true,
+//   connectionLimit: 10,
+//   queueLimit: 0,
+// });
+
 export default pool;

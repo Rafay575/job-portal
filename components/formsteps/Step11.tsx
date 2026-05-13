@@ -153,7 +153,6 @@ export default function Step11({ back }: Props) {
 
       if (res.success) {
         toast.success(res.data?.message || "Submitted!");
-        console.log("FINAL SUBMISSION:", formData);
         router.push("/");
       } else {
         toast.error(res.message);

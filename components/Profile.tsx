@@ -15,8 +15,7 @@ import { useDispatch } from "react-redux";
 import { clearUser } from "@/lib/userSlice";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
-import { useEffect } from "react";
-import toast from "react-hot-toast";
+
 
 export default function Profile() {
   const router = useRouter();
@@ -24,8 +23,8 @@ export default function Profile() {
   const user = useSelector((state: RootState) => state.user);
   const handleLogout = async () => {
     try {
-      await logoutUser(); // ✅ wait for API
       dispatch(clearUser());
+      await logoutUser(); // ✅ wait for API
       router.push("/auth/login"); // ✅ redirect after logout
     } catch (error) {
       console.error("Logout failed", error);

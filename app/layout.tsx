@@ -36,7 +36,7 @@ export default function RootLayout({
                     success: {
                       icon: <CheckCircle className="size-5!" color="white" />,
                       style: {
-                        background: "var(--primary)",
+                        background: "green",
                         color: "#fff",
                         fontSize:"14px"
                       },

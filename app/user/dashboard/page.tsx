@@ -118,11 +118,15 @@ export default function Page() {
   useEffect(() => {
     setStep(1);
   }, [roleType]);
-  useEffect(() => {
+
+
+useEffect(() => {
     const fetchData = async () => {
       const res = await getStep1(user.id);
-      if (res.success && !res.data[0]) {
+      if (res.success === false) {
         setOpen(true);
+      }else{
+        setRoleType(res.data[0].type)
       }
     };
     fetchData();

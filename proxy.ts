@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/auth";
-import toast from "react-hot-toast";
 
 
 export async function proxy(req: NextRequest) {

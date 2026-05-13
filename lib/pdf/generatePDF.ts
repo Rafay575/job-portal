@@ -1,18 +1,18 @@
 import jsPDF from "jspdf";
-// import logo from "@/public/logo.png"
+import fs from "fs";
+import path from "path";
+
+function getLogoBase64() {
+  const filePath = path.join(process.cwd(), "public/logo.png");
+  const file = fs.readFileSync(filePath);
+  return `data:image/png;base64,${file.toString("base64")}`;
+}
 
 function isEmpty(val: any): boolean {
   if (!val) return true;
   if (Array.isArray(val)) return val.length === 0;
   if (typeof val === "object") return Object.keys(val).length === 0;
   return false;
-}
-async function getBase64FromUrl(url: string): Promise<string> {
-  const res = await fetch(url);
-  const arrayBuffer = await res.arrayBuffer(); // ✅ Node-safe
-  const base64 = Buffer.from(arrayBuffer).toString("base64");
-
-  return `data:image/png;base64,${base64}`;
 }
 export async function generatePDFBuffer(user: any) {
   const {
@@ -42,8 +42,7 @@ const capitalize = (str: string) => {
     .join(" ");
 };
   const isPermanent = basic?.type === "permanent";
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const logoBase64 = await getBase64FromUrl(`${baseUrl}/logo.png`);
+ const logoBase64 = getLogoBase64();
   const doc = new jsPDF({ unit: "mm", format: "a4" });
 
   const PAGE_W = 210;

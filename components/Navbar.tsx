@@ -112,15 +112,37 @@ export default function Navbar() {
 
           <SheetContent side="right" className="w-[280px] px-2 py-4 gap-1">
             <div className="flex flex-col gap-6 mt-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className="text-primary font-medium text-center"
-                >
-                  {link.name}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const isLoggedIn = user?.loggedIn;
+                const isAdmin = user?.role === "admin";
+
+                // Not logged in users
+                if (!isLoggedIn) {
+                  if (link.name === "Dashboard" || link.name === "Admin") {
+                    return null;
+                  }
+                }
+
+                // Admin-only logic
+                if (link.name === "Admin" && !isAdmin) {
+                  return null;
+                }
+
+                // Hide Dashboard for admin (your rule)
+                if (link.name === "Dashboard" && isAdmin) {
+                  return null;
+                }
+
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className="text-primary font-medium text-center"
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
             </div>
             {user.loggedIn == false && (
               <>
@@ -142,3 +164,4 @@ export default function Navbar() {
     </div>
   );
 }
+
