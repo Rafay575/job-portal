@@ -103,6 +103,7 @@ const emptyEducation = (): EducationEntry => ({
   registrationNumber: "",
   registrationExpiry: "",
   certificateFile: null,
+  existingCertificateFile: null
 });
 
 const emptyGap = (): GapEntry8 => ({
@@ -230,7 +231,6 @@ function SortableCard(props: CardProps) {
             </Label>
             <Input
               className="mt-2"
-             
               value={entry.qualificationTitle}
               onChange={(e) =>
                 onUpdateEducation(
@@ -249,7 +249,6 @@ function SortableCard(props: CardProps) {
             </Label>
             <Input
               className="mt-2"
-             
               value={entry.institutionName}
               onChange={(e) =>
                 onUpdateEducation(entry.id, "institutionName", e.target.value)
@@ -264,7 +263,6 @@ function SortableCard(props: CardProps) {
             </Label>
             <Input
               className="mt-2"
-              
               value={entry.institutionCountry}
               onChange={(e) =>
                 onUpdateEducation(
@@ -283,7 +281,6 @@ function SortableCard(props: CardProps) {
             </Label>
             <Input
               className="mt-2"
-            
               value={entry.awardingBody}
               onChange={(e) =>
                 onUpdateEducation(entry.id, "awardingBody", e.target.value)
@@ -298,7 +295,6 @@ function SortableCard(props: CardProps) {
             </Label>
             <Input
               className="mt-2"
-             
               value={entry.gradeOrResult}
               onChange={(e) =>
                 onUpdateEducation(entry.id, "gradeOrResult", e.target.value)
@@ -398,7 +394,6 @@ function SortableCard(props: CardProps) {
                 </Label>
                 <Input
                   className="mt-2"
-                  
                   value={entry.registrationBody}
                   onChange={(e) =>
                     onUpdateEducation(
@@ -413,7 +408,6 @@ function SortableCard(props: CardProps) {
                 <Label className="text-sm">Registration Number *</Label>
                 <Input
                   className="mt-2"
-                  
                   value={entry.registrationNumber}
                   onChange={(e) =>
                     onUpdateEducation(
@@ -454,6 +448,16 @@ function SortableCard(props: CardProps) {
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={(e) => {
                   const file = e.target.files?.[0] ?? null;
+
+                  // 👇 Save existing path before overwriting with new File
+                  if (file && typeof entry.certificateFile === "string") {
+                    onUpdateEducation(
+                      entry.id,
+                      "existingCertificateFile",
+                      entry.certificateFile,
+                    );
+                  }
+
                   onUpdateEducation(entry.id, "certificateFile", file);
                 }}
               />
@@ -487,7 +491,6 @@ function SortableCard(props: CardProps) {
             <Label className="text-sm">Additional Notes (optional)</Label>
             <Textarea
               className="mt-2"
-              
               value={entry.additionalNotes}
               onChange={(e) =>
                 onUpdateEducation(entry.id, "additionalNotes", e.target.value)
@@ -530,7 +533,6 @@ function SortableCard(props: CardProps) {
               className="mt-2 min-h-[90px]"
               value={entry.reason}
               onChange={(e) => onUpdateGap(entry.id, "reason", e.target.value)}
-              
             />
           </div>
         </div>

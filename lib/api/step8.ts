@@ -1,5 +1,5 @@
 export type TimelineItem = {
-  id?: number;  // Add id for tracking
+  id?: number; // Add id for tracking
   kind: "education" | "gap";
 
   // education
@@ -11,12 +11,13 @@ export type TimelineItem = {
   gradeOrResult?: string;
   startDate?: string;
   endDate?: string;
-  completed?: "yes" | "no";  // Change to "yes" | "no"
-  hasProfessionalRegistration?: "yes" | "no";  // Change to "yes" | "no"
+  completed?: "yes" | "no"; // Change to "yes" | "no"
+  hasProfessionalRegistration?: "yes" | "no"; // Change to "yes" | "no"
   registrationBody?: string;
   registrationNumber?: string;
   registrationExpiry?: string;
-  certificateFile?: string | File | null;  // Allow File or string
+  certificateFile?: string | File | null; // Allow File or string
+  existingCertificateFile?: string | null;
   additionalNotes?: string;
 
   // gap
@@ -27,7 +28,9 @@ export type TimelineItem = {
 
 export async function getTimeline(userId: any) {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/step8?userId=${userId}`);
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/step8?userId=${userId}`,
+    );
 
     const data = await res.json();
 
@@ -47,7 +50,10 @@ export async function getTimeline(userId: any) {
   }
 }
 
-export async function saveTimeline(userId: number | string, timeline: TimelineItem[]) {
+export async function saveTimeline(
+  userId: number | string,
+  timeline: TimelineItem[],
+) {
   try {
     const formData = new FormData();
 
@@ -57,28 +63,67 @@ export async function saveTimeline(userId: number | string, timeline: TimelineIt
       formData.append(`timeline[${i}][kind]`, item.kind);
 
       if (item.kind === "education") {
-        formData.append(`timeline[${i}][qualificationType]`, item.qualificationType || "");
-        formData.append(`timeline[${i}][qualificationTitle]`, item.qualificationTitle || "");
-        formData.append(`timeline[${i}][institutionName]`, item.institutionName || "");
-        formData.append(`timeline[${i}][institutionCountry]`, item.institutionCountry || "");
-        formData.append(`timeline[${i}][awardingBody]`, item.awardingBody || "");
-        formData.append(`timeline[${i}][gradeOrResult]`, item.gradeOrResult || "");
+        formData.append(
+          `timeline[${i}][qualificationType]`,
+          item.qualificationType || "",
+        );
+        formData.append(
+          `timeline[${i}][qualificationTitle]`,
+          item.qualificationTitle || "",
+        );
+        formData.append(
+          `timeline[${i}][institutionName]`,
+          item.institutionName || "",
+        );
+        formData.append(
+          `timeline[${i}][institutionCountry]`,
+          item.institutionCountry || "",
+        );
+        formData.append(
+          `timeline[${i}][awardingBody]`,
+          item.awardingBody || "",
+        );
+        formData.append(
+          `timeline[${i}][gradeOrResult]`,
+          item.gradeOrResult || "",
+        );
         formData.append(`timeline[${i}][startDate]`, item.startDate || "");
         formData.append(`timeline[${i}][endDate]`, item.endDate || "");
         formData.append(`timeline[${i}][completed]`, item.completed || "yes");
-        formData.append(`timeline[${i}][hasProfessionalRegistration]`, item.hasProfessionalRegistration || "no");
-        formData.append(`timeline[${i}][registrationBody]`, item.registrationBody || "");
-        formData.append(`timeline[${i}][registrationNumber]`, item.registrationNumber || "");
-        formData.append(`timeline[${i}][registrationExpiry]`, item.registrationExpiry || "");
-        formData.append(`timeline[${i}][additionalNotes]`, item.additionalNotes || "");
+        formData.append(
+          `timeline[${i}][hasProfessionalRegistration]`,
+          item.hasProfessionalRegistration || "no",
+        );
+        formData.append(
+          `timeline[${i}][registrationBody]`,
+          item.registrationBody || "",
+        );
+        formData.append(
+          `timeline[${i}][registrationNumber]`,
+          item.registrationNumber || "",
+        );
+        formData.append(
+          `timeline[${i}][registrationExpiry]`,
+          item.registrationExpiry || "",
+        );
+        formData.append(
+          `timeline[${i}][additionalNotes]`,
+          item.additionalNotes || "",
+        );
 
         // ✅ FILE HANDLING
         if (item.certificateFile instanceof File) {
           formData.append(`certificate_${i}`, item.certificateFile);
-        }
-
-        // ✅ KEEP OLD FILE
-        if (typeof item.certificateFile === "string") {
+          if (item.existingCertificateFile) {
+            formData.append(
+              `existing_certificate_${i}`,
+              item.existingCertificateFile,
+            );
+          }
+        } else if (
+          typeof item.certificateFile === "string" &&
+          item.certificateFile
+        ) {
           formData.append(`existing_certificate_${i}`, item.certificateFile);
         }
       }

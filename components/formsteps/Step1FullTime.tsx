@@ -78,7 +78,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
     previousName: "",
     changedTo: "",
     userId: user.id,
-    cvFile: "",
+    cvFile: null,
   });
 
   const handleChange = <K extends keyof Step1FullTimeType>(
@@ -231,7 +231,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
           nameChanged: Boolean(d.name_changed),
           previousName: d.previous_name || "",
           changedTo: d.changed_to || "",
-          cvFile: "",
+          cvFile: null,
         });
         setExistingCV(d.cv_file_path);
       }
@@ -449,7 +449,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
             <p className="text-sm text-muted-foreground">
               {formData.cvFile
-                ? `Selected: ${formData.cvFile.name}`
+                ? `Selected: ${(formData.cvFile as File).name}` // ← Now type-safe
                 : "Click or drag your CV here (PDF, DOC, DOCX – Max 5MB)"}
             </p>
           </div>

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
 import path from "path";
 import pool from "@/lib/db";
 import {
   sendApprovalPendingEmail,
   sendFormSubmissionEmail,
 } from "@/lib/mailer";
+import { writeFile, unlink } from "fs/promises";
 
 // Get Step1
 export async function GET(req: NextRequest) {
@@ -104,29 +104,9 @@ export async function POST(req: NextRequest) {
 
     const file = formData.get("cvFile") as File | null;
 
-    // ✅ ALLOWED FILE TYPES
-    const allowedTypes = [
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ];
-
-    // ✅ MAX SIZE = 5MB
-    const MAX_SIZE = 5 * 1024 * 1024;
-
+    let filePath: string | null = null;
     if (file && file.size > 0) {
-      // ✅ Validate file type
-      if (!allowedTypes.includes(file.type)) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Only PDF, DOC and DOCX are allowed",
-          },
-          { status: 400 },
-        );
-      }
-
-      // ✅ Validate file size
+      const MAX_SIZE = 5 * 1024 * 1024;
       if (file.size > MAX_SIZE) {
         return NextResponse.json(
           {
@@ -136,16 +116,11 @@ export async function POST(req: NextRequest) {
           { status: 400 },
         );
       }
-    }
-
-    // 📁 FILE UPLOAD
-    let filePath: string | null = null;
-
-    if (file && file.size > 0) {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
       const uploadDir = path.join(process.cwd(), "public/uploads");
-      const fileName = `${Date.now()}hayaibudocs`;
+      const safeName = file.name.replace(/\s+/g, "_").toLowerCase();
+      const fileName = `${Date.now()}-${safeName}`;
       const fullPath = path.join(uploadDir, fileName);
       await writeFile(fullPath, buffer);
       filePath = `/uploads/${fileName}`;
@@ -160,6 +135,25 @@ export async function POST(req: NextRequest) {
     // 🟢 IF EXISTS → UPDATE
     if (existing.length > 0) {
       const id = existing[0].id;
+
+      // 🗑️ If a new CV is uploaded, delete the old one first
+      if (filePath) {
+        const [cvRow]: any = await pool.execute(
+          `SELECT cv_file_path FROM employee_basic_information WHERE id = ?`,
+          [id],
+        );
+
+        const oldCvPath = cvRow?.[0]?.cv_file_path;
+
+        if (oldCvPath) {
+          const oldFullPath = path.join(process.cwd(), "public", oldCvPath);
+          try {
+            await unlink(oldFullPath);
+          } catch (err) {
+            console.error("Failed to delete old CV file:", err);
+          }
+        }
+      }
 
       // 🔍 Get current type before update
       const [currentRows]: any = await pool.execute(
@@ -208,10 +202,12 @@ export async function POST(req: NextRequest) {
         ],
       );
 
-      await pool.execute(
-        `UPDATE users SET is_approved = 'pending' WHERE id = ?`,
-        [userId],
-      );
+      if (typeChanged) {
+        await pool.execute(
+          `UPDATE users SET is_approved = 'pending' WHERE id = ?`,
+          [userId],
+        );
+      }
 
       if (
         typeChanged &&

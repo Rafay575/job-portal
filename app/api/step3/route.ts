@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
+import { writeFile,unlink } from "fs/promises";
 import path from "path";
 import pool from "@/lib/db";
 
@@ -75,16 +75,31 @@ export async function POST(req: NextRequest) {
     }
 
     // 🔹 Boolean fields
-    const hasConvictions = formData.get("hasConvictions") === "true" ? 1 : 0;
-    const hasUnspentConvictions = formData.get("hasUnspentConvictions") === "true" ? 1 : 0;
-    const fitnessInvestigation = formData.get("fitnessInvestigation") === "true" ? 1 : 0;
-    const removedFromRegister = formData.get("removedFromRegister") === "true" ? 1 : 0;
+    const hasConvictions =
+      formData.get("hasConvictions") === "true" ? 1 : 0;
+
+    const hasUnspentConvictions =
+      formData.get("hasUnspentConvictions") === "true" ? 1 : 0;
+
+    const fitnessInvestigation =
+      formData.get("fitnessInvestigation") === "true" ? 1 : 0;
+
+    const removedFromRegister =
+      formData.get("removedFromRegister") === "true" ? 1 : 0;
+
     const crb = formData.get("crb") === "true" ? 1 : 0;
 
     // 🔹 Text fields
-    const convictionDetails = formData.get("convictionDetails") as string;
-    const unspentDetails = formData.get("unspentDetails") as string;
+    const convictionDetails = formData.get(
+      "convictionDetails"
+    ) as string;
+
+    const unspentDetails = formData.get(
+      "unspentDetails"
+    ) as string;
+
     const surname = formData.get("surname") as string;
+
     const dob = formData.get("dob") as string;
 
     const file = formData.get("crbFile") as File | null;
@@ -95,11 +110,34 @@ export async function POST(req: NextRequest) {
     let filePath: string | null = null;
 
     if (file && file.size > 0) {
+      // 🔹 File size validation
+      const MAX_SIZE = 5 * 1024 * 1024;
+
+      if (file.size > MAX_SIZE) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "File size must be maximum 5MB",
+          },
+          { status: 400 }
+        );
+      }
+
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
-      const uploadDir = path.join(process.cwd(), "public/uploads");
-      const fileName = `${Date.now()}-${file.name}`;
+      const uploadDir = path.join(
+        process.cwd(),
+        "public/uploads"
+      );
+
+      // 🔹 Safe filename
+      const safeName = file.name
+        .replace(/\s+/g, "_")
+        .toLowerCase();
+
+      const fileName = `${Date.now()}-${safeName}`;
+
       const fullPath = path.join(uploadDir, fileName);
 
       await writeFile(fullPath, buffer);
@@ -120,6 +158,33 @@ export async function POST(req: NextRequest) {
     // =========================
     if (existing.length > 0) {
       const id = existing[0].id;
+
+      // 🗑️ Delete old file if new one uploaded
+      if (filePath) {
+        const [fileRow]: any = await pool.execute(
+          `SELECT crb_file_path FROM employee_background WHERE id = ?`,
+          [id]
+        );
+
+        const oldFilePath = fileRow?.[0]?.crb_file_path;
+
+        if (oldFilePath) {
+          const oldFullPath = path.join(
+            process.cwd(),
+            "public",
+            oldFilePath
+          );
+
+          try {
+            await unlink(oldFullPath);
+          } catch (err) {
+            console.error(
+              "Failed to delete old CRB file:",
+              err
+            );
+          }
+        }
+      }
 
       await pool.execute(
         `
@@ -198,7 +263,6 @@ export async function POST(req: NextRequest) {
       message: "Step 3 submitted successfully",
       mode: "create",
     });
-
   } catch (error) {
     console.error("API Error:", error);
 

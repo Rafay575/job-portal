@@ -2,23 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import fs from "fs";
 import path from "path";
-
+import { writeFile, unlink } from "fs/promises";
 const uploadDir = path.join(process.cwd(), "public/uploads");
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-async function saveFile(file: File) {
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
-  const fileName = `${Date.now()}-${file.name}`;
-  const filePath = path.join(uploadDir, fileName);
-
-  fs.writeFileSync(filePath, buffer);
-
-  return `/uploads/${fileName}`; // store THIS in DB
 }
 
 // Helper function to convert DB record to frontend format
@@ -38,7 +26,7 @@ function dbToFrontend(dbRecord: any) {
       registrationExpiry: dbRecord.registration_expiry || "",
       completed: dbRecord.completed === 1 ? "yes" : "no",
       hasProfessionalRegistration:
-      dbRecord.has_professional_registration === 1 ? "yes" : "no",
+        dbRecord.has_professional_registration === 1 ? "yes" : "no",
       registrationBody: dbRecord.registration_body,
       registrationNumber: dbRecord.registration_number,
       certificateFile: dbRecord.certificate_file,
@@ -122,7 +110,7 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
 
-    const userId = formData.get("userId") as string;
+    const userId = Number(formData.get("userId"));
 
     if (!userId) {
       return NextResponse.json(
@@ -130,7 +118,37 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
- 
+
+    const uploadDir = path.join(process.cwd(), "public/uploads");
+
+    // =========================
+    // 📁 SAFE FILE UPLOAD
+    // =========================
+    const saveFile = async (file: File | null) => {
+      if (!file || file.size === 0) return null;
+
+      // 🔹 validation
+      const MAX_SIZE = 5 * 1024 * 1024;
+
+      if (file.size > MAX_SIZE) {
+        throw new Error("File size must be maximum 5MB");
+      }
+
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+
+      // 🔹 safe name
+      const safeName = file.name.replace(/\s+/g, "_").toLowerCase();
+
+      const fileName = `${Date.now()}-${safeName}`;
+
+      const fullPath = path.join(uploadDir, fileName);
+
+      await writeFile(fullPath, buffer);
+
+      return `/uploads/${fileName}`;
+    };
+
     const conn = await pool.getConnection();
 
     try {
@@ -138,12 +156,11 @@ export async function POST(req: NextRequest) {
 
       // 🧹 DELETE OLD DATA
       await conn.execute(`DELETE FROM employee_educations WHERE user_id = ?`, [
-        parseInt(userId),
+        userId,
       ]);
 
       let i = 0;
 
-      // 🔁 LOOP THROUGH FORM DATA
       while (formData.get(`timeline[${i}][kind]`)) {
         const kind = formData.get(`timeline[${i}][kind]`) as string;
 
@@ -152,42 +169,62 @@ export async function POST(req: NextRequest) {
         // =========================
         if (kind === "education") {
           const file = formData.get(`certificate_${i}`) as File | null;
+
           const existingFile = formData.get(`existing_certificate_${i}`) as
             | string
             | null;
 
-          let filePath = existingFile || null;
+          let filePath: string | null = existingFile || null;
 
-          // ✅ If new file uploaded → replace
+          // =========================
+          // 🗑️ DELETE OLD FILE IF NEW UPLOADED
+          // =========================
           if (file && file.size > 0) {
+            if (existingFile) {
+              const oldFullPath = path.join(
+                process.cwd(),
+                "public",
+                existingFile,
+              );
+
+              try {
+                await unlink(oldFullPath);
+              } catch (err) {
+                console.error("Failed to delete old file:", err);
+              }
+            }
+
+            // =========================
+            // 📁 UPLOAD NEW FILE
+            // =========================
             filePath = await saveFile(file);
           }
 
           await conn.execute(
             `
-            INSERT INTO employee_educations (
-              user_id,
-              entry_type,
-              sort_order,
-              qualification_type,
-              qualification_title,
-              institution_name,
-              institution_country,
-              awarding_body,
-              grade_or_result,
-              start_date,
-              end_date,
-              completed,
-              has_professional_registration,
-              registration_body,
-              registration_number,
-              registration_expiry,
-              certificate_file,
-              additional_notes
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            `,
+    INSERT INTO employee_educations (
+      user_id,
+      entry_type,
+      sort_order,
+      qualification_type,
+      qualification_title,
+      institution_name,
+      institution_country,
+      awarding_body,
+      grade_or_result,
+      start_date,
+      end_date,
+      completed,
+      has_professional_registration,
+      registration_body,
+      registration_number,
+      registration_expiry,
+      certificate_file,
+      additional_notes
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    `,
             [
-              parseInt(userId),
+              userId,
               "education",
               i + 1,
 
@@ -232,12 +269,13 @@ export async function POST(req: NextRequest) {
             ) VALUES (?,?,?,?,?,?)
             `,
             [
-              parseInt(userId),
+              userId,
               "gap",
               i + 1,
-
               formData.get(`timeline[${i}][gapFrom]`) || null,
+
               formData.get(`timeline[${i}][gapTo]`) || null,
+
               formData.get(`timeline[${i}][reason]`) || null,
             ],
           );
@@ -258,8 +296,15 @@ export async function POST(req: NextRequest) {
     } finally {
       conn.release();
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("POST ERROR:", error);
+
+    if (error.message?.includes("File size")) {
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 400 },
+      );
+    }
 
     return NextResponse.json(
       { success: false, message: "Server error" },
