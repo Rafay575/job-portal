@@ -57,13 +57,21 @@ export async function POST(req: Request) {
 
     await connection.beginTransaction();
 
-    // 🔥 STEP 1: DELETE OLD RECORDS (if any exist)
+    // ✅ CHECK EXISTING RECORDS
+    const [existingRows]: any = await connection.execute(
+      `SELECT id FROM employee_trainings WHERE user_id = ? LIMIT 1`,
+      [userId],
+    );
+
+    const isUpdate = existingRows.length > 0;
+
+    // ✅ DELETE OLD RECORDS
     await connection.execute(
       `DELETE FROM employee_trainings WHERE user_id = ?`,
       [userId],
     );
 
-    // 🔥 STEP 2: INSERT NEW DATA
+    // ✅ INSERT NEW RECORDS
     if (trainings.length > 0) {
       for (const item of trainings) {
         await connection.execute(
@@ -87,7 +95,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Trainings submitted successfully",
+      message: isUpdate
+        ? "Trainings updated successfully"
+        : "Trainings submitted successfully",
     });
   } catch (err) {
     await connection.rollback();

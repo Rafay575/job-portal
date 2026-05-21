@@ -16,6 +16,7 @@ import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
 import { checkApproval } from "@/lib/users";
+import { IoRefresh } from "react-icons/io5";
 
 type NavProps = {
   onNext: () => void;
@@ -97,7 +98,6 @@ export default function Step4({ next, back }: Props) {
 
       if (!isApproved) {
         setBlur(true);
-        
       }
     };
 
@@ -205,10 +205,8 @@ export default function Step4({ next, back }: Props) {
             <div>
               <Label>Currently taking medication?</Label>
               <RadioGroup
-                 value={
-                  formData.onMedication === null
-                    ? undefined
-                    : formData.onMedication
+                value={
+                  formData.onMedication
                       ? "yes"
                       : "no"
                 }
@@ -245,10 +243,8 @@ export default function Step4({ next, back }: Props) {
             <div>
               <Label>Physical or mental health treatment?</Label>
               <RadioGroup
-                 value={
-                  formData.healthTreatment === null
-                    ? undefined
-                    : formData.healthTreatment
+                value={
+                  formData.healthTreatment
                       ? "yes"
                       : "no"
                 }
@@ -287,10 +283,8 @@ export default function Step4({ next, back }: Props) {
             <div>
               <Label>Any injury / condition / allergy affecting duties?</Label>
               <RadioGroup
-                 value={
-                  formData.medicalCondition === null
-                    ? undefined
-                    : formData.medicalCondition
+                value={
+                  formData.medicalCondition
                       ? "yes"
                       : "no"
                 }
@@ -329,10 +323,8 @@ export default function Step4({ next, back }: Props) {
             <div>
               <Label>Do you consider yourself disabled?</Label>
               <RadioGroup
-                 value={
-                  formData.disabled === null
-                    ? undefined
-                    : formData.disabled
+                value={
+                  formData.disabled
                       ? "yes"
                       : "no"
                 }
@@ -366,13 +358,11 @@ export default function Step4({ next, back }: Props) {
           <div>
             <Label>Medical fit for Night Shift?</Label>
             <RadioGroup
-               value={
-                  formData.nightShiftFit === null
-                    ? undefined
-                    : formData.nightShiftFit
-                      ? "yes"
-                      : "no"
-                }
+              value={
+                formData.nightShiftFit
+                    ? "yes"
+                    : "no"
+              }
               onValueChange={(v) => handleChange("nightShiftFit", v === "yes")}
             >
               <div className="flex gap-4 mt-2">
@@ -390,7 +380,7 @@ export default function Step4({ next, back }: Props) {
 
       {/* Overlay */}
       {blur && (
-        <div className="absolute inset-0 flex items-center justify-center  z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
           <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
             <h2 className="text-lg font-semibold mb-2">
               Appliaction Approval Pending
@@ -401,12 +391,24 @@ export default function Step4({ next, back }: Props) {
             </p>
 
             {/* Optional action */}
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-1 bg-primary text-white rounded-full"
-            >
-              Refresh
-            </button>
+            <div className="flex justify-evenly items-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={back}
+                className="rounded-full"
+              >
+                <IoIosArrowBack />
+                Back
+              </Button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-1 bg-primary text-white rounded-full text-[15px] flex gap-1 items-center"
+              >
+                <IoRefresh className="size-5 mb-0.5" />
+                Refresh
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -69,6 +69,13 @@ export async function POST(req: Request) {
 
     const response = NextResponse.json({
       message: "Account verified successfully",
+
+      user: {
+        id: result.insertId,
+        name,
+        email,
+        role: "user",
+      },
     });
 
     response.cookies.set("token", token, {

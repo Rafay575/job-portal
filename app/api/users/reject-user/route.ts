@@ -16,7 +16,17 @@ export async function POST(req: NextRequest) {
 
     // ✅ fetch user from DB
     const [rows]: any = await pool.execute(
-      `SELECT name, email, is_approved FROM users WHERE id = ?`,
+      `
+  SELECT 
+    u.name,
+    u.email,
+    u.is_approved,
+    e.type
+  FROM users u
+  LEFT JOIN employee_basic_information e
+    ON e.user_id = u.id
+  WHERE u.id = ?
+  `,
       [id],
     );
 
@@ -44,9 +54,10 @@ export async function POST(req: NextRequest) {
     );
 
     // ✅ send rejection email
+    console.log("user.email: ", user.email);
 
     try {
-      await sendUserRejectionEmail(user.email, user.name);
+      await sendUserRejectionEmail(user.email, user.name, user.type);
     } catch (error) {
       console.error("Failed to send Form approval rejected email");
       return NextResponse.json(
@@ -80,8 +91,20 @@ export async function PATCH(req: NextRequest) {
     }
 
     // ✅ fetch users
+
     const [users]: any = await pool.execute(
-      `SELECT id, name, email, is_approved FROM users WHERE id IN (${ids.map(() => "?").join(",")})`,
+      `
+  SELECT 
+    u.id,
+    u.name,
+    u.email,
+    u.is_approved,
+    e.type
+  FROM users u
+  LEFT JOIN employee_basic_information e
+    ON e.user_id = u.id
+  WHERE u.id IN (${ids.map(() => "?").join(",")})
+  `,
       ids,
     );
 
@@ -103,7 +126,7 @@ export async function PATCH(req: NextRequest) {
     await Promise.all(
       users.map(async (user: any) => {
         try {
-          sendUserRejectionEmail(user.email, user.name);
+          sendUserRejectionEmail(user.email, user.name, user.type);
         } catch (err) {
           console.error(
             `Failed to send Form approval rejected email ${user.email}`,

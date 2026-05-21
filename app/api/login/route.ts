@@ -54,14 +54,14 @@ export async function POST(req: Request) {
       },
     });
 
- response.cookies.set("token", token, {
+    response.cookies.set("token", token, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
     });
-
+    
     return response;
   } catch (error) {
     console.error(error);

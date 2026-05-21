@@ -23,7 +23,6 @@ function dbToFrontend(row: any) {
   };
 }
 
-
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -32,7 +31,7 @@ export async function GET(req: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         { success: false, message: "userId is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -63,7 +62,7 @@ export async function GET(req: NextRequest) {
         WHERE user_id = ?
         ORDER BY sort_order ASC
         `,
-        [parseInt(userId)]
+        [parseInt(userId)],
       );
 
       const timeline = rows.map(dbToFrontend);
@@ -73,7 +72,7 @@ export async function GET(req: NextRequest) {
       // =========================
       const [areaRows]: any = await conn.execute(
         `SELECT * FROM employee_experience_areas WHERE user_id = ?`,
-        [userId]
+        [userId],
       );
 
       let areas: string[] = [];
@@ -112,7 +111,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       { success: false, message: "Server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -125,7 +124,7 @@ export async function POST(req: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         { success: false, message: "userId required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -134,13 +133,20 @@ export async function POST(req: NextRequest) {
     try {
       await conn.beginTransaction();
 
+      let isUpdate = false;
+      const [existingExperience]: any = await conn.execute(
+        `SELECT id FROM employee_experience WHERE user_id = ? LIMIT 1`,
+        [userId],
+      );
+      if (existingExperience.length > 0) {
+        isUpdate = true;
+      }
       // =========================
       // 🧹 DELETE OLD TIMELINE ONLY
       // =========================
-      await conn.execute(
-        `DELETE FROM employee_experience WHERE user_id = ?`,
-        [userId]
-      );
+      await conn.execute(`DELETE FROM employee_experience WHERE user_id = ?`, [
+        userId,
+      ]);
 
       // =========================
       // 🟢 UPDATE AREA (SINGLE ROW)
@@ -152,17 +158,21 @@ export async function POST(req: NextRequest) {
 
         const areaFlags = {
           mental_health: areas.includes("Mental Health") ? 1 : 0,
-          learning_disabilities: areas.includes("Learning Disabilities") ? 1 : 0,
+          learning_disabilities: areas.includes("Learning Disabilities")
+            ? 1
+            : 0,
           drug_and_alcohol: areas.includes("Drug & Alcohol") ? 1 : 0,
           housing: areas.includes("Housing") ? 1 : 0,
           elderly: areas.includes("Elderly") ? 1 : 0,
-          children_young_people: areas.includes("Children/Young People") ? 1 : 0,
+          children_young_people: areas.includes("Children/Young People")
+            ? 1
+            : 0,
         };
 
         // Check if row exists
         const [existing]: any = await conn.execute(
           `SELECT id FROM employee_experience_areas WHERE user_id = ?`,
-          [userId]
+          [userId],
         );
 
         if (existing.length > 0) {
@@ -185,7 +195,7 @@ export async function POST(req: NextRequest) {
               areaFlags.elderly,
               areaFlags.children_young_people,
               userId,
-            ]
+            ],
           );
         } else {
           // INSERT
@@ -207,7 +217,7 @@ export async function POST(req: NextRequest) {
               areaFlags.housing,
               areaFlags.elderly,
               areaFlags.children_young_people,
-            ]
+            ],
           );
         }
       }
@@ -241,7 +251,7 @@ export async function POST(req: NextRequest) {
               formData.get(`timeline[${i}][duties]`) || null,
               formData.get(`timeline[${i}][dateFrom]`) || null,
               formData.get(`timeline[${i}][dateTo]`) || null,
-            ]
+            ],
           );
         }
 
@@ -262,7 +272,7 @@ export async function POST(req: NextRequest) {
               formData.get(`timeline[${i}][gapFrom]`) || null,
               formData.get(`timeline[${i}][gapTo]`) || null,
               formData.get(`timeline[${i}][reason]`) || null,
-            ]
+            ],
           );
         }
 
@@ -273,7 +283,9 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: "Step 9 saved successfully",
+        message: isUpdate
+          ? "Experience form updated successfully"
+          : "Experience form submitted successfully",
       });
     } catch (err) {
       await conn.rollback();
@@ -286,7 +298,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       { success: false, message: "Server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

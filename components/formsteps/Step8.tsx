@@ -38,6 +38,7 @@ import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
 import { checkApproval } from "@/lib/users";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { IoRefresh } from "react-icons/io5";
 
 // ─── Nav Buttons ──────────────────────────────────────────────────────────────
 
@@ -103,7 +104,7 @@ const emptyEducation = (): EducationEntry => ({
   registrationNumber: "",
   registrationExpiry: "",
   certificateFile: null,
-  existingCertificateFile: null
+  existingCertificateFile: null,
 });
 
 const emptyGap = (): GapEntry8 => ({
@@ -338,7 +339,7 @@ function SortableCard(props: CardProps) {
             </Label>
             <div className="mt-2">
               <RadioGroup
-                value={entry.completed ?? ""} // 👈 handles null/undefined
+                value={entry.completed ? "yes":"no"} // 👈 handles null/undefined
                 onValueChange={(value: "yes" | "no") =>
                   onUpdateEducation(entry.id, "completed", value)
                 }
@@ -359,12 +360,17 @@ function SortableCard(props: CardProps) {
           {/* Professional Registration */}
           <div>
             <Label className="text-sm">
-              Professional Registration / Licence?
+              Professional Registration / Licence?<span className="text-red-500">*</span>
             </Label>
 
             <div className="mt-2">
               <RadioGroup
-                value={entry.hasProfessionalRegistration ?? ""} // 👈 handles null
+                
+                value={
+              entry.hasProfessionalRegistration
+                  ? "yes"
+                  : "no"
+            } // 👈 handles null
                 onValueChange={(value: "yes" | "no") =>
                   onUpdateEducation(
                     entry.id,
@@ -445,7 +451,7 @@ function SortableCard(props: CardProps) {
             <div className="mt-2 border rounded-xl p-3">
               <input
                 type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                 onChange={(e) => {
                   const file = e.target.files?.[0] ?? null;
 
@@ -757,7 +763,6 @@ export default function Step8({ next, back }: Props) {
 
       await saveTimeline(user.id, timeline);
 
-      toast.success("Timeline saved successfully!");
       return true;
     } catch (err) {
       console.error("Save failed", err);
@@ -893,7 +898,7 @@ export default function Step8({ next, back }: Props) {
 
       {/* Overlay */}
       {blur && (
-        <div className="absolute inset-0 flex items-center justify-center  z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
           <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
             <h2 className="text-lg font-semibold mb-2">
               Appliaction Approval Pending
@@ -904,12 +909,24 @@ export default function Step8({ next, back }: Props) {
             </p>
 
             {/* Optional action */}
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-1 bg-primary text-white rounded-full"
-            >
-              Refresh
-            </button>
+            <div className="flex justify-evenly items-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={back}
+                className="rounded-full"
+              >
+                <IoIosArrowBack />
+                Back
+              </Button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-1 bg-primary text-white rounded-full text-[15px] flex gap-1 items-center"
+              >
+                <IoRefresh className="size-5 mb-0.5" />
+                Refresh
+              </button>
+            </div>
           </div>
         </div>
       )}

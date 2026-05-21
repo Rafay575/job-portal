@@ -1,6 +1,6 @@
 import pool from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-import { sendUserApprovalEmail } from "@/lib/mailer";
+
 
 
 //🗑️ SINGLE DELETE USER (DELETE)

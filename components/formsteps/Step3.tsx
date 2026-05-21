@@ -17,6 +17,7 @@ import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
 import { checkApproval } from "@/lib/users";
+import { IoRefresh } from "react-icons/io5";
 
 type NavProps = {
   onNext: () => void;
@@ -125,7 +126,6 @@ export default function Step3({ next, back }: Props) {
 
       if (!isApproved) {
         setBlur(true);
-        
       }
     };
 
@@ -214,17 +214,17 @@ export default function Step3({ next, back }: Props) {
 
   return (
     <div className="relative px-2">
-      <div className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}>
+      <div
+        className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
+      >
         <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
           {/* Convictions */}
           <div className="flex flex-col items-stretch gap-4">
             <div>
-              <Label>Any convictions?</Label>
+              <Label>Any convictions?<span className="text-red-500">*</span></Label>
               <RadioGroup
                 value={
-                  formData.hasConvictions === null
-                    ? undefined
-                    : formData.hasConvictions
+                  formData.hasConvictions
                       ? "yes"
                       : "no"
                 }
@@ -263,12 +263,10 @@ export default function Step3({ next, back }: Props) {
           {/* Unspent Convictions */}
           <div className="flex flex-col items-stretch gap-4">
             <div>
-              <Label>Any unspent convictions?</Label>
+              <Label>Any unspent convictions?<span className="text-red-500">*</span></Label>
               <RadioGroup
-                 value={
-                  formData.hasUnspentConvictions === null
-                    ? undefined
-                    : formData.hasUnspentConvictions
+                value={
+                  formData.hasUnspentConvictions
                       ? "yes"
                       : "no"
                 }
@@ -305,15 +303,13 @@ export default function Step3({ next, back }: Props) {
 
           {/* Fitness Investigation */}
           <div>
-            <Label>Currently under fitness to practice investigation?</Label>
+            <Label>Currently under fitness to practice investigation?<span className="text-red-500">*</span></Label>
             <RadioGroup
-               value={
-                  formData.fitnessInvestigation === null
-                    ? undefined
-                    : formData.fitnessInvestigation
-                      ? "yes"
-                      : "no"
-                }
+              value={
+                formData.fitnessInvestigation
+                    ? "yes"
+                    : "no"
+              }
               onValueChange={(v) =>
                 handleChange("fitnessInvestigation", v === "yes")
               }
@@ -329,15 +325,13 @@ export default function Step3({ next, back }: Props) {
 
           {/* Removed From Register */}
           <div>
-            <Label>Removed from professional register before?</Label>
+            <Label>Removed from professional register before?<span className="text-red-500">*</span></Label>
             <RadioGroup
-               value={
-                  formData.removedFromRegister === null
-                    ? undefined
-                    : formData.removedFromRegister
-                      ? "yes"
-                      : "no"
-                }
+              value={
+                formData.removedFromRegister
+                    ? "yes"
+                    : "no"
+              }
               onValueChange={(v) =>
                 handleChange("removedFromRegister", v === "yes")
               }
@@ -354,12 +348,10 @@ export default function Step3({ next, back }: Props) {
           {/* CRB */}
           <div className="flex flex-col items-stretch gap-4 md:col-span-2">
             <div>
-              <Label>Any CRB?</Label>
+              <Label>Any CRB?<span className="text-red-500">*</span></Label>
               <RadioGroup
-                 value={
-                  formData.crb === null
-                    ? undefined
-                    : formData.crb
+                value={
+                 formData.crb
                       ? "yes"
                       : "no"
                 }
@@ -395,7 +387,6 @@ export default function Step3({ next, back }: Props) {
                   <Input
                     value={formData.surname}
                     onChange={(e) => handleChange("surname", e.target.value)}
-                    
                   />
                 </div>
 
@@ -416,7 +407,7 @@ export default function Step3({ next, back }: Props) {
                   </Label>
                   <Input
                     type="file"
-                    accept=".pdf,.jpg,.png"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                     onChange={(e) => {
                       if (e.target.files && e.target.files.length > 0) {
                         handleChange("crbFile", e.target.files[0]);
@@ -442,7 +433,7 @@ export default function Step3({ next, back }: Props) {
 
       {/* Overlay */}
       {blur && (
-        <div className="absolute inset-0 flex items-center justify-center  z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
           <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
             <h2 className="text-lg font-semibold mb-2">
               Appliaction Approval Pending
@@ -453,12 +444,24 @@ export default function Step3({ next, back }: Props) {
             </p>
 
             {/* Optional action */}
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-1 bg-primary text-white rounded-full"
-            >
-              Refresh
-            </button>
+            <div className="flex justify-evenly items-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={back}
+                className="rounded-full"
+              >
+                <IoIosArrowBack />
+                Back
+              </Button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-1 bg-primary text-white rounded-full text-[15px] flex gap-1 items-center"
+              >
+                <IoRefresh className="size-5 mb-0.5" />
+                Refresh
+              </button>
+            </div>
           </div>
         </div>
       )}

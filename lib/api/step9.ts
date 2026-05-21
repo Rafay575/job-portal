@@ -1,3 +1,5 @@
+import toast from "react-hot-toast";
+
 export type Step9TimelineItem = {
   id?: number;
   kind: "experience" | "gap";
@@ -25,7 +27,9 @@ export type Step9Data = {
 // =========================
 export async function getStep9(userId: any): Promise<Step9Data> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/step9?userId=${userId}`);
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/step9?userId=${userId}`,
+    );
     const data = await res.json();
 
     if (!data.success) {
@@ -50,10 +54,7 @@ export async function getStep9(userId: any): Promise<Step9Data> {
 // =========================
 // SAVE STEP 9
 // =========================
-export async function saveStep9(
-  userId: number | string,
-  data: Step9Data
-) {
+export async function saveStep9(userId: number | string, data: Step9Data) {
   try {
     const formData = new FormData();
 
@@ -71,7 +72,10 @@ export async function saveStep9(
       formData.append(`timeline[${i}][kind]`, item.kind);
 
       if (item.kind === "experience") {
-        formData.append(`timeline[${i}][employerName]`, item.employerName || "");
+        formData.append(
+          `timeline[${i}][employerName]`,
+          item.employerName || "",
+        );
         formData.append(`timeline[${i}][jobTitle]`, item.jobTitle || "");
         formData.append(`timeline[${i}][duties]`, item.duties || "");
         formData.append(`timeline[${i}][dateFrom]`, item.dateFrom || "");
@@ -93,8 +97,12 @@ export async function saveStep9(
     const result = await res.json();
 
     if (!result.success) {
+      toast.error(result.message || "Save failed");
       throw new Error(result.message || "Save failed");
     }
+
+    // ✅ SUCCESS TOAST
+    toast.success(result.message);
 
     return result;
   } catch (error) {

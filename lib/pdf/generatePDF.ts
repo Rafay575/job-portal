@@ -28,18 +28,21 @@ export async function generatePDFBuffer(user: any) {
     statement,
     declaration,
   } = user;
-  const capitalize = (str: string) => {
-    if (!str) return "—";
+const capitalize = (str: string) => {
+  if (!str) return "—";
 
-    return str
-      .trim()
-      .split(" ")
-      .filter(Boolean)
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(" ");
-  };
+  return str
+    .trim()
+    .split(" ")
+    .filter(Boolean)
+    .map(
+      (word) =>
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    )
+    .join(" ");
+};
   const isPermanent = basic?.type === "permanent";
-  const logoBase64 = getLogoBase64();
+ const logoBase64 = getLogoBase64();
   const doc = new jsPDF({ unit: "mm", format: "a4" });
 
   const PAGE_W = 210;
@@ -94,12 +97,14 @@ export async function generatePDFBuffer(user: any) {
     doc.setFontSize(16);
     doc.setTextColor(96, 77, 227);
     doc.text("Applicant Details", LEFT, 60);
+    
 
     // ── Info Fields ──
     const infoFields = [
       {
         label: "Name",
-        value: capitalize(basic.full_name) || "—",
+        value: (capitalize(basic.full_name) || "—"), 
+       
       },
       { label: "Email", value: basic.email || "—" },
       { label: "Phone", value: basic.phone || "—" },
@@ -232,73 +237,6 @@ export async function generatePDFBuffer(user: any) {
     y += 5;
   }
 
-  // ── NEW: Link Button helper ───────────────────────────────────────────────
-  function linkButton(
-    label: string,
-    url: string | null | undefined,
-    x: number,
-  ) {
-    checkPageBreak(16);
-
-    // =========================
-    // LABEL
-    // =========================
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
-    doc.setTextColor(...LABEL_COL);
-    doc.text(label, x, y);
-    y += 2;
-
-    // =========================
-    // NO FILE CASE
-    // =========================
-    if (!url || url.includes("null") || url.includes("undefined")) {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(6);
-      doc.setTextColor(160, 160, 160);
-      doc.text("Not uploaded", x, y);
-      y += 2;
-      return;
-    }
-
-    checkPageBreak(12);
-
-    // =========================
-    // BUTTON SIZE (FIXED)
-    // =========================
-    const btnW = 15; // 🔥 wider (fix UI issue)
-    const btnH = 7; // 🔥 taller for better click feel
-    const radius = 1.5;
-
-    const safeUrl = url.startsWith("http") ? url : `https://${url}`;
-
-    // =========================
-    // BUTTON BACKGROUND
-    // =========================
-    doc.setFillColor(92, 74, 217);
-    doc.roundedRect(x, y, btnW, btnH, radius, radius, "F");
-
-    // =========================
-    // BUTTON TEXT (CENTER FIXED)
-    // =========================
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(6);
-    doc.setTextColor(255, 255, 255);
-
-    doc.text("View", x + btnW / 2, y + 4.6, {
-      align: "center",
-    });
-
-    // =========================
-    // CLICKABLE AREA (ONLY THIS IS VALID)
-    // =========================
-    doc.link(x, y, btnW, btnH, {
-      url: safeUrl,
-    });
-
-    y += btnH + 15;
-  }
-
   // ── Build PDF ─────────────────────────────────────────────────────────────
 
   drawCoverPage();
@@ -306,7 +244,7 @@ export async function generatePDFBuffer(user: any) {
   // Step 1 – Personal Info (always shown)
   sectionHeader("Step 1 – Personal Info");
   fieldGrid([
-    ["Full Name", capitalize(basic.full_name)],
+    ["Full Name",capitalize(basic.full_name)],
     ["Email", basic.email],
     ["Phone", basic.phone],
     ["Address", basic.address],
@@ -322,17 +260,17 @@ export async function generatePDFBuffer(user: any) {
           ["Changed To", basic.changed_to],
         ] as [string, string][])
       : []),
+    ...(basic.type !== "agency-work"
+      ? ([
+          [
+            "CV",
+            basic.cv_file_path
+              ? process.env.NEXT_PUBLIC_API_URL + basic.cv_file_path
+              : "Not uploaded",
+          ],
+        ] as [string, string][])
+      : []),
   ]);
-  // CV as button
-  if (basic.type !== "agency-work") {
-    linkButton(
-      "CV",
-      basic.cv_file_path
-        ? process.env.NEXT_PUBLIC_API_URL + basic.cv_file_path
-        : null,
-      MARGIN,
-    );
-  }
 
   if (!isPermanent) {
     // Step 2 – Pre-Qualifying
@@ -409,19 +347,14 @@ export async function generatePDFBuffer(user: any) {
           ? ([
               ["Surname", background.surname],
               ["Date of Birth", background.dob],
+              [
+                "CRB File",
+                process.env.NEXT_PUBLIC_API_URL + background.crb_file_path ||
+                  "Not uploaded",
+              ],
             ] as [string, string][])
           : []),
       ]);
-      // CRB file as button
-      if (background.crb) {
-        linkButton(
-          "CRB File",
-          background.crb_file_path
-            ? process.env.NEXT_PUBLIC_API_URL + background.crb_file_path
-            : null,
-          MARGIN,
-        );
-      }
     }
 
     // Step 4 – Health
@@ -493,9 +426,8 @@ export async function generatePDFBuffer(user: any) {
     }
 
     // Step 6 – Documents
-     divider();
+    divider();
     sectionHeader("Step 6 – Documents");
-
     if (isEmpty(documents)) {
       doc.setFont("helvetica", "italic");
       doc.setFontSize(9);
@@ -503,106 +435,30 @@ export async function generatePDFBuffer(user: any) {
       doc.text("⚠ Not submitted yet.", MARGIN, y);
       y += 8;
     } else {
-      const items = [
-        { label: "Passport", key: "passport" },
-        { label: "Driving Licence", key: "driving_licence" },
-        { label: "Proof ID 1", key: "proof_id1" },
-        { label: "Proof ID 2", key: "proof_id2" },
-      ];
-
-      const col1X = MARGIN;
-      const col2X = MARGIN + 85;
-
-      for (let i = 0; i < items.length; i += 2) {
-        checkPageBreak(28);
-
-        const rowStartY = y;
-
-        // ── LEFT column item ──────────────────────────────────
-        const leftItem = items[i];
-        const leftUrl = documents[leftItem.key]
-          ? process.env.NEXT_PUBLIC_API_URL + documents[leftItem.key]
-          : null;
-
-        // Draw label
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(8);
-        doc.setTextColor(...LABEL_COL);
-        doc.text(leftItem.label, col1X, y);
-        y += 4;
-
-        // Draw button or "Not uploaded"
-        if (
-          !leftUrl ||
-          leftUrl.includes("null") ||
-          leftUrl.includes("undefined")
-        ) {
-          doc.setFont("helvetica", "italic");
-          doc.setFontSize(6);
-          doc.setTextColor(160, 160, 160);
-          doc.text("Not uploaded", col1X, y);
-        } else {
-          const btnW = 15,
-            btnH = 7,
-            radius = 1.5;
-          const safeUrl = leftUrl.startsWith("http")
-            ? leftUrl
-            : `https://${leftUrl}`;
-          doc.setFillColor(92, 74, 217);
-          doc.roundedRect(col1X, y, btnW, btnH, radius, radius, "F");
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(6);
-          doc.setTextColor(255, 255, 255);
-          doc.text("View", col1X + btnW / 2, y + 4.6, { align: "center" });
-          doc.link(col1X, y, btnW, btnH, { url: safeUrl });
-        }
-
-        // ── RIGHT column item (if exists) ─────────────────────
-        if (i + 1 < items.length) {
-          const rightItem = items[i + 1];
-          const rightUrl = documents[rightItem.key]
-            ? process.env.NEXT_PUBLIC_API_URL + documents[rightItem.key]
-            : null;
-
-          y = rowStartY; // reset to row start for right column
-
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(8);
-          doc.setTextColor(...LABEL_COL);
-          doc.text(rightItem.label, col2X, y);
-          y += 4;
-
-          if (
-            !rightUrl ||
-            rightUrl.includes("null") ||
-            rightUrl.includes("undefined")
-          ) {
-            doc.setFont("helvetica", "italic");
-            doc.setFontSize(6);
-            doc.setTextColor(160, 160, 160);
-            doc.text("Not uploaded", col2X, y);
-          } else {
-            const btnW = 15,
-              btnH = 7,
-              radius = 1.5;
-            const safeUrl = rightUrl.startsWith("http")
-              ? rightUrl
-              : `https://${rightUrl}`;
-            doc.setFillColor(92, 74, 217);
-            doc.roundedRect(col2X, y, btnW, btnH, radius, radius, "F");
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(6);
-            doc.setTextColor(255, 255, 255);
-            doc.text("View", col2X + btnW / 2, y + 4.6, { align: "center" });
-            doc.link(col2X, y, btnW, btnH, { url: safeUrl });
-          }
-        }
-
-        y = rowStartY + 20; // advance past this row (label + button + spacing)
-      }
-
-      y += 6; // bottom padding after documents section
+      fieldGrid([
+        [
+          "Passport",
+          process.env.NEXT_PUBLIC_API_URL + documents.passport ||
+            "Not uploaded",
+        ],
+        [
+          "Driving Licence",
+          process.env.NEXT_PUBLIC_API_URL + documents.driving_licence ||
+            "Not uploaded",
+        ],
+        [
+          "Proof ID 1",
+          process.env.NEXT_PUBLIC_API_URL + documents.proof_id1 ||
+            "Not uploaded",
+        ],
+        [
+          "Proof ID 2",
+          process.env.NEXT_PUBLIC_API_URL + documents.proof_id2 ||
+            "Not uploaded",
+        ],
+      ]);
     }
+
     // Step 7 – Training
     divider();
     sectionHeader("Step 7 – Training");
@@ -652,16 +508,13 @@ export async function generatePDFBuffer(user: any) {
             ["Registration Body", item.registrationBody],
             ["Registration Number", item.registrationNumber],
             ["Registration Expiry", item.registrationExpiry],
+            [
+              "Certificate",
+              process.env.NEXT_PUBLIC_API_URL + item.certificateFile ||
+                "Not uploaded",
+            ],
             ["Additional Notes", item.additionalNotes],
           ]);
-          // Certificate as button
-          linkButton(
-            "Certificate",
-            item.certificateFile
-              ? process.env.NEXT_PUBLIC_API_URL + item.certificateFile
-              : null,
-            MARGIN,
-          );
         } else {
           subHeader("Gap");
           fieldGrid([
@@ -773,31 +626,29 @@ export async function generatePDFBuffer(user: any) {
           declaration.declaration_confirmed ? "Yes" : "No",
         ],
         ["Declaration Date", declaration.declaration_date],
+        [
+          "Signature",
+          process.env.NEXT_PUBLIC_API_URL + declaration.signature_file ||
+            "Not uploaded",
+        ],
       ]);
-       // Signature as button
-      linkButton(
-        "Signature",
-        declaration.signature_file
-          ? process.env.NEXT_PUBLIC_API_URL + declaration.signature_file
-          : null,
-        MARGIN,
-      );
     }
   }
 
-  // Page numbers
-  const pageCount = doc.internal.pages.length - 1;
 
-  for (let p = 1; p <= pageCount; p++) {
-    doc.setPage(p);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(160, 160, 180);
+ // Page numbers
+const pageCount = doc.internal.pages.length - 1;
 
-    doc.text(`Page ${p} of ${pageCount}`, PAGE_W - MARGIN, 291, {
-      align: "right",
-    });
-  }
+for (let p = 1; p <= pageCount; p++) {
+  doc.setPage(p);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(160, 160, 180);
+
+  doc.text(`Page ${p} of ${pageCount}`, PAGE_W - MARGIN, 291, {
+    align: "right",
+  });
+}
 
   const filename = `${(basic.full_name || "applicant").replace(/\s+/g, "_")}_application.pdf`;
   const pdfBuffer = doc.output("arraybuffer");

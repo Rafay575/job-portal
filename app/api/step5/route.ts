@@ -51,7 +51,6 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-
     const {
       userId,
       isNurse,
@@ -67,18 +66,13 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    // =========================
     // 🔍 CHECK EXISTING RECORD
-    // =========================
     const [existing]: any = await pool.execute(
       `SELECT id FROM employee_registration WHERE user_id = ?`,
       [userId]
     );
 
-    // =========================
     // 🟢 UPDATE
-    // =========================
     if (existing.length > 0) {
       const id = existing[0].id;
 
@@ -105,14 +99,12 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: "Step 5 updated successfully",
+        message: "Registration form updated successfully",
         mode: "update",
       });
     }
 
-    // =========================
     // 🟡 INSERT
-    // =========================
     await pool.execute(
       `
       INSERT INTO employee_registration (
@@ -136,7 +128,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Step 5 submitted successfully",
+      message: "Registration form submitted successfully",
       mode: "create",
     });
   } catch (error) {

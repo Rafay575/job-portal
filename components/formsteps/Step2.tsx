@@ -16,7 +16,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
-
+import { IoRefresh } from "react-icons/io5";
 type NavProps = {
   onNext: () => void;
   onBack: () => void;
@@ -206,12 +206,10 @@ export default function Step2({ next, back }: Props) {
           <div className="min-w-full space-y-5  grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
             {/* Availability Issue */}
             <div>
-              <Label>Involved in activity limiting availability?</Label>
+              <Label>Involved in activity limiting availability?<span className="text-red-500">*</span></Label>
               <RadioGroup
                 value={
-                  formData.availabilityIssue === null
-                    ? undefined
-                    : formData.availabilityIssue
+                  formData.availabilityIssue
                       ? "yes"
                       : "no"
                 }
@@ -234,12 +232,10 @@ export default function Step2({ next, back }: Props) {
 
             {/* Overtime */}
             <div>
-              <Label>Willing to work overtime & weekends?</Label>
+              <Label>Willing to work overtime & weekends?<span className="text-red-500">*</span></Label>
               <RadioGroup
                 value={
-                  formData.overtime === null
-                    ? undefined
-                    : formData.overtime
+                  formData.overtime
                       ? "yes"
                       : "no"
                 }
@@ -286,16 +282,13 @@ export default function Step2({ next, back }: Props) {
             {/* Applied Before */}
             <div className="flex flex-col items-stretch gap-4">
               <div>
-                <Label>Applied before?</Label>
+                <Label>Applied before?<span className="text-red-500">*</span></Label>
                 <RadioGroup
-                  
                   value={
-                  formData.appliedBefore === null
-                    ? undefined
-                    : formData.appliedBefore
-                      ? "yes"
-                      : "no"
-                }
+                    formData.appliedBefore
+                        ? "yes"
+                        : "no"
+                  }
                   onValueChange={(v) =>
                     handleChange("appliedBefore", v === "yes")
                   }
@@ -328,7 +321,6 @@ export default function Step2({ next, back }: Props) {
                   onChange={(e) =>
                     handleChange("appliedDetails", e.target.value)
                   }
-                  
                 />
               </div>
             </div>
@@ -336,16 +328,13 @@ export default function Step2({ next, back }: Props) {
             {/* Work Restrictions */}
             <div className="flex flex-col items-stretch gap-4">
               <div>
-                <Label>Subject to work restrictions / covenants?</Label>
+                <Label>Subject to work restrictions / covenants?<span className="text-red-500">*</span></Label>
                 <RadioGroup
-                  
                   value={
-                  formData.workRestrictions === null
-                    ? undefined
-                    : formData.workRestrictions
-                      ? "yes"
-                      : "no"
-                }
+                    formData.workRestrictions
+                        ? "yes"
+                        : "no"
+                  }
                   onValueChange={(v) =>
                     handleChange("workRestrictions", v === "yes")
                   }
@@ -378,19 +367,16 @@ export default function Step2({ next, back }: Props) {
                   onChange={(e) =>
                     handleChange("restrictionDetails", e.target.value)
                   }
-                  
                 />
               </div>
             </div>
 
             {/* Worked Before */}
             <div>
-              <Label>Have you worked for us before?</Label>
+              <Label>Have you worked for us before?<span className="text-red-500">*</span></Label>
               <RadioGroup
                 value={
-                  formData.workedBefore === null
-                    ? undefined
-                    : formData.workedBefore
+                  formData.workedBefore
                       ? "yes"
                       : "no"
                 }
@@ -411,10 +397,11 @@ export default function Step2({ next, back }: Props) {
           </div>
           <SignupNavButtons onBack={back} onNext={handleSubmitStep2} />
         </div>
+        
 
         {/* Overlay */}
         {blur && (
-          <div className="absolute inset-0 flex items-center justify-center  z-50">
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
             <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
               <h2 className="text-lg font-semibold mb-2">
                 Appliaction Approval Pending
@@ -425,12 +412,24 @@ export default function Step2({ next, back }: Props) {
               </p>
 
               {/* Optional action */}
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-1 bg-primary text-white rounded-full"
-              >
-                Refresh
-              </button>
+              <div className="flex justify-evenly items-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={back}
+                  className="rounded-full"
+                >
+                  <IoIosArrowBack />
+                  Back
+                </Button>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-1 bg-primary text-white rounded-full text-[15px] flex gap-1 items-center"
+                >
+                  <IoRefresh className="size-5 mb-0.5"/>
+                  Refresh
+                </button>
+              </div>
             </div>
           </div>
         )}

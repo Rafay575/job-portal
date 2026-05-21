@@ -14,6 +14,7 @@ import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
 import { checkApproval } from "@/lib/users";
+import { IoRefresh } from "react-icons/io5";
 
 // ------------------ Types ------------------
 
@@ -173,13 +174,11 @@ export default function Step5({ next, back }: Props) {
       >
         {/* Nurse Radio */}
         <div className="col-span-2 mb-2">
-          <Label>Are you a Nurse?</Label>
+          <Label>Are you a Nurse?<span className="text-red-500">*</span></Label>
 
           <RadioGroup
             value={
-              formData.isNurse === null
-                ? undefined
-                : formData.isNurse
+              formData.isNurse
                   ? "yes"
                   : "no"
             }
@@ -259,7 +258,7 @@ export default function Step5({ next, back }: Props) {
 
       {/* Overlay */}
       {blur && (
-        <div className="absolute inset-0 flex items-center justify-center  z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
           <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
             <h2 className="text-lg font-semibold mb-2">
               Appliaction Approval Pending
@@ -270,12 +269,24 @@ export default function Step5({ next, back }: Props) {
             </p>
 
             {/* Optional action */}
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-1 bg-primary text-white rounded-full"
-            >
-              Refresh
-            </button>
+            <div className="flex justify-evenly items-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={back}
+                className="rounded-full"
+              >
+                <IoIosArrowBack />
+                Back
+              </Button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-1 bg-primary text-white rounded-full text-[15px] flex gap-1 items-center"
+              >
+                <IoRefresh className="size-5 mb-0.5" />
+                Refresh
+              </button>
+            </div>
           </div>
         </div>
       )}

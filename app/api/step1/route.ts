@@ -79,13 +79,19 @@ export async function POST(req: NextRequest) {
     // 🔹 Extract fields
     const userId = Number(formData.get("userId"));
 
+    // Geting user original email for send emails
+    const [rows]: any = await pool.execute(
+      `SELECT email FROM users WHERE id = ?`,
+      [userId],
+    );
+    const userEmail = rows.length > 0 ? rows[0].email : null;
+
     if (!userId) {
       return NextResponse.json(
         { success: false, message: "User Id is missing" },
         { status: 400 },
       );
     }
-
     const type = formData.get("type") as string;
     const fullName = formData.get("fullName") as string;
     const email = formData.get("email") as string;
@@ -95,13 +101,10 @@ export async function POST(req: NextRequest) {
     const nationality = formData.get("nationality") as string;
     const immigrationStatus = formData.get("immigrationStatus") as string;
     const immigrationExpiry = formData.get("immigrationExpiry") as string;
-
     const workPermit = formData.get("workPermit") === "true" ? 1 : 0;
     const nameChanged = formData.get("nameChanged") === "true" ? 1 : 0;
-
     const previousName = formData.get("previousName") as string;
     const changedTo = formData.get("changedTo") as string;
-
     const file = formData.get("cvFile") as File | null;
 
     let filePath: string | null = null;
@@ -118,7 +121,14 @@ export async function POST(req: NextRequest) {
       }
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      const uploadDir = path.join(process.cwd(), "public/uploads");
+
+      const uploadDir =
+        process.env.IS_LOCAL === "true"
+          ? path.join(process.cwd(), "public/uploads")
+          : "/var/www/uploads";
+
+      console.log("uploadDir: ", uploadDir);
+
       const safeName = file.name.replace(/\s+/g, "_").toLowerCase();
       const fileName = `${Date.now()}-${safeName}`;
       const fullPath = path.join(uploadDir, fileName);
@@ -146,7 +156,12 @@ export async function POST(req: NextRequest) {
         const oldCvPath = cvRow?.[0]?.cv_file_path;
 
         if (oldCvPath) {
-          const oldFullPath = path.join(process.cwd(), "public", oldCvPath);
+          const oldFullPath =
+            process.env.IS_LOCAL === "true"
+              ? path.join(process.cwd(), "public", oldCvPath)
+              : `/var/www${oldCvPath}`;
+
+          // const oldFullPath = `/var/www${oldCvPath}`;
           try {
             await unlink(oldFullPath);
           } catch (err) {
@@ -216,7 +231,8 @@ export async function POST(req: NextRequest) {
         fullName
       ) {
         try {
-          await sendApprovalPendingEmail(fullName, email);
+          console.log("sending email of pending");
+          await sendApprovalPendingEmail(fullName, userEmail, type);
         } catch (error) {
           console.error("Failed to send Form approval pending email");
           return NextResponse.json(
@@ -228,7 +244,7 @@ export async function POST(req: NextRequest) {
 
       if (typeChanged && type === "permanent" && email && fullName && userId) {
         try {
-          await sendFormSubmissionEmail(userId, email, fullName);
+          await sendFormSubmissionEmail(userId, userEmail, fullName, type);
         } catch (error) {
           console.error("Failed to send Form submission email");
           return NextResponse.json(
@@ -237,11 +253,19 @@ export async function POST(req: NextRequest) {
           );
         }
       }
-      return NextResponse.json({
-        success: true,
-        message: "Step 1 updated successfully",
-        mode: "update",
-      });
+      if (type === "permanent") {
+        return NextResponse.json({
+          success: true,
+          message: "Application updated successfully",
+          mode: "create",
+        });
+      } else {
+        return NextResponse.json({
+          success: true,
+          message: "Basic information updated successfully",
+          mode: "create",
+        });
+      }
     }
 
     // =========================
@@ -291,7 +315,7 @@ export async function POST(req: NextRequest) {
     } else {
       if (type === "permanent") {
         try {
-          await sendFormSubmissionEmail(userId, email, fullName);
+          await sendFormSubmissionEmail(userId, userEmail, fullName, type);
         } catch (error) {
           console.error("Failed to send Form submission email");
           return NextResponse.json(
@@ -301,7 +325,7 @@ export async function POST(req: NextRequest) {
         }
       } else {
         try {
-          await sendApprovalPendingEmail(fullName, email);
+          await sendApprovalPendingEmail(fullName, userEmail, type);
         } catch (error) {
           console.error("Failed to send Form approval pending email");
           return NextResponse.json(
@@ -311,12 +335,19 @@ export async function POST(req: NextRequest) {
         }
       }
     }
-
-    return NextResponse.json({
-      success: true,
-      message: "Step 1 submitted successfully",
-      mode: "create",
-    });
+    if (type === "permanent") {
+      return NextResponse.json({
+        success: true,
+        message: "Application submitted successfully",
+        mode: "create",
+      });
+    } else {
+      return NextResponse.json({
+        success: true,
+        message: "Basic information submitted successfully",
+        mode: "create",
+      });
+    }
   } catch (error) {
     console.error("API Error:", error);
 

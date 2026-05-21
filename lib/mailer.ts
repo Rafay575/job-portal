@@ -10,8 +10,6 @@ export const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-logger: true,
-debug: true,
 });
 
 transporter.verify((error, success) => {
@@ -40,6 +38,17 @@ function replaceVariables(template: string, variables: Record<string, string>) {
 
   return output;
 }
+export function formatLine(input: string): string {
+  if (!input) return "";
+
+  return input
+    .replace(/-/g, " ") // remove dashes
+    .trim()
+    .split(" ")
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
 
 const capitalizeName = (name: string) => {
   return name
@@ -47,6 +56,8 @@ const capitalizeName = (name: string) => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 };
+
+
 
 export async function sendOTPEmail(email: string, otp: string) {
   try {
@@ -68,11 +79,11 @@ export async function sendOTPEmail(email: string, otp: string) {
   }
 }
 
-
 export async function sendFormSubmissionEmail(
   userId: any,
   email: string,
   name: string,
+  type:string
 ) {
   try {
     const { buffer, filename } = await getUserPDF(userId);
@@ -81,6 +92,7 @@ export async function sendFormSubmissionEmail(
     const finalHTML = replaceVariables(decodedTemplate, {
       name: capitalizeName(name),
       email,
+      type:formatLine(type)
     });
     await transporter.sendMail({
       from: `"Hayaibu Talent" <${process.env.EMAIL_USER}>`,
@@ -105,12 +117,7 @@ export async function sendFormSubmissionEmail(
   }
 }
 
-
-
-
-
-
-export async function sendApprovalPendingEmail(name: string, email: string) {
+export async function sendApprovalPendingEmail(name: string, email: string, type:string) {
   try {
     // ✅ 1. Fetch template from API
     const { subject, template } =
@@ -125,6 +132,7 @@ export async function sendApprovalPendingEmail(name: string, email: string) {
     const finalHTML = replaceVariables(decodedTemplate, {
       name: capitalizeName(name),
       email,
+      type:formatLine(type)
     });
 
     // ✅ 4. Send email
@@ -141,7 +149,7 @@ export async function sendApprovalPendingEmail(name: string, email: string) {
   }
 }
 
-export async function sendUserApprovalEmail(email: string, name: string) {
+export async function sendUserApprovalEmail(email: string, name: string, type:string) {
   try {
     const dashboardUrl = `${process.env.NEXT_PUBLIC_API_URL}/user/dashboard`;
     const { subject, template } = await getEmailTemplateBySlug2("application_approved");
@@ -149,6 +157,7 @@ export async function sendUserApprovalEmail(email: string, name: string) {
     const finalHTML = replaceVariables(decodedTemplate, {
       name: capitalizeName(name),
       dashboardUrl,
+      type:formatLine(type)
     });
 
     // ✅ 5. Send email
@@ -164,7 +173,7 @@ export async function sendUserApprovalEmail(email: string, name: string) {
   }
 }
 
-export async function sendUserRejectionEmail(email: string, name: string) {
+export async function sendUserRejectionEmail(email: string, name: string, type:string) {
   try {
     // ✅ 1. Prepare dynamic values
     const dashboardUrl = `${process.env.NEXT_PUBLIC_API_URL}/user/dashboard`;
@@ -181,6 +190,7 @@ export async function sendUserRejectionEmail(email: string, name: string) {
     const finalHTML = replaceVariables(decodedTemplate, {
       name: capitalizeName(name),
       dashboardUrl,
+      type:formatLine(type)
     });
 
     // ✅ 5. Send email

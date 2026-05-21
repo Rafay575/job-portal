@@ -146,7 +146,6 @@ p {
 
 input:focus-visible {
   box-shadow: 0px !important;
-  border: none !important;
 }
 button:focus-visible {
   outline: none !important;

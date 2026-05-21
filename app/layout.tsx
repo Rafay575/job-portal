@@ -10,6 +10,7 @@ import QueryProvider from "@/providers/QueryProvider";
 import ReduxProvider from "@/lib/provider";
 import { Toaster } from "react-hot-toast";
 import { CheckCircle, XCircle } from "lucide-react";
+import AuthChecker from "@/components/AuthChecker";
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -20,7 +21,7 @@ export default function RootLayout({
     pathname.startsWith("/admin") ||
     pathname.startsWith("/auth") ||
     pathname.startsWith("/user");
-
+  const isAuth = pathname.startsWith("/auth");
   return (
     <html lang="en">
       <title>Hayaibu Talent </title>
@@ -28,17 +29,23 @@ export default function RootLayout({
         <QueryProvider>
           <TooltipProvider>
             <ReduxProvider>
+              {!isAuth && <AuthChecker />}
+
               <div>
                 <Toaster
-                  position="bottom-right"
+                  position="top-right"
+                  containerStyle={{
+                    top: 90, // 👈 pushes whole toaster down
+                  }}
                   reverseOrder={true}
                   toastOptions={{
+                    duration: 4000,
                     success: {
                       icon: <CheckCircle className="size-5!" color="white" />,
                       style: {
                         background: "green",
                         color: "#fff",
-                        fontSize:"14px"
+                        fontSize: "14px",
                       },
                     },
                     error: {
@@ -46,7 +53,7 @@ export default function RootLayout({
                       style: {
                         background: "red",
                         color: "#fff",
-                        fontSize:"14px"
+                        fontSize: "14px",
                       },
                     },
                   }}

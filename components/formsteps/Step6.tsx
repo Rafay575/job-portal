@@ -11,6 +11,7 @@ import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
 import { checkApproval } from "@/lib/users";
+import { IoRefresh } from "react-icons/io5";
 
 type NavProps = {
   onNext: () => void;
@@ -33,7 +34,7 @@ type DocCardProps = {
 
 const MAX_MB = 5;
 const MAX_BYTES = MAX_MB * 1024 * 1024;
-const ACCEPTED = [".pdf", ".jpg", ".jpeg", ".png"];
+const ACCEPTED = [".pdf", ".jpg", ".jpeg", ".png", ".docx", ".doc"];
 
 function formatBytes(bytes: number) {
   const mb = bytes / (1024 * 1024);
@@ -227,7 +228,7 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
         <input
           ref={inputRef}
           type="file"
-          accept={ACCEPTED.join(",")}
+          accept="image/png,image/jpeg,application/pdf,.docx,.doc"
           className="hidden"
           onChange={onChange}
         />
@@ -298,7 +299,6 @@ export default function Step6({ next, back }: Props) {
 
       if (!isApproved) {
         setBlur(true);
-        
       }
     };
 
@@ -374,6 +374,8 @@ export default function Step6({ next, back }: Props) {
       console.error(error);
       toast.error("Something went wrong");
       setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
   if (loading) return <FullPageLoader />;
@@ -384,12 +386,9 @@ export default function Step6({ next, back }: Props) {
       >
         <div className="min-w-full space-y-4 flex flex-col">
           <div className="rounded-2xl border bg-white p-5">
-            <h2 className="text-lg font-semibold mb-1">
+            <h2 className="text-lg font-semibold mb-3">
               Identity & Verification Documents
             </h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Upload clear copies. Supported: {ACCEPTED.join(", ")}
-            </p>
 
             <div className="grid md:grid-cols-2 gap-4">
               <DocCard
@@ -429,7 +428,7 @@ export default function Step6({ next, back }: Props) {
 
       {/* Overlay */}
       {blur && (
-        <div className="absolute inset-0 flex items-center justify-center  z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
           <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
             <h2 className="text-lg font-semibold mb-2">
               Appliaction Approval Pending
@@ -440,12 +439,24 @@ export default function Step6({ next, back }: Props) {
             </p>
 
             {/* Optional action */}
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-1 bg-primary text-white rounded-full"
-            >
-              Refresh
-            </button>
+            <div className="flex justify-evenly items-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={back}
+                className="rounded-full"
+              >
+                <IoIosArrowBack />
+                Back
+              </Button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-1 bg-primary text-white rounded-full text-[15px] flex gap-1 items-center"
+              >
+                <IoRefresh className="size-5 mb-0.5" />
+                Refresh
+              </button>
+            </div>
           </div>
         </div>
       )}

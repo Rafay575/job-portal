@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: "Step 4 updated successfully",
+        message: "Health form updated successfully",
         mode: "update",
       });
     }
@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Step 4 submitted successfully",
+      message: "Health form submitted successfully",
       mode: "create",
     });
   } catch (error) {

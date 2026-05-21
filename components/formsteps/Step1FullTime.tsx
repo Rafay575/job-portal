@@ -338,12 +338,10 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         </div>
 
         <div>
-          <Label>Do you need a UK Work Permit?</Label>
+          <Label>Do you need a UK Work Permit?<span className="text-red-500">*</span></Label>
           <RadioGroup
             value={
-              formData.workPermit === null
-                ? undefined
-                : formData.workPermit
+               formData.workPermit
                   ? "yes"
                   : "no"
             }
@@ -365,12 +363,10 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         </div>
 
         <div>
-          <Label>Have you changed your name before?</Label>
+          <Label>Have you changed your name before?<span className="text-red-500">*</span></Label>
           <RadioGroup
             value={
-              formData.nameChanged === null
-                ? undefined
-                : formData.nameChanged
+              formData.nameChanged
                   ? "yes"
                   : "no"
             }

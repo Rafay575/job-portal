@@ -36,6 +36,7 @@ import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
 import { checkApproval } from "@/lib/users";
+import { IoRefresh } from "react-icons/io5";
 
 // ─── Nav Buttons ─────────────────────────────────────────────────────────────
 
@@ -216,7 +217,6 @@ function SortableCard(props: CardProps) {
               onChange={(e) =>
                 onUpdateExperience(entry.id, "employerName", e.target.value)
               }
-             
             />
           </div>
 
@@ -259,7 +259,6 @@ function SortableCard(props: CardProps) {
               onChange={(e) =>
                 onUpdateExperience(entry.id, "jobTitle", e.target.value)
               }
-              
             />
           </div>
 
@@ -273,7 +272,6 @@ function SortableCard(props: CardProps) {
               onChange={(e) =>
                 onUpdateExperience(entry.id, "duties", e.target.value)
               }
-              
             />
           </div>
         </div>
@@ -312,7 +310,6 @@ function SortableCard(props: CardProps) {
               className="mt-2 min-h-[90px]"
               value={entry.reason}
               onChange={(e) => onUpdateGap(entry.id, "reason", e.target.value)}
-             
             />
           </div>
         </div>
@@ -495,7 +492,6 @@ export default function Step9({ next, back }: Props) {
 
       if (!isApproved) {
         setBlur(true);
-        
       }
     };
 
@@ -529,9 +525,6 @@ export default function Step9({ next, back }: Props) {
     try {
       setLoading(true);
       const res = await saveStep9(user.id, data);
-
-      // saveStep9 throws on failure, so reaching here means success
-      toast.success("Step 9 saved successfully");
       next();
     } catch (err) {
       console.error(err);
@@ -655,7 +648,7 @@ export default function Step9({ next, back }: Props) {
 
       {/* Overlay */}
       {blur && (
-        <div className="absolute inset-0 flex items-center justify-center  z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
           <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
             <h2 className="text-lg font-semibold mb-2">
               Appliaction Approval Pending
@@ -666,12 +659,24 @@ export default function Step9({ next, back }: Props) {
             </p>
 
             {/* Optional action */}
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-1 bg-primary text-white rounded-full"
-            >
-              Refresh
-            </button>
+            <div className="flex justify-evenly items-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={back}
+                className="rounded-full"
+              >
+                <IoIosArrowBack />
+                Back
+              </Button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-1 bg-primary text-white rounded-full text-[15px] flex gap-1 items-center"
+              >
+                <IoRefresh className="size-5 mb-0.5" />
+                Refresh
+              </button>
+            </div>
           </div>
         </div>
       )}

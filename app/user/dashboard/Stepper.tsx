@@ -23,8 +23,8 @@ export default function Stepper({
     if (!userId) return; // ✅ prevent undefined call
 
     const fetchApproval = async () => {
-      console.log("userId",userId)
-      const {isApproved} = await checkApproval(userId);
+      console.log("userId", userId);
+      const { isApproved } = await checkApproval(userId);
       setIsApproved(isApproved); // ✅ safe
     };
 
@@ -46,23 +46,27 @@ export default function Stepper({
               "flex flex-col items-center flex-1 relative transition-all p-1",
               {
                 " blur-[3px] pointer-events-none": isLocked, // 👈 blur + disable
-              }
+              },
             )}
           >
             {/* Step Circle */}
             <div
+
+            
               // onClick={() => {
-              //   if (!isLocked) setCurrentStep(stepNumber); // 👈 prevent click
+              //   if (!isLocked ) {
+              //     setCurrentStep(stepNumber);
+              //   }
               // }}
+
+
               className={clsx(
                 "h-9 w-9 rounded-full flex items-center justify-center text-sm font-medium cursor-pointer transition-all duration-300 z-10",
                 {
-                  "bg-primary text-white shadow-md":
-                    stepNumber <= currentStep,
-                  "bg-gray-200 text-gray-500":
-                    stepNumber > currentStep,
+                  "bg-primary text-white shadow-md": stepNumber <= currentStep,
+                  "bg-gray-200 text-gray-500": stepNumber > currentStep,
                   "cursor-not-allowed": isLocked,
-                }
+                },
               )}
             >
               {stepNumber < currentStep ? (
@@ -78,7 +82,7 @@ export default function Stepper({
                 "text-xs mt-2 text-center max-w-[90px]",
                 stepNumber <= currentStep
                   ? "text-primary font-semibold"
-                  : "text-gray-400"
+                  : "text-gray-400",
               )}
             >
               {label}
@@ -89,9 +93,7 @@ export default function Stepper({
               <div
                 className={clsx(
                   "absolute top-5 left-1/2 w-full h-[2px] -z-0 transition-colors duration-300",
-                  stepNumber < currentStep
-                    ? "bg-primary"
-                    : "bg-gray-200"
+                  stepNumber < currentStep ? "bg-primary" : "bg-gray-200",
                 )}
               />
             )}

@@ -8,19 +8,18 @@ import Section7 from "@/components/home/Section7";
 import TrendingJobs from "@/components/home/TrendingJobs";
 import Section9 from "@/components/home/Section9";
 
-
 export default async function Home() {
   return (
     <div>
-      <Hero/>
-      <Section2/>
-      <Section3/>
-      <TrendingJobs/>
-      <Section5/>
-      <Section6/>
-      <Section7/>
-      <Section8/>
-      <Section9/>
+      <Hero />
+      <Section2 />
+      <Section3 />
+      <TrendingJobs />
+      <Section5 />
+      <Section6 />
+      <Section7 />
+      <Section8 />
+      <Section9 />
     </div>
   );
 }

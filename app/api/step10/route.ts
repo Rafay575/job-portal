@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: "Step 10 updated successfully",
+        message: "Statement updated successfully",
       });
     }
 
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Step 10 submitted successfully",
+      message: "Statement submitted successfully",
     });
   } catch (error) {
     console.error(error);

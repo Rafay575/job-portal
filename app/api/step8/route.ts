@@ -3,7 +3,12 @@ import pool from "@/lib/db";
 import fs from "fs";
 import path from "path";
 import { writeFile, unlink } from "fs/promises";
-const uploadDir = path.join(process.cwd(), "public/uploads");
+
+const uploadDir =
+  process.env.IS_LOCAL === "true"
+    ? path.join(process.cwd(), "public/uploads")
+    : "/var/www/uploads";
+// const uploadDir = "/var/www/uploads";
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -119,7 +124,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const uploadDir = path.join(process.cwd(), "public/uploads");
+    const uploadDir =
+      process.env.IS_LOCAL === "true"
+        ? path.join(process.cwd(), "public/uploads")
+        : "/var/www/uploads";
+    // const uploadDir = "/var/www/uploads";
 
     // =========================
     // 📁 SAFE FILE UPLOAD
@@ -153,6 +162,13 @@ export async function POST(req: NextRequest) {
 
     try {
       await conn.beginTransaction();
+      // ✅ CHECK EXISTING DATA
+      const [existingRows]: any = await conn.execute(
+        `SELECT id FROM employee_educations WHERE user_id = ? LIMIT 1`,
+        [userId],
+      );
+
+      const isUpdate = existingRows.length > 0;
 
       // 🧹 DELETE OLD DATA
       await conn.execute(`DELETE FROM employee_educations WHERE user_id = ?`, [
@@ -181,11 +197,11 @@ export async function POST(req: NextRequest) {
           // =========================
           if (file && file.size > 0) {
             if (existingFile) {
-              const oldFullPath = path.join(
-                process.cwd(),
-                "public",
-                existingFile,
-              );
+              const oldFullPath =
+                process.env.IS_LOCAL === "true"
+                  ? path.join(process.cwd(), "public", existingFile)
+                  : `/var/www${existingFile}`;
+              // const oldFullPath = `/var/www${existingFile}`;
 
               try {
                 await unlink(oldFullPath);
@@ -288,7 +304,9 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: "Educations Data saved successfully",
+        message: isUpdate
+          ? "Education form  updated successfully"
+          : "Education form submitted successfully",
       });
     } catch (err) {
       await conn.rollback();

@@ -14,6 +14,7 @@ import { RootState } from "@/lib/store";
 import { useSelector } from "react-redux";
 import { FullPageLoader } from "../Loading";
 import { checkApproval } from "@/lib/users";
+import { IoRefresh } from "react-icons/io5";
 
 type NavProps = {
   onBack: () => void;
@@ -199,15 +200,19 @@ export default function Step11({ back }: Props) {
             {/* Download */}
             <div className="flex flex-col gap-2 p-4 border rounded-xl">
               <Label className="font-medium">Download Signature Document</Label>
+
               <Button
                 type="button"
                 variant="outline"
                 className="w-full"
                 onClick={() => {
-                  const link = document.createElement("a");
-                  link.href = "/signature.docx";
-                  link.download = "signature.docx";
-                  link.click();
+                  const name = encodeURIComponent(user.name || "");
+                  const email = encodeURIComponent(user.email || "");
+
+                  window.open(
+                    `/api/signature-doc?name=${name}&email=${email}`,
+                    "_blank",
+                  );
                 }}
               >
                 Download Document
@@ -219,12 +224,14 @@ export default function Step11({ back }: Props) {
               <Label className="font-medium">
                 Upload Signed Document <span className="text-red-500">*</span>
               </Label>
+
               <Input
                 type="file"
                 accept=".doc,.docx,.pdf"
                 onChange={(e) =>
                   handleChange("signatureFile", e.target.files?.[0] || null)
                 }
+                className="w-full"
               />
 
               {existingFile && (
@@ -232,6 +239,7 @@ export default function Step11({ back }: Props) {
                   type="button"
                   size="sm"
                   variant="secondary"
+                  className="w-full md:w-fit"
                   onClick={() => window.open(existingFile, "_blank")}
                 >
                   View Uploaded Document
@@ -240,16 +248,18 @@ export default function Step11({ back }: Props) {
             </div>
 
             {/* Date */}
-            <div className="flex flex-col gap-2 p-4 border rounded-xl col-span-2 md:col-span-1">
+            <div className="flex flex-col gap-2 p-4 border rounded-xl">
               <Label className="font-medium">
                 Declaration Date <span className="text-red-500">*</span>
               </Label>
+
               <Input
                 type="date"
                 value={formData.declarationDate}
                 onChange={(e) =>
                   handleChange("declarationDate", e.target.value)
                 }
+                className="w-full"
               />
             </div>
           </div>
@@ -266,7 +276,7 @@ export default function Step11({ back }: Props) {
 
       {/* Overlay */}
       {blur && (
-        <div className="absolute inset-0 flex items-center justify-center  z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
           <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
             <h2 className="text-lg font-semibold mb-2">
               Appliaction Approval Pending
@@ -277,12 +287,24 @@ export default function Step11({ back }: Props) {
             </p>
 
             {/* Optional action */}
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-1 bg-primary text-white rounded-full"
-            >
-              Refresh
-            </button>
+            <div className="flex justify-evenly items-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={back}
+                className="rounded-full"
+              >
+                <IoIosArrowBack />
+                Back
+              </Button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-1 bg-primary text-white rounded-full text-[15px] flex gap-1 items-center"
+              >
+                <IoRefresh className="size-5 mb-0.5" />
+                Refresh
+              </button>
+            </div>
           </div>
         </div>
       )}

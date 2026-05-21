@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: "Step 2 updated successfully",
+        message: "Questions form updated successfully",
         mode: "update",
       });
     }
@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Step 2 submitted successfully",
+      message: "Questions form submitted successfully",
       mode: "create",
     });
   } catch (error) {

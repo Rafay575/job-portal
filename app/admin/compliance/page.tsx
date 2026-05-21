@@ -465,8 +465,8 @@ const handleBulkDelete = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead className="text-center">Type</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Nationality</TableHead>
+                {/* <TableHead>Phone</TableHead>
+                <TableHead>Nationality</TableHead> */}
                 <TableHead className="text-center">Status</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead className="text-center">Action</TableHead>
@@ -534,8 +534,8 @@ const handleBulkDelete = () => {
                             : "Both"}
                       </div>
                     </TableCell>
-                    <TableCell>{user.phone || "N/A"}</TableCell>
-                    <TableCell>{user.nationality || "N/A"}</TableCell>
+                    {/* <TableCell>{user.phone || "N/A"}</TableCell>
+                    <TableCell>{user.nationality || "N/A"}</TableCell> */}
 
                     <TableCell>
                       <div

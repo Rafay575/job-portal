@@ -66,7 +66,6 @@ export async function getUserPDF(user_id: string | number) {
     declaration: step11?.data?.[0] ?? {},
   };
 
-console.log(user);
 
   // Generate PDF buffer
   const pdfBuffer = await generatePDFBuffer(user);

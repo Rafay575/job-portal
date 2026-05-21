@@ -105,11 +105,14 @@ async function generatePDF(user: any) {
 
   let y = 0;
 
-  const PRIMARY = [92, 73, 216] as const;
-  const HEADER_BG = [240, 245, 255] as const;
+  // ── colour palette ────────────────────────────────────────────────────────
+  const PRIMARY = [92, 73, 216] as const; // blue
+  const HEADER_BG = [240, 245, 255] as const; // light blue-grey
   const LABEL_COL = [90, 90, 110] as const;
   const VALUE_COL = [30, 30, 30] as const;
   const DIVIDER = [210, 215, 230] as const;
+
+  // ── helpers ───────────────────────────────────────────────────────────────
 
   function checkPageBreak(needed = 10) {
     if (y + needed > MAX_Y) {
@@ -117,9 +120,9 @@ async function generatePDF(user: any) {
       y = 16;
     }
   }
-
   const capitalize = (str: string) => {
     if (!str) return "—";
+
     return str
       .trim()
       .split(" ")
@@ -127,30 +130,42 @@ async function generatePDF(user: any) {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(" ");
   };
-
   function drawCoverPage() {
     const W = PAGE_W;
+
+    // ── White Background ──
     doc.setFillColor(255, 255, 255);
     doc.rect(0, 0, W, 297, "F");
 
+    const PRIMARY = [96, 77, 227];
+    const TEXT_DARK = [40, 40, 60];
+    const TEXT_LIGHT = [120, 120, 140];
+
     const LEFT = 25;
 
+    // ── Logo (Centered) ──
     const logoW = 60;
     const logoH = 20;
     const logoX = (W - logoW) / 2;
     doc.addImage(logoBase64, "PNG", logoX, 20, logoW, logoH);
 
+    // ── Accent Line (Centered under logo) ──
     doc.setDrawColor(96, 77, 227);
     doc.setLineWidth(1);
     doc.line(W / 2 - 25, 45, W / 2 + 25, 45);
 
+    // ── Title (Primary Color) ──
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
     doc.setTextColor(96, 77, 227);
     doc.text("Applicant Details", LEFT, 60);
 
+    // ── Info Fields ──
     const infoFields = [
-      { label: "Name", value: capitalize(basic.full_name) || "—" },
+      {
+        label: "Name",
+        value: capitalize(basic.full_name) || "—",
+      },
       { label: "Email", value: basic.email || "—" },
       { label: "Phone", value: basic.phone || "—" },
       { label: "Address", value: basic.address || "—" },
@@ -168,12 +183,15 @@ async function generatePDF(user: any) {
     ];
 
     let dy = 75;
+
     infoFields.forEach(({ label, value }) => {
+      // Label
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
       doc.setTextColor(120, 120, 140);
       doc.text(label.toUpperCase(), LEFT, dy);
 
+      // Value
       doc.setFont("helvetica", "normal");
       doc.setFontSize(12);
       doc.setTextColor(40, 40, 60);
@@ -183,11 +201,13 @@ async function generatePDF(user: any) {
 
       dy += lines.length > 1 ? 18 + (lines.length - 1) * 5 : 18;
 
+      // Divider
       doc.setDrawColor(220, 220, 230);
       doc.setLineWidth(0.3);
       doc.line(LEFT, dy - 5, W - 25, dy - 5);
     });
 
+    // ── Footer ──
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 170);
@@ -239,9 +259,10 @@ async function generatePDF(user: any) {
     const lines = doc.splitTextToSize(val, colW - 4);
     doc.text(lines, x, y + 4);
     const lineH = lines.length * 5;
-    return lineH + 8;
+    return lineH + 8; // height consumed
   }
 
+  /** Renders a grid of [label, value] pairs in 2 columns */
   function fieldGrid(pairs: [string, string | undefined | null][]) {
     let i = 0;
     while (i < pairs.length) {
@@ -277,78 +298,11 @@ async function generatePDF(user: any) {
     y += 5;
   }
 
-  // ── NEW: Link Button helper ───────────────────────────────────────────────
-  function linkButton(
-    label: string,
-    url: string | null | undefined,
-    x: number,
-  ) {
-    checkPageBreak(16);
-
-    // =========================
-    // LABEL
-    // =========================
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
-    doc.setTextColor(...LABEL_COL);
-    doc.text(label, x, y);
-    y += 2;
-
-    // =========================
-    // NO FILE CASE
-    // =========================
-    if (!url || url.includes("null") || url.includes("undefined")) {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(6);
-      doc.setTextColor(160, 160, 160);
-      doc.text("Not uploaded", x, y);
-      y += 2;
-      return;
-    }
-
-    checkPageBreak(12);
-
-    // =========================
-    // BUTTON SIZE (FIXED)
-    // =========================
-    const btnW = 15; // 🔥 wider (fix UI issue)
-    const btnH = 7; // 🔥 taller for better click feel
-    const radius = 1.5;
-
-    const safeUrl = url.startsWith("http") ? url : `https://${url}`;
-
-    // =========================
-    // BUTTON BACKGROUND
-    // =========================
-    doc.setFillColor(92, 74, 217);
-    doc.roundedRect(x, y, btnW, btnH, radius, radius, "F");
-
-    // =========================
-    // BUTTON TEXT (CENTER FIXED)
-    // =========================
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(6);
-    doc.setTextColor(255, 255, 255);
-
-    doc.text("View", x + btnW / 2, y + 4.6, {
-      align: "center",
-    });
-
-    // =========================
-    // CLICKABLE AREA (ONLY THIS IS VALID)
-    // =========================
-    doc.link(x, y, btnW, btnH, {
-      url: safeUrl,
-    });
-
-    y += btnH + 15;
-  }
-
   // ── Build PDF ─────────────────────────────────────────────────────────────
 
   drawCoverPage();
 
-  // Step 1 – Personal Info
+  // Step 1 – Personal Info (always shown)
   sectionHeader("Step 1 – Personal Info");
   fieldGrid([
     ["Full Name", basic.full_name],
@@ -367,17 +321,17 @@ async function generatePDF(user: any) {
           ["Changed To", basic.changed_to],
         ] as [string, string][])
       : []),
+    ...(basic.type !== "agency-work"
+      ? ([
+          [
+            "CV",
+            basic.cv_file_path
+              ? process.env.NEXT_PUBLIC_API_URL + basic.cv_file_path
+              : "Not uploaded",
+          ],
+        ] as [string, string][])
+      : []),
   ]);
-  // CV as button
-  if (basic.type !== "agency-work") {
-    linkButton(
-      "CV",
-      basic.cv_file_path
-        ? process.env.NEXT_PUBLIC_API_URL + basic.cv_file_path
-        : null,
-      MARGIN,
-    );
-  }
 
   if (!isPermanent) {
     // Step 2 – Pre-Qualifying
@@ -454,19 +408,14 @@ async function generatePDF(user: any) {
           ? ([
               ["Surname", background.surname],
               ["Date of Birth", background.dob],
+              [
+                "CRB File",
+                process.env.NEXT_PUBLIC_API_URL + background.crb_file_path ||
+                  "Not uploaded",
+              ],
             ] as [string, string][])
           : []),
       ]);
-      // CRB file as button
-      if (background.crb) {
-        linkButton(
-          "CRB File",
-          background.crb_file_path
-            ? process.env.NEXT_PUBLIC_API_URL + background.crb_file_path
-            : null,
-          MARGIN,
-        );
-      }
     }
 
     // Step 4 – Health
@@ -540,7 +489,6 @@ async function generatePDF(user: any) {
     // Step 6 – Documents
     divider();
     sectionHeader("Step 6 – Documents");
-
     if (isEmpty(documents)) {
       doc.setFont("helvetica", "italic");
       doc.setFontSize(9);
@@ -548,105 +496,28 @@ async function generatePDF(user: any) {
       doc.text("⚠ Not submitted yet.", MARGIN, y);
       y += 8;
     } else {
-      const items = [
-        { label: "Passport", key: "passport" },
-        { label: "Driving Licence", key: "driving_licence" },
-        { label: "Proof ID 1", key: "proof_id1" },
-        { label: "Proof ID 2", key: "proof_id2" },
-      ];
-
-      const col1X = MARGIN;
-      const col2X = MARGIN + 85;
-
-      for (let i = 0; i < items.length; i += 2) {
-        checkPageBreak(28);
-
-        const rowStartY = y;
-
-        // ── LEFT column item ──────────────────────────────────
-        const leftItem = items[i];
-        const leftUrl = documents[leftItem.key]
-          ? process.env.NEXT_PUBLIC_API_URL + documents[leftItem.key]
-          : null;
-
-        // Draw label
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(8);
-        doc.setTextColor(...LABEL_COL);
-        doc.text(leftItem.label, col1X, y);
-        y += 4;
-
-        // Draw button or "Not uploaded"
-        if (
-          !leftUrl ||
-          leftUrl.includes("null") ||
-          leftUrl.includes("undefined")
-        ) {
-          doc.setFont("helvetica", "italic");
-          doc.setFontSize(6);
-          doc.setTextColor(160, 160, 160);
-          doc.text("Not uploaded", col1X, y);
-        } else {
-          const btnW = 15,
-            btnH = 7,
-            radius = 1.5;
-          const safeUrl = leftUrl.startsWith("http")
-            ? leftUrl
-            : `https://${leftUrl}`;
-          doc.setFillColor(92, 74, 217);
-          doc.roundedRect(col1X, y, btnW, btnH, radius, radius, "F");
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(6);
-          doc.setTextColor(255, 255, 255);
-          doc.text("View", col1X + btnW / 2, y + 4.6, { align: "center" });
-          doc.link(col1X, y, btnW, btnH, { url: safeUrl });
-        }
-
-        // ── RIGHT column item (if exists) ─────────────────────
-        if (i + 1 < items.length) {
-          const rightItem = items[i + 1];
-          const rightUrl = documents[rightItem.key]
-            ? process.env.NEXT_PUBLIC_API_URL + documents[rightItem.key]
-            : null;
-
-          y = rowStartY; // reset to row start for right column
-
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(8);
-          doc.setTextColor(...LABEL_COL);
-          doc.text(rightItem.label, col2X, y);
-          y += 4;
-
-          if (
-            !rightUrl ||
-            rightUrl.includes("null") ||
-            rightUrl.includes("undefined")
-          ) {
-            doc.setFont("helvetica", "italic");
-            doc.setFontSize(6);
-            doc.setTextColor(160, 160, 160);
-            doc.text("Not uploaded", col2X, y);
-          } else {
-            const btnW = 15,
-              btnH = 7,
-              radius = 1.5;
-            const safeUrl = rightUrl.startsWith("http")
-              ? rightUrl
-              : `https://${rightUrl}`;
-            doc.setFillColor(92, 74, 217);
-            doc.roundedRect(col2X, y, btnW, btnH, radius, radius, "F");
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(6);
-            doc.setTextColor(255, 255, 255);
-            doc.text("View", col2X + btnW / 2, y + 4.6, { align: "center" });
-            doc.link(col2X, y, btnW, btnH, { url: safeUrl });
-          }
-        }
-
-        y = rowStartY + 20; // advance past this row (label + button + spacing)
-      }
-
-      y += 6; // bottom padding after documents section
+      fieldGrid([
+        [
+          "Passport",
+          process.env.NEXT_PUBLIC_API_URL + documents.passport ||
+            "Not uploaded",
+        ],
+        [
+          "Driving Licence",
+          process.env.NEXT_PUBLIC_API_URL + documents.driving_licence ||
+            "Not uploaded",
+        ],
+        [
+          "Proof ID 1",
+          process.env.NEXT_PUBLIC_API_URL + documents.proof_id1 ||
+            "Not uploaded",
+        ],
+        [
+          "Proof ID 2",
+          process.env.NEXT_PUBLIC_API_URL + documents.proof_id2 ||
+            "Not uploaded",
+        ],
+      ]);
     }
 
     // Step 7 – Training
@@ -698,16 +569,13 @@ async function generatePDF(user: any) {
             ["Registration Body", item.registrationBody],
             ["Registration Number", item.registrationNumber],
             ["Registration Expiry", item.registrationExpiry],
+            [
+              "Certificate",
+              process.env.NEXT_PUBLIC_API_URL + item.certificateFile ||
+                "Not uploaded",
+            ],
             ["Additional Notes", item.additionalNotes],
           ]);
-          // Certificate as button
-          linkButton(
-            "Certificate",
-            item.certificateFile
-              ? process.env.NEXT_PUBLIC_API_URL + item.certificateFile
-              : null,
-            MARGIN,
-          );
         } else {
           subHeader("Gap");
           fieldGrid([
@@ -819,25 +687,25 @@ async function generatePDF(user: any) {
           declaration.declaration_confirmed ? "Yes" : "No",
         ],
         ["Declaration Date", declaration.declaration_date],
+        [
+          "Signature",
+          process.env.NEXT_PUBLIC_API_URL + declaration.signature_file ||
+            "Not uploaded",
+        ],
       ]);
-      // Signature as button
-      linkButton(
-        "Signature",
-        declaration.signature_file
-          ? process.env.NEXT_PUBLIC_API_URL + declaration.signature_file
-          : null,
-        MARGIN,
-      );
     }
   }
 
   // Page numbers
+  // Page numbers
   const pageCount = doc.internal.pages.length - 1;
+
   for (let p = 1; p <= pageCount; p++) {
     doc.setPage(p);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(160, 160, 180);
+
     doc.text(`Page ${p} of ${pageCount}`, PAGE_W - MARGIN, 291, {
       align: "right",
     });
@@ -1065,10 +933,14 @@ export default function UserDetailPage() {
                 value={basic.name_changed ? "Yes" : "No"}
               />
 
-              <Info label="Previous Name" value={basic.previous_name} />
-              <Info label="Changed To" value={basic.changed_to} />
+              {Boolean(basic.name_changed) && (
+                <Info label="Previous Name" value={basic.previous_name} />
+              )}
+              {Boolean(basic.name_changed) && (
+                <Info label="Changed To" value={basic.changed_to} />
+              )}
 
-              {basic.type !== "agency-work" && (
+              {Boolean(basic.type !== "agency-work") && (
                 <Info
                   label="CV"
                   value={<FileLink path={basic.cv_file_path} />}
@@ -1100,7 +972,7 @@ export default function UserDetailPage() {
                   label="Work Restrictions"
                   value={questions.work_restrictions ? "Yes" : "No"}
                 />
-                {questions.work_restrictions && (
+                {Boolean(questions.work_restrictions) && (
                   <Info
                     label="Restriction Details"
                     value={questions.restriction_details}
@@ -1120,7 +992,7 @@ export default function UserDetailPage() {
                   label="Applied Before"
                   value={questions.applied_before ? "Yes" : "No"}
                 />
-                {questions.applied_before && (
+                {Boolean(questions.applied_before) && (
                   <Info
                     label="Applied Details"
                     value={questions.applied_details}
@@ -1149,17 +1021,18 @@ export default function UserDetailPage() {
                   label="Any Convictions"
                   value={background.has_convictions ? "Yes" : "No"}
                 />
-                {background.has_convictions && (
+                {Boolean(background.has_convictions) && (
                   <Info
                     label="Conviction Details"
                     value={background.conviction_details}
                   />
                 )}
+
                 <Info
                   label="Unspent Convictions"
                   value={background.has_unspent_convictions ? "Yes" : "No"}
                 />
-                {background.has_unspent_convictions && (
+                {Boolean(background.has_unspent_convictions) && (
                   <Info
                     label="Unspent Details"
                     value={background.unspent_details}
@@ -1174,7 +1047,7 @@ export default function UserDetailPage() {
                   value={background.removed_from_register ? "Yes" : "No"}
                 />
                 <Info label="CRB Check" value={background.crb ? "Yes" : "No"} />
-                {background.crb && (
+                {Boolean(background.crb) && (
                   <>
                     <Info label="Surname" value={background.surname} />
                     <Info label="Date of Birth" value={background.dob} />
@@ -1209,7 +1082,7 @@ export default function UserDetailPage() {
                   label="On Medication"
                   value={health.on_medication ? "Yes" : "No"}
                 />
-                {health.on_medication && (
+                {Boolean(health.on_medication) && (
                   <Info
                     label="Medication Details"
                     value={health.medication_details}
@@ -1219,7 +1092,7 @@ export default function UserDetailPage() {
                   label="Health Treatment"
                   value={health.health_treatment ? "Yes" : "No"}
                 />
-                {health.health_treatment && (
+                {Boolean(health.health_treatment) && (
                   <Info
                     label="Treatment Details"
                     value={health.treatment_details}
@@ -1229,14 +1102,14 @@ export default function UserDetailPage() {
                   label="Medical Condition"
                   value={health.medical_condition ? "Yes" : "No"}
                 />
-                {health.medical_condition && (
+                {Boolean(health.medical_condition) && (
                   <Info
                     label="Condition Details"
                     value={health.condition_details}
                   />
                 )}
                 <Info label="Disabled" value={health.disabled ? "Yes" : "No"} />
-                {health.disabled && (
+                {Boolean(health.disabled) && (
                   <Info
                     label="Impairment Type"
                     value={health.impairment_type}
@@ -1269,7 +1142,7 @@ export default function UserDetailPage() {
                   label="Is Nurse"
                   value={registration.is_nurse ? "Yes" : "No"}
                 />
-                {registration.is_nurse && (
+                {Boolean(registration.is_nurse) && (
                   <>
                     <Info
                       label="Professional Body"

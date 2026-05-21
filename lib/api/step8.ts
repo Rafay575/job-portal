@@ -1,3 +1,5 @@
+import toast from "react-hot-toast";
+
 export type TimelineItem = {
   id?: number; // Add id for tracking
   kind: "education" | "gap";
@@ -145,6 +147,7 @@ export async function saveTimeline(
     if (!data.success) {
       throw new Error(data.message);
     }
+    toast.success(data.message)
 
     return data;
   } catch (error) {

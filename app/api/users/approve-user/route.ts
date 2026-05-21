@@ -14,12 +14,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Geting user original email for send emails
+    // const [row]: any = await pool.execute(
+    //   `SELECT email FROM users WHERE id = ?`,
+    //   [id],
+    // );
+    // const userEmail = row.length > 0 ? row[0].email : null;
+
     // ✅ get user from DB
     const [rows]: any = await pool.execute(
-      `SELECT name, email, is_approved FROM users WHERE id = ?`,
+      `
+  SELECT 
+    u.name,
+    u.email,
+    u.is_approved,
+    b.type
+  FROM users u
+  LEFT JOIN employee_basic_information b ON b.user_id = u.id
+  WHERE u.id = ?
+  `,
       [id],
     );
-
     if (rows.length === 0) {
       return NextResponse.json(
         { success: false, message: "User not found" },
@@ -43,7 +58,7 @@ export async function POST(req: NextRequest) {
 
     // ✅ send email
     try {
-      await sendUserApprovalEmail(user.email, user.name);
+      await sendUserApprovalEmail(user.email, user.name, user.type);
     } catch (error) {
       console.error("Failed to send Form approval email");
       return NextResponse.json(
@@ -78,7 +93,18 @@ export async function PATCH(req: NextRequest) {
 
     // ✅ fetch users
     const [users]: any = await pool.execute(
-      `SELECT id, name, email, is_approved FROM users WHERE id IN (${ids.map(() => "?").join(",")})`,
+      `
+  SELECT 
+    u.id,
+    u.name,
+    u.email,
+    u.is_approved,
+    e.type
+  FROM users u
+  LEFT JOIN employee_basic_information e
+    ON e.user_id = u.id
+  WHERE u.id IN (${ids.map(() => "?").join(",")})
+  `,
       ids,
     );
 
@@ -99,9 +125,12 @@ export async function PATCH(req: NextRequest) {
     await Promise.all(
       users.map(async (user: any) => {
         try {
-          await sendUserApprovalEmail(user.email, user.name);
+          await sendUserApprovalEmail(user.email, user.name, user.type);
         } catch (err) {
-          console.error(`Failed to send Form approval email ${user.email}`, err);
+          console.error(
+            `Failed to send Form approval email ${user.email}`,
+            err,
+          );
         }
       }),
     );

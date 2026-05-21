@@ -15,13 +15,15 @@ import { useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/axios";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import { setUser } from "@/lib/userSlice";
 
 const registerSchema = z
   .object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
+    firstName: z.string().min(2, "First name is required"),
+    lastName: z.string().min(2, "Last name is required"),
     email: z.string().min(1, "Email is required").email("Enter a valid email"),
     password: z
       .string()
@@ -41,7 +43,7 @@ const registerSchema = z
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
-type Step = "register" | "otp" | "done";
+type Step = "register" | "otp" ;
 
 export default function RegisterPage() {
   const [registerData, setRegisterData] = useState<RegisterForm | null>(null);
@@ -58,9 +60,17 @@ export default function RegisterPage() {
 
   const { register, handleSubmit, formState, watch } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
     mode: "onSubmit",
   });
+  const router = useRouter();
+  const dispatch = useDispatch();
 
   const { errors } = formState;
   const password = watch("password") || "";
@@ -80,7 +90,7 @@ export default function RegisterPage() {
 
   // --- Mutations ---
   const signupMutation = useMutation({
-    mutationFn: async (payload: RegisterForm) => {
+    mutationFn: async (payload: any) => {
       const res = await api.post("/api/register", payload);
       return res.data;
     },
@@ -108,13 +118,26 @@ export default function RegisterPage() {
       name: string;
       password: string;
     }) => {
-      const res = await api.post("/api/auth/verify-otp", payload);
+      const res = await api.post("/api/auth/verify-otp", payload, {
+        withCredentials: true,
+      });
       return res.data;
     },
 
-    onSuccess: () => {
-      toast.success("Verified! 🎉");
-      setStep("done");
+    onSuccess: (data) => {
+      toast.success("User verified successfully!");
+
+      dispatch(
+        setUser({
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          role: data.user.role,
+          loggedIn: true,
+        }),
+      );
+
+      router.push("/user/dashboard");
     },
 
     onError: (err: any) => {
@@ -131,7 +154,10 @@ export default function RegisterPage() {
       return;
     }
 
-    signupMutation.mutate(values);
+    signupMutation.mutate({
+      ...values,
+      name: `${values.firstName} ${values.lastName}`,
+    });
   };
 
   // --- OTP helpers ---
@@ -198,7 +224,7 @@ export default function RegisterPage() {
     verifyOtpMutation.mutate({
       email: emailForOtp,
       otp: otpValue,
-      name: registerData.name,
+      name: `${registerData.firstName} ${registerData.lastName}`,
       password: registerData.password,
     });
   };
@@ -209,7 +235,6 @@ export default function RegisterPage() {
       console.log("making request");
       const res = await api.post("/api/auth/resend-otp", payload);
       console.log("request Sent");
-
       return res.data;
     },
     onSuccess: () => {
@@ -290,20 +315,45 @@ export default function RegisterPage() {
 
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-              {/* Name */}
-              <div>
-                <Input
-                  type="text"
-                  autoComplete="name"
-                  placeholder="Full name"
-                  className={`${inputBase} ${errors.name ? "border-red-400" : ""}`}
-                  {...register("name")}
-                />
-                {errors.name?.message && (
-                  <p className="mt-1 text-xs text-red-500 px-2">
-                    {errors.name.message}
-                  </p>
-                )}
+              {/* First + Last Name */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* First Name */}
+                <div>
+                  <Input
+                    type="text"
+                    autoComplete="given-name"
+                    placeholder="First name"
+                    className={`${inputBase} ${
+                      errors.firstName ? "border-red-400" : ""
+                    }`}
+                    {...register("firstName")}
+                  />
+
+                  {errors.firstName?.message && (
+                    <p className="mt-1 text-xs text-red-500 px-2">
+                      {errors.firstName.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Last Name */}
+                <div>
+                  <Input
+                    type="text"
+                    autoComplete="family-name"
+                    placeholder="Last name"
+                    className={`${inputBase} ${
+                      errors.lastName ? "border-red-400" : ""
+                    }`}
+                    {...register("lastName")}
+                  />
+
+                  {errors.lastName?.message && (
+                    <p className="mt-1 text-xs text-red-500 px-2">
+                      {errors.lastName.message}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Email */}
@@ -527,35 +577,6 @@ export default function RegisterPage() {
                 {cooldown > 0 ? `Resend OTP in ${cooldown}s` : "Resend OTP"}
               </button>
             </div>
-          </motion.div>
-        )}
-
-        {/* STEP 3: DONE */}
-        {step === "done" && (
-          <motion.div
-            key="done"
-            initial={{ x: 80, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.35, ease: "easeInOut" }}
-            className="text-center"
-          >
-            <h2 className="text-[28px] leading-9 font-bold text-black">
-              Thank you for registering
-            </h2>
-            <p className="text-sm text-gray-600 mt-2">
-              Your email is verified and your account is ready.
-            </p>
-
-            <Button
-              className="mt-6 w-full h-12 rounded-full bg-primary hover:bg-primary/90"
-              onClick={() => {
-                // go to login or dashboard
-                // router.push("/auth/login");
-                window.location.href = "/auth/login";
-              }}
-            >
-              Go to Sign in
-            </Button>
           </motion.div>
         )}
       </AnimatePresence>
