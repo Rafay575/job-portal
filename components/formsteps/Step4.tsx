@@ -16,7 +16,7 @@ import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
 import { checkApproval } from "@/lib/users";
-import { IoRefresh } from "react-icons/io5";
+import Link from "next/link";
 
 type NavProps = {
   onNext: () => void;
@@ -60,7 +60,6 @@ export default function Step4({ next, back }: Props) {
 
   const [formData, setFormData] = useState<Step4Type>({
     absentDays: "",
-    absencePeriods: "",
     onMedication: null,
     medicationDetails: "",
     healthTreatment: null,
@@ -117,7 +116,6 @@ export default function Step4({ next, back }: Props) {
 
         setFormData({
           absentDays: d.absent_days || "",
-          absencePeriods: d.absence_periods || "",
           onMedication: Boolean(d.on_medication),
           medicationDetails: d.medication_details || "",
           healthTreatment: Boolean(d.health_treatment),
@@ -141,7 +139,6 @@ export default function Step4({ next, back }: Props) {
       const res = await submitStep4({
         userId: user.id,
         absentDays: formData.absentDays,
-        absencePeriods: formData.absencePeriods,
         onMedication: formData.onMedication,
         medicationDetails: formData.medicationDetails,
         healthTreatment: formData.healthTreatment,
@@ -183,33 +180,12 @@ export default function Step4({ next, back }: Props) {
             </p>
           </div>
 
-          {/* Absent Days */}
-          <div>
-            <Label>Absent days in last 3 years</Label>
-            <Input
-              value={formData.absentDays}
-              onChange={(e) => handleChange("absentDays", e.target.value)}
-            />
-          </div>
-
-          <div>
-            <Label>Number of absence periods in last 3 years</Label>
-            <Input
-              value={formData.absencePeriods}
-              onChange={(e) => handleChange("absencePeriods", e.target.value)}
-            />
-          </div>
-
           {/* Medication */}
           <div className="flex flex-col items-stretch gap-4">
             <div>
               <Label>Currently taking medication?</Label>
               <RadioGroup
-                value={
-                  formData.onMedication
-                      ? "yes"
-                      : "no"
-                }
+                value={formData.onMedication ? "yes" : "no"}
                 onValueChange={(v) => handleChange("onMedication", v === "yes")}
               >
                 <div className="flex gap-4 mt-2">
@@ -241,13 +217,11 @@ export default function Step4({ next, back }: Props) {
           {/* Treatment */}
           <div className="flex flex-col items-stretch gap-4">
             <div>
-              <Label>Physical or mental health treatment?</Label>
+              <Label>
+                Are you taking any physical or mental health treatment?
+              </Label>
               <RadioGroup
-                value={
-                  formData.healthTreatment
-                      ? "yes"
-                      : "no"
-                }
+                value={formData.healthTreatment ? "yes" : "no"}
                 onValueChange={(v) =>
                   handleChange("healthTreatment", v === "yes")
                 }
@@ -281,13 +255,11 @@ export default function Step4({ next, back }: Props) {
           {/* Condition */}
           <div className="flex flex-col items-stretch gap-4">
             <div>
-              <Label>Any injury / condition / allergy affecting duties?</Label>
+              <Label>
+                Any medical condition that can affecting your duties?
+              </Label>
               <RadioGroup
-                value={
-                  formData.medicalCondition
-                      ? "yes"
-                      : "no"
-                }
+                value={formData.medicalCondition ? "yes" : "no"}
                 onValueChange={(v) =>
                   handleChange("medicalCondition", v === "yes")
                 }
@@ -323,11 +295,7 @@ export default function Step4({ next, back }: Props) {
             <div>
               <Label>Do you consider yourself disabled?</Label>
               <RadioGroup
-                value={
-                  formData.disabled
-                      ? "yes"
-                      : "no"
-                }
+                value={formData.disabled ? "yes" : "no"}
                 onValueChange={(v) => handleChange("disabled", v === "yes")}
               >
                 <div className="flex gap-4 mt-2">
@@ -354,15 +322,20 @@ export default function Step4({ next, back }: Props) {
             </div>
           </div>
 
+          {/* Absent Days */}
+          <div>
+            <Label>How many sick leaves you had in last 3 years</Label>
+            <Input
+              value={formData.absentDays}
+              onChange={(e) => handleChange("absentDays", e.target.value)}
+            />
+          </div>
+
           {/* Night Shift */}
           <div>
-            <Label>Medical fit for Night Shift?</Label>
+            <Label>Are you medically fit for the Night Shift?</Label>
             <RadioGroup
-              value={
-                formData.nightShiftFit
-                    ? "yes"
-                    : "no"
-              }
+              value={formData.nightShiftFit ? "yes" : "no"}
               onValueChange={(v) => handleChange("nightShiftFit", v === "yes")}
             >
               <div className="flex gap-4 mt-2">
@@ -383,31 +356,21 @@ export default function Step4({ next, back }: Props) {
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
           <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
             <h2 className="text-lg font-semibold mb-2">
-              Appliaction Approval Pending
+              Appliaction Submitted Successfully.
             </h2>
             <p className="text-sm text-gray-600 mb-4">
-              Your appliaction is under review. You’ll gain full access once
-              approved and will let you know by email.
+              One of our representative will get back to you with in 24 to 48
+              hours.
             </p>
 
             {/* Optional action */}
             <div className="flex justify-evenly items-center">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={back}
-                className="rounded-full"
-              >
-                <IoIosArrowBack />
-                Back
-              </Button>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-1 bg-primary text-white rounded-full text-[15px] flex gap-1 items-center"
-              >
-                <IoRefresh className="size-5 mb-0.5" />
-                Refresh
-              </button>
+              <Link href={"/"}>
+                <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
+                  Done
+                  {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
+                </button>
+              </Link>
             </div>
           </div>
         </div>

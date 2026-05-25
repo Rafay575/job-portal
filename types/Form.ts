@@ -36,6 +36,8 @@ export type Step3Type = {
   fitnessInvestigation: boolean | null;
   removedFromRegister: boolean | null;
   crb: boolean | null;
+  certificateNumber: string;  // ← NEW FIELD (before surname)
+  fullName: string;    
   surname: string;
   dob: string;
   crbFile: File | string | null;
@@ -43,7 +45,6 @@ export type Step3Type = {
 
 export type Step4Type = {
   absentDays: string;
-  absencePeriods: string;
   onMedication: boolean | null;
   medicationDetails: string;
   healthTreatment: boolean | null;
@@ -65,7 +66,8 @@ export type Step5Type = {
 
 export type Step6Type = {
   passport: File | string | null;
-  drivingLicence: File | string | null;
+  drivingLicenceFront: File | string | null;  // ← RENAMED
+  drivingLicenceBack: File | string | null;  
   proofId1: File | string | null;
   proofId2: File | string | null;
 };
@@ -155,29 +157,3 @@ export type Form = {
   Step10: Step10Type;
   Step11: Step11Type;
 };
-// export type TimelineItem = {
-//   id: number;  // Add id for tracking
-//   kind: "education" | "gap";
-
-//   // education
-//   qualificationType: string;
-//   qualificationTitle: string;
-//   institutionName: string;
-//   institutionCountry: string;
-//   awardingBody: string;
-//   gradeOrResult: string;
-//   startDate: string;
-//   endDate: string;
-//   completed: "yes" | "no";  // Change to "yes" | "no"
-//   hasProfessionalRegistration: "yes" | "no";  // Change to "yes" | "no"
-//   registrationBody: string;
-//   registrationNumber: string;
-//   registrationExpiry: string;
-//   certificateFile: string | File | null;  // Allow File or string
-//   additionalNotes: string;
-
-//   // gap
-//   gapFrom: string;
-//   gapTo: string;
-//   reason: string;
-// };

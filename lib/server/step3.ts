@@ -25,18 +25,17 @@ export async function getStep3DB(userId: number | string | null) {
         fitness_investigation,
         removed_from_register,
         crb,
+        certificate_number,  -- ← NEW COLUMN
+        full_name,           -- ← NEW COLUMN
         surname,
-        
         DATE_FORMAT(dob, '%Y-%m-%d') AS dob,
-
         crb_file_path,
         created_at,
         updated_at
-
       FROM employee_background
       WHERE user_id = ?
       `,
-      [userId]
+      [userId],
     );
 
     return {

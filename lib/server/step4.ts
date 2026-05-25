@@ -19,7 +19,6 @@ export async function getStep4DB(userId: number | string | null) {
         id,
         user_id,
         absent_days,
-        absence_periods,
         on_medication,
         medication_details,
         health_treatment,

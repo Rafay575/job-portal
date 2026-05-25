@@ -53,11 +53,11 @@ export default function Stepper({
             <div
 
             
-              // onClick={() => {
-              //   if (!isLocked ) {
-              //     setCurrentStep(stepNumber);
-              //   }
-              // }}
+              onClick={() => {
+                if (!isLocked ) {
+                  setCurrentStep(stepNumber);
+                }
+              }}
 
 
               className={clsx(

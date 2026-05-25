@@ -127,6 +127,8 @@ export async function POST(req: NextRequest) {
           ? path.join(process.cwd(), "public/uploads")
           : "/var/www/uploads";
 
+          
+
       console.log("uploadDir: ", uploadDir);
 
       const safeName = file.name.replace(/\s+/g, "_").toLowerCase();

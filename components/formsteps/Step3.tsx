@@ -18,6 +18,7 @@ import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
 import { checkApproval } from "@/lib/users";
 import { IoRefresh } from "react-icons/io5";
+import Link from "next/link";
 
 type NavProps = {
   onNext: () => void;
@@ -68,6 +69,8 @@ export default function Step3({ next, back }: Props) {
     fitnessInvestigation: null,
     removedFromRegister: null,
     crb: null,
+    certificateNumber: "", // ← NEW FIELD
+    fullName: "", // ← NEW FIELD
     surname: "",
     dob: "",
     crbFile: null,
@@ -95,6 +98,14 @@ export default function Step3({ next, back }: Props) {
     }
 
     if (formData.crb) {
+      if (!formData.certificateNumber) {
+        toast.error("Cetificate number is required");
+        return false;
+      }
+      if (!formData.fullName) {
+        toast.error("Full name is required");
+        return false;
+      }
       if (!formData.surname) {
         toast.error("Surname is required");
         return false;
@@ -150,6 +161,8 @@ export default function Step3({ next, back }: Props) {
           fitnessInvestigation: Boolean(d.fitness_investigation),
           removedFromRegister: Boolean(d.removed_from_register),
           crb: Boolean(d.crb),
+          certificateNumber: d.certificate_number || "", // ← NEW FIELD
+          fullName: d.full_name || "",
           surname: d.surname || "",
           dob: d.dob ? d.dob.split("T")[0] : "",
           crbFile: null, // important
@@ -188,6 +201,8 @@ export default function Step3({ next, back }: Props) {
       form.append("removedFromRegister", String(formData.removedFromRegister));
 
       form.append("crb", String(formData.crb));
+      form.append("certificateNumber", formData.certificateNumber); // ← NEW FIELD
+      form.append("fullName", formData.fullName);
       form.append("surname", formData.surname);
       form.append("dob", formData.dob);
 
@@ -221,13 +236,11 @@ export default function Step3({ next, back }: Props) {
           {/* Convictions */}
           <div className="flex flex-col items-stretch gap-4">
             <div>
-              <Label>Any convictions?<span className="text-red-500">*</span></Label>
+              <Label>
+                Any convictions?<span className="text-red-500">*</span>
+              </Label>
               <RadioGroup
-                value={
-                  formData.hasConvictions
-                      ? "yes"
-                      : "no"
-                }
+                value={formData.hasConvictions ? "yes" : "no"}
                 onValueChange={(v) =>
                   handleChange("hasConvictions", v === "yes")
                 }
@@ -263,13 +276,12 @@ export default function Step3({ next, back }: Props) {
           {/* Unspent Convictions */}
           <div className="flex flex-col items-stretch gap-4">
             <div>
-              <Label>Any unspent convictions?<span className="text-red-500">*</span></Label>
+              <Label>
+                Do you have any unspent convictions?
+                <span className="text-red-500">*</span>
+              </Label>
               <RadioGroup
-                value={
-                  formData.hasUnspentConvictions
-                      ? "yes"
-                      : "no"
-                }
+                value={formData.hasUnspentConvictions ? "yes" : "no"}
                 onValueChange={(v) =>
                   handleChange("hasUnspentConvictions", v === "yes")
                 }
@@ -303,13 +315,12 @@ export default function Step3({ next, back }: Props) {
 
           {/* Fitness Investigation */}
           <div>
-            <Label>Currently under fitness to practice investigation?<span className="text-red-500">*</span></Label>
+            <Label>
+              Currently under fitness to practice investigation?
+              <span className="text-red-500">*</span>
+            </Label>
             <RadioGroup
-              value={
-                formData.fitnessInvestigation
-                    ? "yes"
-                    : "no"
-              }
+              value={formData.fitnessInvestigation ? "yes" : "no"}
               onValueChange={(v) =>
                 handleChange("fitnessInvestigation", v === "yes")
               }
@@ -325,13 +336,12 @@ export default function Step3({ next, back }: Props) {
 
           {/* Removed From Register */}
           <div>
-            <Label>Removed from professional register before?<span className="text-red-500">*</span></Label>
+            <Label>
+              Have you been ever removed from professional registeration?
+              <span className="text-red-500">*</span>
+            </Label>
             <RadioGroup
-              value={
-                formData.removedFromRegister
-                    ? "yes"
-                    : "no"
-              }
+              value={formData.removedFromRegister ? "yes" : "no"}
               onValueChange={(v) =>
                 handleChange("removedFromRegister", v === "yes")
               }
@@ -348,13 +358,12 @@ export default function Step3({ next, back }: Props) {
           {/* CRB */}
           <div className="flex flex-col items-stretch gap-4 md:col-span-2">
             <div>
-              <Label>Any CRB?<span className="text-red-500">*</span></Label>
+              <Label>
+                Do you have DVS/CRB on update service?
+                <span className="text-red-500">*</span>
+              </Label>
               <RadioGroup
-                value={
-                 formData.crb
-                      ? "yes"
-                      : "no"
-                }
+                value={formData.crb ? "yes" : "no"}
                 onValueChange={(v) => handleChange("crb", v === "yes")}
               >
                 <div className="flex gap-4 mt-2 items-center">
@@ -380,6 +389,25 @@ export default function Step3({ next, back }: Props) {
               }`}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
+                {/* Certificate Number - NEW FIELD */}
+                <div>
+                  <Label>Certificate Number <span className="text-red-500">*</span></Label>
+                  <Input
+                    value={formData.certificateNumber}
+                    onChange={(e) =>
+                      handleChange("certificateNumber", e.target.value)
+                    }
+                  />
+                </div>
+
+                {/* Full Name - NEW FIELD */}
+                <div>
+                  <Label>Full Name <span className="text-red-500">*</span></Label>
+                  <Input
+                    value={formData.fullName}
+                    onChange={(e) => handleChange("fullName", e.target.value)}
+                  />
+                </div>
                 <div>
                   <Label>
                     Surname <span className="text-red-500">*</span>
@@ -403,7 +431,7 @@ export default function Step3({ next, back }: Props) {
 
                 <div>
                   <Label>
-                    Upload CRB <span className="text-red-500">*</span>
+                    Upload DVS/CRB <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     type="file"
@@ -418,7 +446,7 @@ export default function Step3({ next, back }: Props) {
                   {existingCRB && (
                     <a href={existingCRB} target="_blank">
                       <Button type="button" className="mt-2" size="sm">
-                        View Existing CRB
+                        View Existing DVS/CRB
                       </Button>
                     </a>
                   )}
@@ -436,31 +464,21 @@ export default function Step3({ next, back }: Props) {
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
           <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
             <h2 className="text-lg font-semibold mb-2">
-              Appliaction Approval Pending
+              Appliaction Submitted Successfully.
             </h2>
             <p className="text-sm text-gray-600 mb-4">
-              Your appliaction is under review. You’ll gain full access once
-              approved and will let you know by email.
+              One of our representative will get back to you with in 24 to 48
+              hours.
             </p>
 
             {/* Optional action */}
             <div className="flex justify-evenly items-center">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={back}
-                className="rounded-full"
-              >
-                <IoIosArrowBack />
-                Back
-              </Button>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-1 bg-primary text-white rounded-full text-[15px] flex gap-1 items-center"
-              >
-                <IoRefresh className="size-5 mb-0.5" />
-                Refresh
-              </button>
+              <Link href={"/"}>
+                <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
+                  Done
+                  {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
+                </button>
+              </Link>
             </div>
           </div>
         </div>

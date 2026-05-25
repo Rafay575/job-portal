@@ -28,21 +28,18 @@ export async function generatePDFBuffer(user: any) {
     statement,
     declaration,
   } = user;
-const capitalize = (str: string) => {
-  if (!str) return "—";
+  const capitalize = (str: string) => {
+    if (!str) return "—";
 
-  return str
-    .trim()
-    .split(" ")
-    .filter(Boolean)
-    .map(
-      (word) =>
-        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-    )
-    .join(" ");
-};
+    return str
+      .trim()
+      .split(" ")
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
   const isPermanent = basic?.type === "permanent";
- const logoBase64 = getLogoBase64();
+  const logoBase64 = getLogoBase64();
   const doc = new jsPDF({ unit: "mm", format: "a4" });
 
   const PAGE_W = 210;
@@ -97,14 +94,12 @@ const capitalize = (str: string) => {
     doc.setFontSize(16);
     doc.setTextColor(96, 77, 227);
     doc.text("Applicant Details", LEFT, 60);
-    
 
     // ── Info Fields ──
     const infoFields = [
       {
         label: "Name",
-        value: (capitalize(basic.full_name) || "—"), 
-       
+        value: capitalize(basic.full_name) || "—",
       },
       { label: "Email", value: basic.email || "—" },
       { label: "Phone", value: basic.phone || "—" },
@@ -244,7 +239,7 @@ const capitalize = (str: string) => {
   // Step 1 – Personal Info (always shown)
   sectionHeader("Step 1 – Personal Info");
   fieldGrid([
-    ["Full Name",capitalize(basic.full_name)],
+    ["Full Name", capitalize(basic.full_name)],
     ["Email", basic.email],
     ["Phone", basic.phone],
     ["Address", basic.address],
@@ -342,13 +337,15 @@ const capitalize = (str: string) => {
           "Removed From Register",
           background.removed_from_register ? "Yes" : "No",
         ],
-        ["CRB Check", background.crb ? "Yes" : "No"],
+        ["DVS/CRB Check", background.crb ? "Yes" : "No"],
         ...(background.crb
           ? ([
+              ["Certificate Number", background.certificate_number], // ← NEW FIELD
+              ["Full Name", background.full_name], // ← NEW FIELD
               ["Surname", background.surname],
               ["Date of Birth", background.dob],
               [
-                "CRB File",
+                "DVS/CRB File",
                 process.env.NEXT_PUBLIC_API_URL + background.crb_file_path ||
                   "Not uploaded",
               ],
@@ -369,7 +366,6 @@ const capitalize = (str: string) => {
     } else {
       fieldGrid([
         ["Absent Days", health.absent_days],
-        ["Absence Periods", health.absence_periods],
         ["On Medication", health.on_medication ? "Yes" : "No"],
         ...(health.on_medication
           ? ([["Medication Details", health.medication_details]] as [
@@ -442,8 +438,13 @@ const capitalize = (str: string) => {
             "Not uploaded",
         ],
         [
-          "Driving Licence",
-          process.env.NEXT_PUBLIC_API_URL + documents.driving_licence ||
+          "Driving Licence (Front)",
+          process.env.NEXT_PUBLIC_API_URL + documents.driving_licence_front ||
+            "Not uploaded",
+        ],
+        [
+          "Driving Licence (Back)",
+          process.env.NEXT_PUBLIC_API_URL + documents.driving_licence_back ||
             "Not uploaded",
         ],
         [
@@ -635,20 +636,19 @@ const capitalize = (str: string) => {
     }
   }
 
+  // Page numbers
+  const pageCount = doc.internal.pages.length - 1;
 
- // Page numbers
-const pageCount = doc.internal.pages.length - 1;
+  for (let p = 1; p <= pageCount; p++) {
+    doc.setPage(p);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(160, 160, 180);
 
-for (let p = 1; p <= pageCount; p++) {
-  doc.setPage(p);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(160, 160, 180);
-
-  doc.text(`Page ${p} of ${pageCount}`, PAGE_W - MARGIN, 291, {
-    align: "right",
-  });
-}
+    doc.text(`Page ${p} of ${pageCount}`, PAGE_W - MARGIN, 291, {
+      align: "right",
+    });
+  }
 
   const filename = `${(basic.full_name || "applicant").replace(/\s+/g, "_")}_application.pdf`;
   const pdfBuffer = doc.output("arraybuffer");

@@ -52,7 +52,7 @@ export default function Page() {
       const {isApproved} = await checkApproval(user.id);
       if (!isApproved) {
         toast.success(
-          "Please wait for admin approval will inform you via email.",
+          "One of our representative will get back to you within 24 to 48 hours.",
         );
         setDirection(1);
         setStep((prev) => prev + 1);

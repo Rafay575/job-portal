@@ -17,6 +17,8 @@ import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
 import { IoRefresh } from "react-icons/io5";
+import { IoMdCheckmark } from "react-icons/io";
+import Link from "next/link";
 type NavProps = {
   onNext: () => void;
   onBack: () => void;
@@ -206,13 +208,12 @@ export default function Step2({ next, back }: Props) {
           <div className="min-w-full space-y-5  grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
             {/* Availability Issue */}
             <div>
-              <Label>Involved in activity limiting availability?<span className="text-red-500">*</span></Label>
+              <Label>
+                Are you involved in any activities that limit your work availibility?
+                <span className="text-red-500">*</span>
+              </Label>
               <RadioGroup
-                value={
-                  formData.availabilityIssue
-                      ? "yes"
-                      : "no"
-                }
+                value={formData.availabilityIssue ? "yes" : "no"}
                 onValueChange={(v) =>
                   handleChange("availabilityIssue", v === "yes")
                 }
@@ -232,13 +233,12 @@ export default function Step2({ next, back }: Props) {
 
             {/* Overtime */}
             <div>
-              <Label>Willing to work overtime & weekends?<span className="text-red-500">*</span></Label>
+              <Label>
+                Willing to work overtime & weekends?
+                <span className="text-red-500">*</span>
+              </Label>
               <RadioGroup
-                value={
-                  formData.overtime
-                      ? "yes"
-                      : "no"
-                }
+                value={formData.overtime ? "yes" : "no"}
                 onValueChange={(v) => handleChange("overtime", v === "yes")}
               >
                 <div className="flex gap-4 mt-1">
@@ -282,13 +282,11 @@ export default function Step2({ next, back }: Props) {
             {/* Applied Before */}
             <div className="flex flex-col items-stretch gap-4">
               <div>
-                <Label>Applied before?<span className="text-red-500">*</span></Label>
+                <Label>
+                  Applied before?<span className="text-red-500">*</span>
+                </Label>
                 <RadioGroup
-                  value={
-                    formData.appliedBefore
-                        ? "yes"
-                        : "no"
-                  }
+                  value={formData.appliedBefore ? "yes" : "no"}
                   onValueChange={(v) =>
                     handleChange("appliedBefore", v === "yes")
                   }
@@ -328,13 +326,12 @@ export default function Step2({ next, back }: Props) {
             {/* Work Restrictions */}
             <div className="flex flex-col items-stretch gap-4">
               <div>
-                <Label>Subject to work restrictions / covenants?<span className="text-red-500">*</span></Label>
+                <Label>
+                  Subject to work restrictions / covenants?
+                  <span className="text-red-500">*</span>
+                </Label>
                 <RadioGroup
-                  value={
-                    formData.workRestrictions
-                        ? "yes"
-                        : "no"
-                  }
+                  value={formData.workRestrictions ? "yes" : "no"}
                   onValueChange={(v) =>
                     handleChange("workRestrictions", v === "yes")
                   }
@@ -373,13 +370,12 @@ export default function Step2({ next, back }: Props) {
 
             {/* Worked Before */}
             <div>
-              <Label>Have you worked for us before?<span className="text-red-500">*</span></Label>
+              <Label>
+                Have you worked for us before?
+                <span className="text-red-500">*</span>
+              </Label>
               <RadioGroup
-                value={
-                  formData.workedBefore
-                      ? "yes"
-                      : "no"
-                }
+                value={formData.workedBefore ? "yes" : "no"}
                 onValueChange={(v) => handleChange("workedBefore", v === "yes")}
               >
                 <div className="flex gap-4 mt-1">
@@ -397,38 +393,27 @@ export default function Step2({ next, back }: Props) {
           </div>
           <SignupNavButtons onBack={back} onNext={handleSubmitStep2} />
         </div>
-        
 
         {/* Overlay */}
         {blur && (
           <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
             <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
               <h2 className="text-lg font-semibold mb-2">
-                Appliaction Approval Pending
+                Appliaction Submitted Successfully.
               </h2>
               <p className="text-sm text-gray-600 mb-4">
-                Your appliaction is under review. You’ll gain full access once
-                approved and will let you know by email.
+                One of our representative will get back to you with in 24 to 48
+                hours.
               </p>
 
               {/* Optional action */}
               <div className="flex justify-evenly items-center">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={back}
-                  className="rounded-full"
-                >
-                  <IoIosArrowBack />
-                  Back
-                </Button>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="px-4 py-1 bg-primary text-white rounded-full text-[15px] flex gap-1 items-center"
-                >
-                  <IoRefresh className="size-5 mb-0.5"/>
-                  Refresh
-                </button>
+                <Link href={"/"}>
+                  <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
+                    Done
+                    {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
+                  </button>
+                </Link>
               </div>
             </div>
           </div>

@@ -15,6 +15,7 @@ import { useSelector } from "react-redux";
 import { FullPageLoader } from "../Loading";
 import { checkApproval } from "@/lib/users";
 import { IoRefresh } from "react-icons/io5";
+import Link from "next/link";
 
 type NavProps = {
   onBack: () => void;
@@ -42,7 +43,7 @@ function SignupNavButtons({ onBack, disableBack }: NavProps) {
   );
 }
 
-// ------------------ Step6 Component ------------------
+
 export default function Step11({ back }: Props) {
   const [loading, setLoading] = useState(false);
   const [blur, setBlur] = useState(false);
@@ -277,36 +278,26 @@ export default function Step11({ back }: Props) {
       {/* Overlay */}
       {blur && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
-          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
-            <h2 className="text-lg font-semibold mb-2">
-              Appliaction Approval Pending
-            </h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Your appliaction is under review. You’ll gain full access once
-              approved and will let you know by email.
-            </p>
+            <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
+              <h2 className="text-lg font-semibold mb-2">
+                Appliaction Submitted Successfully.
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                One of our representative will get back to you with in 24 to 48
+                hours.
+              </p>
 
-            {/* Optional action */}
-            <div className="flex justify-evenly items-center">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={back}
-                className="rounded-full"
-              >
-                <IoIosArrowBack />
-                Back
-              </Button>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-1 bg-primary text-white rounded-full text-[15px] flex gap-1 items-center"
-              >
-                <IoRefresh className="size-5 mb-0.5" />
-                Refresh
-              </button>
+              {/* Optional action */}
+              <div className="flex justify-evenly items-center">
+                <Link href={"/"}>
+                  <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
+                    Done
+                    {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
       )}
     </div>
   );

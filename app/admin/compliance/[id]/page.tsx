@@ -403,13 +403,15 @@ async function generatePDF(user: any) {
           "Removed From Register",
           background.removed_from_register ? "Yes" : "No",
         ],
-        ["CRB Check", background.crb ? "Yes" : "No"],
+        ["DVS/CRB Check", background.crb ? "Yes" : "No"],
         ...(background.crb
           ? ([
+              ["Certificate Number", background.certificate_number], // ← NEW FIELD
+              ["Full Name", background.full_name],
               ["Surname", background.surname],
               ["Date of Birth", background.dob],
               [
-                "CRB File",
+                "DVS/CRB File",
                 process.env.NEXT_PUBLIC_API_URL + background.crb_file_path ||
                   "Not uploaded",
               ],
@@ -430,7 +432,6 @@ async function generatePDF(user: any) {
     } else {
       fieldGrid([
         ["Absent Days", health.absent_days],
-        ["Absence Periods", health.absence_periods],
         ["On Medication", health.on_medication ? "Yes" : "No"],
         ...(health.on_medication
           ? ([["Medication Details", health.medication_details]] as [
@@ -503,8 +504,13 @@ async function generatePDF(user: any) {
             "Not uploaded",
         ],
         [
-          "Driving Licence",
-          process.env.NEXT_PUBLIC_API_URL + documents.driving_licence ||
+          "Driving Licence (Front)",
+          process.env.NEXT_PUBLIC_API_URL + documents.driving_licence_front ||
+            "Not uploaded",
+        ],
+        [
+          "Driving Licence (Back)",
+          process.env.NEXT_PUBLIC_API_URL + documents.driving_licence_back ||
             "Not uploaded",
         ],
         [
@@ -1046,13 +1052,22 @@ export default function UserDetailPage() {
                   label="Removed From Register"
                   value={background.removed_from_register ? "Yes" : "No"}
                 />
-                <Info label="CRB Check" value={background.crb ? "Yes" : "No"} />
+                <Info
+                  label="DVS/CRB Check"
+                  value={background.crb ? "Yes" : "No"}
+                />
                 {Boolean(background.crb) && (
                   <>
+                    {/* NEW FIELDS - Added before Surname */}
+                    <Info
+                      label="Certificate Number"
+                      value={background.certificate_number}
+                    />
+                    <Info label="Full Name" value={background.full_name} />
                     <Info label="Surname" value={background.surname} />
                     <Info label="Date of Birth" value={background.dob} />
                     <Info
-                      label="CRB File"
+                      label="DVS/CRB File"
                       value={<FileLink path={background.crb_file_path} />}
                     />
                   </>
@@ -1076,8 +1091,6 @@ export default function UserDetailPage() {
               <NotSubmitted />
             ) : (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3  gap-4 text-sm">
-                <Info label="Absent Days" value={health.absent_days} />
-                <Info label="Absence Periods" value={health.absence_periods} />
                 <Info
                   label="On Medication"
                   value={health.on_medication ? "Yes" : "No"}
@@ -1115,6 +1128,7 @@ export default function UserDetailPage() {
                     value={health.impairment_type}
                   />
                 )}
+                <Info label="Absent Days" value={health.absent_days} />
                 <Info
                   label="Fit for Night Shift"
                   value={health.night_shift_fit ? "Yes" : "No"}
@@ -1184,8 +1198,12 @@ export default function UserDetailPage() {
                   value={<FileLink path={documents.passport} />}
                 />
                 <Info
-                  label="Driving Licence"
-                  value={<FileLink path={documents.driving_licence} />}
+                  label="Driving Licence (Front)"
+                  value={<FileLink path={documents.driving_licence_front} />}
+                />
+                <Info
+                  label="Driving Licence (Back)"
+                  value={<FileLink path={documents.driving_licence_back} />}
                 />
                 <Info
                   label="Proof ID 1"

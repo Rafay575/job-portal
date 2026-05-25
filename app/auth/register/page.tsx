@@ -448,14 +448,14 @@ export default function RegisterPage() {
             </form>
 
             {/* Or */}
-            <div className="flex items-center gap-2 my-5">
+            {/*<div className="flex items-center gap-2 my-5">
               <div className="flex-1 h-px bg-gray-200" />
               <span className="text-sm text-gray-500">or</span>
               <div className="flex-1 h-px bg-gray-200" />
-            </div>
+            </div>*/}
 
             {/* Social buttons */}
-            <div className="space-y-2">
+            {/*<div className="space-y-2">
               <Button
                 type="button"
                 variant="outline"
@@ -480,18 +480,18 @@ export default function RegisterPage() {
                 <FaApple className="text-[20px] text-black" />
                 Continue with Apple
               </Button>
-            </div>
+            </div>*/}
 
             {/* Terms */}
             <p className="mt-5 text-[11px] leading-4 text-gray-500">
               By clicking next, you agree to Hayabiu Talent&apos;s{" "}
-              <Link href="/terms" className="text-primary underline">
+              <span  className="text-primary underline">
                 Terms &amp; Conditions
-              </Link>{" "}
+              </span>{" "}
               and you acknowledge that you have read Hayabiu Talent&apos;s{" "}
-              <Link href="/privacy" className="text-primary underline">
+              <span className="text-primary underline">
                 Privacy Policy
-              </Link>{" "}
+              </span>{" "}
               which will apply to the processing of your personal data in the
               provision of our services
             </p>

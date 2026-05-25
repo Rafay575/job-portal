@@ -92,8 +92,9 @@ html {
   color: var(--primary);
 }
 
-input {
-  @apply focus-visible:outline-0;
+input,textarea {
+  border:1px solid lab(93.0475% .00116229 -.0418425) ;
+  @apply focus-visible:outline-0 focus-visible:border focus-visible:border-primary;
 }
 .container {
   @apply max-w-[95%] md:max-w-[87%];
@@ -144,7 +145,7 @@ p {
   }
 }
 
-input:focus-visible {
+input:focus-visible, textarea:focus-visible {
   box-shadow: 0px !important;
 }
 button:focus-visible {

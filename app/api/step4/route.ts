@@ -21,7 +21,6 @@ export async function GET(req: NextRequest) {
         id,
         user_id,
         absent_days,
-        absence_periods,
         on_medication,
         medication_details,
         health_treatment,
@@ -62,7 +61,6 @@ export async function POST(req: NextRequest) {
     const {
       userId,
       absentDays,
-      absencePeriods,
       onMedication,
       medicationDetails,
       healthTreatment,
@@ -99,7 +97,6 @@ export async function POST(req: NextRequest) {
         `
         UPDATE employee_health SET
           absent_days = ?,
-          absence_periods = ?,
           on_medication = ?,
           medication_details = ?,
           health_treatment = ?,
@@ -114,7 +111,6 @@ export async function POST(req: NextRequest) {
         `,
         [
           absentDays,
-          absencePeriods,
           onMedication,
           medicationDetails || null,
           healthTreatment,
@@ -143,7 +139,6 @@ export async function POST(req: NextRequest) {
       INSERT INTO employee_health (
         user_id,
         absent_days,
-        absence_periods,
         on_medication,
         medication_details,
         health_treatment,
@@ -153,12 +148,11 @@ export async function POST(req: NextRequest) {
         disabled,
         impairment_type,
         night_shift_fit
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         userId,
         absentDays,
-        absencePeriods,
         onMedication,
         medicationDetails || null,
         healthTreatment,

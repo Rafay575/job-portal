@@ -12,6 +12,7 @@ import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
 import { checkApproval } from "@/lib/users";
 import { IoRefresh } from "react-icons/io5";
+import Link from "next/link";
 
 type NavProps = {
   onNext: () => void;
@@ -282,7 +283,8 @@ export default function Step6({ next, back }: Props) {
 
   const [documents, setDocuments] = useState<Step6Type>({
     passport: null,
-    drivingLicence: null,
+    drivingLicenceFront: null,
+    drivingLicenceBack: null,
     proofId1: null,
     proofId2: null,
   });
@@ -314,7 +316,8 @@ export default function Step6({ next, back }: Props) {
         const d = res.data[0];
         setDocuments({
           passport: d.passport || null,
-          drivingLicence: d.driving_licence || null,
+          drivingLicenceFront: d.driving_licence_front || null,
+          drivingLicenceBack: d.driving_licence_back || null,
           proofId1: d.proof_id1 || null,
           proofId2: d.proof_id2 || null,
         });
@@ -331,7 +334,8 @@ export default function Step6({ next, back }: Props) {
   const validateStep = (): boolean => {
     if (
       !documents.passport ||
-      !documents.drivingLicence ||
+      !documents.drivingLicenceFront ||
+      !documents.drivingLicenceBack ||
       !documents.proofId1 ||
       !documents.proofId2
     ) {
@@ -353,8 +357,11 @@ export default function Step6({ next, back }: Props) {
       if (documents.passport instanceof File)
         formData.append("passport", documents.passport);
 
-      if (documents.drivingLicence instanceof File)
-        formData.append("drivingLicence", documents.drivingLicence);
+      if (documents.drivingLicenceFront instanceof File)
+        formData.append("drivingLicenceFront", documents.drivingLicenceFront);
+
+      if (documents.drivingLicenceBack instanceof File)
+        formData.append("drivingLicenceBack", documents.drivingLicenceBack);
 
       if (documents.proofId1 instanceof File)
         formData.append("proofId1", documents.proofId1);
@@ -390,35 +397,52 @@ export default function Step6({ next, back }: Props) {
               Identity & Verification Documents
             </h2>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              <DocCard
-                title="Passport"
-                fieldKey="passport"
-                hint="Upload your passport bio page. "
-                file={documents.passport}
-                onUpdate={updateDoc}
-              />
-              <DocCard
-                title="Driving Licence"
-                fieldKey="drivingLicence"
-                hint="Front side is usually enough."
-                file={documents.drivingLicence}
-                onUpdate={updateDoc}
-              />
-              <DocCard
-                title="Proof of ID 1"
-                fieldKey="proofId1"
-                hint="Any valid proof of ID "
-                file={documents.proofId1}
-                onUpdate={updateDoc}
-              />
-              <DocCard
-                title="Proof of ID 2"
-                fieldKey="proofId2"
-                hint="Second proof of ID "
-                file={documents.proofId2}
-                onUpdate={updateDoc}
-              />
+            <div className="grid md:grid-cols-6 gap-4">
+              <div className="col-span-2">
+                <DocCard
+                  title="Passport"
+                  fieldKey="passport"
+                  hint="Upload your passport bio page. "
+                  file={documents.passport}
+                  onUpdate={updateDoc}
+                />
+              </div>
+              <div className="col-span-2">
+                <DocCard
+                  title="Driving Licence (Front)"
+                  fieldKey="drivingLicenceFront"
+                  hint="Upload front side of your driving licence"
+                  file={documents.drivingLicenceFront}
+                  onUpdate={updateDoc}
+                />
+              </div>
+              <div className="col-span-2">
+                <DocCard
+                  title="Driving Licence (Back)"
+                  fieldKey="drivingLicenceBack"
+                  hint="Upload back side of your driving licence"
+                  file={documents.drivingLicenceBack}
+                  onUpdate={updateDoc}
+                />
+              </div>
+              <div className="col-span-3">
+                <DocCard
+                  title="Proof of ID 1"
+                  fieldKey="proofId1"
+                  hint="Any valid proof of ID "
+                  file={documents.proofId1}
+                  onUpdate={updateDoc}
+                />
+              </div>
+              <div className="col-span-3">
+                <DocCard
+                  title="Proof of ID 2"
+                  fieldKey="proofId2"
+                  hint="Second proof of ID "
+                  file={documents.proofId2}
+                  onUpdate={updateDoc}
+                />
+              </div>
             </div>
           </div>
 
@@ -431,31 +455,21 @@ export default function Step6({ next, back }: Props) {
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
           <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
             <h2 className="text-lg font-semibold mb-2">
-              Appliaction Approval Pending
+              Appliaction Submitted Successfully.
             </h2>
             <p className="text-sm text-gray-600 mb-4">
-              Your appliaction is under review. You’ll gain full access once
-              approved and will let you know by email.
+              One of our representative will get back to you with in 24 to 48
+              hours.
             </p>
 
             {/* Optional action */}
             <div className="flex justify-evenly items-center">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={back}
-                className="rounded-full"
-              >
-                <IoIosArrowBack />
-                Back
-              </Button>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-1 bg-primary text-white rounded-full text-[15px] flex gap-1 items-center"
-              >
-                <IoRefresh className="size-5 mb-0.5" />
-                Refresh
-              </button>
+              <Link href={"/"}>
+                <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
+                  Done
+                  {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
+                </button>
+              </Link>
             </div>
           </div>
         </div>

@@ -28,6 +28,8 @@ export async function GET(req: NextRequest) {
         fitness_investigation,
         removed_from_register,
         crb,
+        certificate_number, 
+        full_name,   
         surname,
         
         -- ✅ format date
@@ -89,6 +91,8 @@ export async function POST(req: NextRequest) {
     const convictionDetails = formData.get("convictionDetails") as string;
 
     const unspentDetails = formData.get("unspentDetails") as string;
+    const certificateNumber = formData.get("certificateNumber") as string; // ← NEW FIELD
+    const fullName = formData.get("fullName") as string; // ← NEW FIELD
 
     const surname = formData.get("surname") as string;
 
@@ -159,10 +163,10 @@ export async function POST(req: NextRequest) {
         const oldFilePath = fileRow?.[0]?.crb_file_path;
 
         if (oldFilePath) {
-           const oldFullPath =
-                      process.env.IS_LOCAL === "true"
-                        ? path.join(process.cwd(), "public", oldFilePath)
-                        : `/var/www${oldFilePath}`;
+          const oldFullPath =
+            process.env.IS_LOCAL === "true"
+              ? path.join(process.cwd(), "public", oldFilePath)
+              : `/var/www${oldFilePath}`;
           // const oldFullPath = `/var/www${oldFilePath}`;
 
           try {
@@ -183,6 +187,8 @@ export async function POST(req: NextRequest) {
           fitness_investigation = ?,
           removed_from_register = ?,
           crb = ?,
+          certificate_number = ?,
+          full_name = ?,  
           surname = ?,
           dob = ?,
           crb_file_path = COALESCE(?, crb_file_path),
@@ -197,6 +203,8 @@ export async function POST(req: NextRequest) {
           fitnessInvestigation,
           removedFromRegister,
           crb,
+          certificateNumber || null, // ← NEW FIELD
+          fullName || null, // ← NEW FIELD
           surname || null,
           dob || null,
           filePath,
@@ -225,10 +233,12 @@ export async function POST(req: NextRequest) {
         fitness_investigation,
         removed_from_register,
         crb,
+        certificate_number,  -- ← NEW COLUMN
+        full_name,           -- ← NEW COLUMN
         surname,
         dob,
         crb_file_path
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         userId,
@@ -239,6 +249,8 @@ export async function POST(req: NextRequest) {
         fitnessInvestigation,
         removedFromRegister,
         crb,
+        certificateNumber || null, // ← NEW FIELD
+        fullName || null, // ← NEW FIELD
         surname || null,
         dob || null,
         filePath,

@@ -22,9 +22,7 @@ export type Step9Data = {
   timeline: Step9TimelineItem[];
 };
 
-// =========================
 // GET STEP 9
-// =========================
 export async function getStep9(userId: any): Promise<Step9Data> {
   try {
     const res = await fetch(
@@ -59,15 +57,9 @@ export async function saveStep9(userId: number | string, data: Step9Data) {
     const formData = new FormData();
 
     formData.append("userId", String(userId));
-
-    // =====================
-    // AREAS
-    // =====================
     formData.append("areas", JSON.stringify(data.areas));
 
-    // =====================
     // TIMELINE
-    // =====================
     data.timeline.forEach((item, i) => {
       formData.append(`timeline[${i}][kind]`, item.kind);
 

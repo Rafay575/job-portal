@@ -5,12 +5,11 @@ import path from "path";
 import { writeFile, unlink } from "fs/promises";
 export const runtime = "nodejs";
 
-
 // 📁 Upload folder
- const uploadDir =
-        process.env.IS_LOCAL === "true"
-          ? path.join(process.cwd(), "public/uploads")
-          : "/var/www/uploads";
+const uploadDir =
+  process.env.IS_LOCAL === "true"
+    ? path.join(process.cwd(), "public/uploads")
+    : "/var/www/uploads";
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -30,7 +29,18 @@ export async function GET(req: NextRequest) {
     }
 
     const [rows] = await pool.execute(
-      `SELECT * FROM employee_documents WHERE user_id = ?`,
+      `SELECT 
+        id,
+        user_id,
+        passport,
+        driving_licence_front,
+        driving_licence_back,
+        proof_id1,
+        proof_id2,
+        created_at,
+        updated_at
+      FROM employee_documents 
+      WHERE user_id = ?`,
       [userId],
     );
 
@@ -60,10 +70,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-     const uploadDir =
-            process.env.IS_LOCAL === "true"
-              ? path.join(process.cwd(), "public/uploads")
-              : "/var/www/uploads";
+    const uploadDir =
+      process.env.IS_LOCAL === "true"
+        ? path.join(process.cwd(), "public/uploads")
+        : "/var/www/uploads";
 
     // 📁 SAVE FILE HELPER
     const saveFile = async (field: FormDataEntryValue | null) => {
@@ -90,7 +100,8 @@ export async function POST(req: NextRequest) {
 
     // 📁 NEW FILES
     const passport = await saveFile(formData.get("passport"));
-    const drivingLicence = await saveFile(formData.get("drivingLicence"));
+    const drivingLicenceFront = await saveFile(formData.get("drivingLicenceFront"));
+    const drivingLicenceBack = await saveFile(formData.get("drivingLicenceBack"));
     const proofId1 = await saveFile(formData.get("proofId1"));
     const proofId2 = await saveFile(formData.get("proofId2"));
 
@@ -100,13 +111,11 @@ export async function POST(req: NextRequest) {
       [userId],
     );
 
-
     // 🟢 UPDATE
     if (existing.length > 0) {
       const row = existing[0];
 
       const id = row.id;
-
 
       // 🗑️ DELETE OLD FILES
       const deleteOldFile = async (
@@ -114,7 +123,7 @@ export async function POST(req: NextRequest) {
         oldFilePath: string | null,
       ) => {
         if (newFilePath && oldFilePath) {
-           const oldFullPath =
+          const oldFullPath =
             process.env.IS_LOCAL === "true"
               ? path.join(process.cwd(), "public", oldFilePath)
               : `/var/www${oldFilePath}`;
@@ -129,10 +138,10 @@ export async function POST(req: NextRequest) {
       };
 
       await deleteOldFile(passport, row.passport);
-      await deleteOldFile(drivingLicence, row.driving_licence);
+      await deleteOldFile(drivingLicenceFront, row.driving_licence_front);
+      await deleteOldFile(drivingLicenceBack, row.driving_licence_back);
       await deleteOldFile(proofId1, row.proof_id1);
       await deleteOldFile(proofId2, row.proof_id2);
-
 
       // 🟢 UPDATE DB
 
@@ -140,13 +149,14 @@ export async function POST(req: NextRequest) {
         `
         UPDATE employee_documents SET
           passport = COALESCE(?, passport),
-          driving_licence = COALESCE(?, driving_licence),
+          driving_licence_front = COALESCE(?, driving_licence_front),
+          driving_licence_back = COALESCE(?, driving_licence_back),
           proof_id1 = COALESCE(?, proof_id1),
           proof_id2 = COALESCE(?, proof_id2),
           updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
         `,
-        [passport, drivingLicence, proofId1, proofId2, id],
+        [passport, drivingLicenceFront, drivingLicenceBack, proofId1, proofId2, id],
       );
 
       return NextResponse.json({
@@ -162,12 +172,13 @@ export async function POST(req: NextRequest) {
       INSERT INTO employee_documents (
         user_id,
         passport,
-        driving_licence,
+        driving_licence_front,
+        driving_licence_back,
         proof_id1,
         proof_id2
-      ) VALUES (?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?)
       `,
-      [userId, passport, drivingLicence, proofId1, proofId2],
+      [userId, passport,  drivingLicenceFront, drivingLicenceBack, proofId1, proofId2],
     );
 
     return NextResponse.json({
