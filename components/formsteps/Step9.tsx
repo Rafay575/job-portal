@@ -7,26 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { Trash2, Briefcase, CalendarOff, GripVertical } from "lucide-react";
+import { Trash2, Briefcase, CalendarOff } from "lucide-react";
 import { getStep9, saveStep9 } from "@/lib/api/step9";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  UniqueIdentifier,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  useSortable,
-  arrayMove,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+
 import { ExperienceEntry } from "@/types/Form";
 import { GapEntry9 } from "@/types/Form";
 import { TimelineEntry9 } from "@/types/Form";
@@ -69,7 +52,6 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-// ✅ Use Date.now() + counter to avoid collisions with real DB numeric IDs
 let _idCounter = 0;
 const nextTempId = () => -++_idCounter; // negative IDs = local-only, never clash with DB
 
@@ -91,8 +73,6 @@ const emptyGap = (): GapEntry9 => ({
   reason: "",
 });
 
-// ✅ Moved outside component so it's not re-created on every render
-// ✅ Fixed: use `db.kind` not `db.entry_type` — matches what the API actually returns
 function dbToStep9Frontend(db: any): TimelineEntry9 {
   if (db.kind === "experience") {
     return {
@@ -115,12 +95,36 @@ function dbToStep9Frontend(db: any): TimelineEntry9 {
   };
 }
 
-// ─── Sortable Card ────────────────────────────────────────────────────────────
+// ─── Sort Helper ──────────────────────────────────────────────────────────────
+
+// Gets the "start date" of any entry for sorting purposes
+const getStartDate = (entry: TimelineEntry9): string => {
+  if (entry.kind === "experience") return entry.dateFrom;
+  return entry.gapFrom;
+};
+
+// Sorts timeline entries in descending order (most recent first) by start date.
+// Entries with no date fall to the bottom; among those, newer IDs come first.
+const sortTimelineDescending = (timeline: TimelineEntry9[]): TimelineEntry9[] => {
+  return [...timeline].sort((a, b) => {
+    const dateA = getStartDate(a);
+    const dateB = getStartDate(b);
+
+    if (dateA && dateB) {
+      return new Date(dateB).getTime() - new Date(dateA).getTime();
+    }
+    if (dateA && !dateB) return -1;
+    if (!dateA && dateB) return 1;
+    // Both have no date — keep insertion order (higher negative id = more recent)
+    return a.id - b.id;
+  });
+};
+
+// ─── Card Component ───────────────────────────────────────────────────────────
 
 type CardProps = {
   entry: TimelineEntry9;
   label: string;
-  isDragOverlay?: boolean;
   onRemove: (id: number) => void;
   onUpdateExperience: (
     id: number,
@@ -134,53 +138,18 @@ type CardProps = {
   ) => void;
 };
 
-function SortableCard(props: CardProps) {
-  const {
-    entry,
-    label,
-    isDragOverlay,
-    onRemove,
-    onUpdateExperience,
-    onUpdateGap,
-  } = props;
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: entry.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
+function TimelineCard(props: CardProps) {
+  const { entry, label, onRemove, onUpdateExperience, onUpdateGap } = props;
 
   return (
     <div
-      ref={setNodeRef}
-      style={isDragOverlay ? undefined : style}
       className={`rounded-xl border p-4 ${
         entry.kind === "gap" ? "border-amber-200 bg-amber-50/40" : "bg-white"
-      } ${isDragOverlay ? "shadow-2xl rotate-1 scale-[1.02] opacity-95" : ""}`}
+      }`}
     >
       {/* Card header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          {/* Drag handle */}
-          <button
-            type="button"
-            {...attributes}
-            {...listeners}
-            className="cursor-grab active:cursor-grabbing touch-none p-1 rounded hover:bg-muted/60 text-muted-foreground"
-            aria-label="Drag to reorder"
-          >
-            <GripVertical className="h-4 w-4" />
-          </button>
-
           {entry.kind === "experience" ? (
             <Briefcase className="h-4 w-4 text-muted-foreground" />
           ) : (
@@ -223,7 +192,7 @@ function SortableCard(props: CardProps) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-sm">
-                Date From<span className="text-red-500">*</span>{" "}
+                Date From<span className="text-red-500">*</span>
               </Label>
               <Input
                 type="date"
@@ -333,13 +302,6 @@ export default function Step9({ next, back }: Props) {
     areas: [],
     timeline: [],
   });
-  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 5 },
-    }),
-  );
 
   const areas = [
     "Mental Health",
@@ -358,61 +320,61 @@ export default function Step9({ next, back }: Props) {
         : [...prev.areas, area],
     }));
 
-  const addExperience = () =>
+  // ─── Add / Remove ───────────────────────────────────────────────────────────
+  // Sort only when adding or removing — NOT while the user is typing
+
+  const addExperience = () => {
     setData((prev) => ({
       ...prev,
-      timeline: [...prev.timeline, emptyExperience()],
+      timeline: sortTimelineDescending([...prev.timeline, emptyExperience()]),
     }));
+  };
 
-  const addGap = () =>
-    setData((prev) => ({ ...prev, timeline: [...prev.timeline, emptyGap()] }));
-
-  const removeEntry = (id: number) =>
+  const addGap = () => {
     setData((prev) => ({
       ...prev,
-      timeline: prev.timeline.filter((e) => e.id !== id),
+      timeline: sortTimelineDescending([...prev.timeline, emptyGap()]),
     }));
+  };
+
+  const removeEntry = (id: number) => {
+    setData((prev) => ({
+      ...prev,
+      timeline: sortTimelineDescending(prev.timeline.filter((e) => e.id !== id)),
+    }));
+  };
+
+  // ─── Update Handlers ────────────────────────────────────────────────────────
+  // Do NOT re-sort here — cards jumping while the user types is bad UX.
+  // The definitive sort happens just before saving in handleNext.
 
   const updateExperience = (
     id: number,
     key: keyof Omit<ExperienceEntry, "kind" | "id">,
     value: string,
-  ) =>
+  ) => {
     setData((prev) => ({
       ...prev,
       timeline: prev.timeline.map((e) =>
         e.id === id && e.kind === "experience" ? { ...e, [key]: value } : e,
       ),
     }));
+  };
 
   const updateGap = (
     id: number,
     key: keyof Omit<GapEntry9, "kind" | "id">,
     value: string,
-  ) =>
+  ) => {
     setData((prev) => ({
       ...prev,
       timeline: prev.timeline.map((e) =>
         e.id === id && e.kind === "gap" ? { ...e, [key]: value } : e,
       ),
     }));
-
-  const handleDragStart = (event: DragStartEvent) =>
-    setActiveId(event.active.id);
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-    if (!over || active.id === over.id) return;
-    setData((prev) => {
-      const oldIndex = prev.timeline.findIndex((e) => e.id === active.id);
-      const newIndex = prev.timeline.findIndex((e) => e.id === over.id);
-      return {
-        ...prev,
-        timeline: arrayMove(prev.timeline, oldIndex, newIndex),
-      };
-    });
   };
+
+  // ─── Label ──────────────────────────────────────────────────────────────────
 
   const getLabel = (entry: TimelineEntry9, timeline: TimelineEntry9[]) => {
     let count = 0;
@@ -425,6 +387,8 @@ export default function Step9({ next, back }: Props) {
       : `Gap #${count}`;
   };
 
+  // ─── Validation ─────────────────────────────────────────────────────────────
+
   const validateStep = (): boolean => {
     if (data.areas.length === 0) {
       toast.error("Please select at least one area of experience");
@@ -434,13 +398,9 @@ export default function Step9({ next, back }: Props) {
       const label = getLabel(entry, data.timeline);
       if (entry.kind === "experience") {
         const { employerName, dateFrom, dateTo, jobTitle, duties } = entry;
-        const anyFilled = [
-          employerName,
-          dateFrom,
-          dateTo,
-          jobTitle,
-          duties,
-        ].some((v) => v.trim());
+        const anyFilled = [employerName, dateFrom, dateTo, jobTitle, duties].some(
+          (v) => v.trim(),
+        );
         if (!anyFilled) continue;
         if (
           !employerName.trim() ||
@@ -474,36 +434,30 @@ export default function Step9({ next, back }: Props) {
     return true;
   };
 
-  const activeEntry =
-    activeId != null
-      ? (data.timeline.find((e) => e.id === activeId) ?? null)
-      : null;
+  // ─── Load ────────────────────────────────────────────────────────────────────
 
-  // ✅ Fixed: getStep9 returns Step9Data directly (areas + timeline), not a {success, data} wrapper
   const router = useRouter();
+
   useEffect(() => {
     const verifyUser = async () => {
       if (!user.id) {
-        toast.error("Id not found  ");
+        toast.error("Id not found");
         router.push("/");
         return;
       }
       const isApproved = await checkApproval(user.id);
-
-      if (!isApproved) {
-        setBlur(true);
-      }
+      if (!isApproved) setBlur(true);
     };
 
     verifyUser();
+
     const load = async () => {
       setLoading(true);
-
       try {
         const res = await getStep9(user.id);
-
         setData({
           areas: res.areas || [],
+          // Data comes back already sorted by sort_order ASC from the DB
           timeline: (res.timeline || []).map(dbToStep9Frontend),
         });
       } catch (err) {
@@ -516,15 +470,25 @@ export default function Step9({ next, back }: Props) {
     load();
   }, []);
 
+  // ─── Save ─────────────────────────────────────────────────────────────────────
+
   const handleNext = async () => {
     if (!validateStep()) return;
     if (!user.id) {
-      toast.error("Id not found in Handle Next");
+      toast.error("Id not found");
       return;
     }
     try {
       setLoading(true);
-      const res = await saveStep9(user.id, data);
+
+      // ✅ Sort by descending start date ONCE, right before saving.
+      // This is the single source of truth for the saved order.
+      const sortedData: Step9Type = {
+        ...data,
+        timeline: sortTimelineDescending(data.timeline),
+      };
+
+      await saveStep9(user.id, sortedData);
       next();
     } catch (err) {
       console.error(err);
@@ -571,8 +535,7 @@ export default function Step9({ next, back }: Props) {
               Experience &amp; Employment Gaps
             </p>
             <p className="text-xs text-muted-foreground mb-4">
-              Add your work history and any employment gaps. Drag the ⠿ handle
-              on each card to reorder entries.
+              Add your work history and any employment gaps.
             </p>
 
             {/* Action buttons */}
@@ -595,50 +558,25 @@ export default function Step9({ next, back }: Props) {
               </Button>
             </div>
 
-            {/* Drag-and-drop list */}
+            {/* Timeline list */}
             {data.timeline.length === 0 ? (
               <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
                 No entries yet. Use the buttons above to add your experience or
                 employment gaps.
               </div>
             ) : (
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={data.timeline.map((e) => e.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="space-y-3">
-                    {data.timeline.map((entry) => (
-                      <SortableCard
-                        key={entry.id}
-                        entry={entry}
-                        label={getLabel(entry, data.timeline)}
-                        onRemove={removeEntry}
-                        onUpdateExperience={updateExperience}
-                        onUpdateGap={updateGap}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-
-                <DragOverlay>
-                  {activeEntry ? (
-                    <SortableCard
-                      entry={activeEntry}
-                      label={getLabel(activeEntry, data.timeline)}
-                      isDragOverlay
-                      onRemove={() => {}}
-                      onUpdateExperience={() => {}}
-                      onUpdateGap={() => {}}
-                    />
-                  ) : null}
-                </DragOverlay>
-              </DndContext>
+              <div className="space-y-3">
+                {data.timeline.map((entry) => (
+                  <TimelineCard
+                    key={entry.id}
+                    entry={entry}
+                    label={getLabel(entry, data.timeline)}
+                    onRemove={removeEntry}
+                    onUpdateExperience={updateExperience}
+                    onUpdateGap={updateGap}
+                  />
+                ))}
+              </div>
             )}
           </div>
 
@@ -649,26 +587,23 @@ export default function Step9({ next, back }: Props) {
       {/* Overlay */}
       {blur && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
-            <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
-              <h2 className="text-lg font-semibold mb-2">
-                Appliaction Submitted Successfully.
-              </h2>
-              <p className="text-sm text-gray-600 mb-4">
-                One of our representative will get back to you with in 24 to 48
-                hours.
-              </p>
-
-              {/* Optional action */}
-              <div className="flex justify-evenly items-center">
-                <Link href={"/"}>
-                  <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
-                    Done
-                    {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
-                  </button>
-                </Link>
-              </div>
+          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
+            <h2 className="text-lg font-semibold mb-2">
+              Application Submitted Successfully.
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              One of our representatives will get back to you within 24 to 48
+              hours.
+            </p>
+            <div className="flex justify-evenly items-center">
+              <Link href={"/"}>
+                <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
+                  Done
+                </button>
+              </Link>
             </div>
           </div>
+        </div>
       )}
     </div>
   );
