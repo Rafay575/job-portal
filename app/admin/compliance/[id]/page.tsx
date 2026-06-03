@@ -431,7 +431,7 @@ async function generatePDF(user: any) {
       y += 8;
     } else {
       fieldGrid([
-        ["Absent Days", health.absent_days],
+        ["Sick Leaves in last 3 years", health.absent_days],
         ["On Medication", health.on_medication ? "Yes" : "No"],
         ...(health.on_medication
           ? ([["Medication Details", health.medication_details]] as [
@@ -572,14 +572,20 @@ async function generatePDF(user: any) {
             ["End Date", item.endDate],
             ["Completed", item.completed],
             ["Professional Registration", item.hasProfessionalRegistration],
-            ["Registration Body", item.registrationBody],
-            ["Registration Number", item.registrationNumber],
-            ["Registration Expiry", item.registrationExpiry],
+            ...(item.hasProfessionalRegistration === "yes"
+              ? ([
+                  ["Registration Body", item.registrationBody],
+                  ["Registration Number", item.registrationNumber],
+                  ["Registration Expiry", item.registrationExpiry],
+                ] as [string, string][])
+              : []),
             [
               "Certificate",
-              process.env.NEXT_PUBLIC_API_URL + item.certificateFile ||
-                "Not uploaded",
+              item.certificateFile
+                ? `${process.env.NEXT_PUBLIC_API_URL}${item.certificateFile}`
+                : "Not uploaded",
             ],
+            
             ["Additional Notes", item.additionalNotes],
           ]);
         } else {
@@ -1128,7 +1134,7 @@ export default function UserDetailPage() {
                     value={health.impairment_type}
                   />
                 )}
-                <Info label="Absent Days" value={health.absent_days} />
+                <Info label="Sick Leaves in last 3 years" value={health.absent_days } />
                 <Info
                   label="Fit for Night Shift"
                   value={health.night_shift_fit ? "Yes" : "No"}
@@ -1289,18 +1295,22 @@ export default function UserDetailPage() {
                           label="Professional Registration"
                           value={item.hasProfessionalRegistration}
                         />
-                        <Info
-                          label="Registration Body"
-                          value={item.registrationBody}
-                        />
-                        <Info
-                          label="Registration Number"
-                          value={item.registrationNumber}
-                        />
-                        <Info
-                          label="Registration Expiry"
-                          value={item.registrationExpiry}
-                        />
+                        {Boolean(item.hasProfessionalRegistration == "yes") && (
+                          <>
+                            <Info
+                              label="Registration Body"
+                              value={item.registrationBody}
+                            />
+                            <Info
+                              label="Registration Number"
+                              value={item.registrationNumber}
+                            />
+                            <Info
+                              label="Registration Expiry"
+                              value={item.registrationExpiry}
+                            />
+                          </>
+                        )}
                         <Info
                           label="Certificate File"
                           value={<FileLink path={item.certificateFile} />}

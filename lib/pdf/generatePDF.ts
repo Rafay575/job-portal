@@ -365,7 +365,7 @@ export async function generatePDFBuffer(user: any) {
       y += 8;
     } else {
       fieldGrid([
-        ["Absent Days", health.absent_days],
+        ["Sick Leaves in last 3 years", health.absent_days],
         ["On Medication", health.on_medication ? "Yes" : "No"],
         ...(health.on_medication
           ? ([["Medication Details", health.medication_details]] as [
@@ -506,14 +506,20 @@ export async function generatePDFBuffer(user: any) {
             ["End Date", item.endDate],
             ["Completed", item.completed],
             ["Professional Registration", item.hasProfessionalRegistration],
-            ["Registration Body", item.registrationBody],
-            ["Registration Number", item.registrationNumber],
-            ["Registration Expiry", item.registrationExpiry],
+            ...(item.hasProfessionalRegistration === "yes"
+              ? ([
+                  ["Registration Body", item.registrationBody],
+                  ["Registration Number", item.registrationNumber],
+                  ["Registration Expiry", item.registrationExpiry],
+                ] as [string, string][])
+              : []),
             [
               "Certificate",
-              process.env.NEXT_PUBLIC_API_URL + item.certificateFile ||
-                "Not uploaded",
+              item.certificateFile
+                ? `${process.env.NEXT_PUBLIC_API_URL}${item.certificateFile}`
+                : "Not uploaded",
             ],
+
             ["Additional Notes", item.additionalNotes],
           ]);
         } else {

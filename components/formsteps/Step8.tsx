@@ -340,9 +340,13 @@ function SortableCard(props: CardProps) {
             </Label>
             <div className="mt-2">
               <RadioGroup
-                value={entry.completed ? "yes":"no"} // 👈 handles null/undefined
-                onValueChange={(value: "yes" | "no") =>
-                  onUpdateEducation(entry.id, "completed", value)
+                value={entry.completed ?? "no"}
+                onValueChange={(value) =>
+                  onUpdateEducation(
+                    entry.id,
+                    "completed",
+                    value as "yes" | "no",
+                  )
                 }
                 className="flex gap-3"
               >
@@ -361,22 +365,18 @@ function SortableCard(props: CardProps) {
           {/* Professional Registration */}
           <div>
             <Label className="text-sm">
-              Professional Registration / Licence?<span className="text-red-500">*</span>
+              Professional Registration / Licence?
+              <span className="text-red-500">*</span>
             </Label>
 
             <div className="mt-2">
               <RadioGroup
-                
-                value={
-              entry.hasProfessionalRegistration
-                  ? "yes"
-                  : "no"
-            } // 👈 handles null
-                onValueChange={(value: "yes" | "no") =>
+                value={entry.hasProfessionalRegistration ?? "no"}
+                onValueChange={(value) =>
                   onUpdateEducation(
                     entry.id,
                     "hasProfessionalRegistration",
-                    value,
+                    value as "yes" | "no",
                   )
                 }
                 className="flex gap-3"
@@ -720,6 +720,12 @@ export default function Step8({ next, back }: Props) {
           toast.error(`${label}: Start Date cannot be after End Date`);
           return false;
         }
+        if (!entry.completed) {
+          toast.error(
+            `${label}: Please select whether the qualification is completed`,
+          );
+          return false;
+        }
 
         if (hasProfessionalRegistration === "yes") {
           if (
@@ -816,8 +822,9 @@ export default function Step8({ next, back }: Props) {
               Qualifications &amp; Education (UK)
             </h2>
             <p className="text-sm text-muted-foreground">
-              Add your complete education history and any gaps from your school level to university in ascending order.
-              Drag the ⠿ handle to reorder entries.
+              Add your complete education history and any gaps from your school
+              level to university in ascending order. Drag the ⠿ handle to
+              reorder entries.
             </p>
           </div>
 
@@ -900,26 +907,26 @@ export default function Step8({ next, back }: Props) {
       {/* Overlay */}
       {blur && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
-            <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
-              <h2 className="text-lg font-semibold mb-2">
-                Appliaction Submitted Successfully.
-              </h2>
-              <p className="text-sm text-gray-600 mb-4">
-                One of our representative will get back to you with in 24 to 48
-                hours.
-              </p>
+          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
+            <h2 className="text-lg font-semibold mb-2">
+              Appliaction Submitted Successfully.
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              One of our representative will get back to you with in 24 to 48
+              hours.
+            </p>
 
-              {/* Optional action */}
-              <div className="flex justify-evenly items-center">
-                <Link href={"/"}>
-                  <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
-                    Done
-                    {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
-                  </button>
-                </Link>
-              </div>
+            {/* Optional action */}
+            <div className="flex justify-evenly items-center">
+              <Link href={"/"}>
+                <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
+                  Done
+                  {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
+                </button>
+              </Link>
             </div>
           </div>
+        </div>
       )}
     </div>
   );

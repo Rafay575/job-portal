@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    // 🔹 Extract fields
+
     const userId = Number(formData.get("userId"));
 
     // Geting user original email for send emails

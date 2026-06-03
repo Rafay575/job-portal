@@ -153,7 +153,7 @@ export default function Navbar() {
                   Recruiting? Post a Job
                 </Button>
                 <Button className="bg-primary">Register a CV</Button>
-                <Button variant="outline" className="bg-primary ">
+                <Button variant="outline" className="bg-primary text-white">
                   Sign in
                 </Button>
               </>

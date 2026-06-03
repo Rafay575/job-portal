@@ -117,7 +117,7 @@ export default function Step3({ next, back }: Props) {
       }
 
       if (!formData.crbFile && !existingCRB) {
-        toast.error("Please upload CRB document");
+        toast.error("Please upload CRB/DVS document");
         return false;
       }
     }
