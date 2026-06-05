@@ -16,6 +16,8 @@ import { FullPageLoader } from "../Loading";
 import { checkApproval } from "@/lib/users";
 import { IoRefresh } from "react-icons/io5";
 import Link from "next/link";
+import SignatureCanvas from "react-signature-canvas";
+import { useRef } from "react";
 
 type NavProps = {
   onBack: () => void;
@@ -43,13 +45,13 @@ function SignupNavButtons({ onBack, disableBack }: NavProps) {
   );
 }
 
-
 export default function Step11({ back }: Props) {
   const [loading, setLoading] = useState(false);
   const [blur, setBlur] = useState(false);
   const router = useRouter();
   const user = useSelector((state: RootState) => state.user);
   const [existingFile, setExistingFile] = useState<string | null>(null);
+  const sigCanvas = useRef<SignatureCanvas | null>(null);
 
   const [formData, setFormData] = useState<Step11Type>({
     declarationConfirmed: undefined,
@@ -73,8 +75,8 @@ export default function Step11({ back }: Props) {
     }
 
     // ✅ allow existing file OR new file
-    if (!formData.signatureFile && !existingFile) {
-      toast.error("Please upload the signed document");
+    if (!existingFile && (!sigCanvas.current || sigCanvas.current.isEmpty())) {
+      toast.error("Please provide your signature");
       return false;
     }
 
@@ -131,6 +133,13 @@ export default function Step11({ back }: Props) {
     if (!validateStep()) return;
 
     try {
+      // ✅ Convert canvas to File BEFORE building FormData
+      let signatureFile: File | null = null;
+
+      if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
+        signatureFile = await signatureToFile();
+        if (!signatureFile) return;
+      }
       const formDataToSend = new FormData();
 
       formDataToSend.append("userId", String(user.id));
@@ -140,9 +149,13 @@ export default function Step11({ back }: Props) {
       );
       formDataToSend.append("declarationDate", formData.declarationDate);
 
-      if (formData.signatureFile) {
-        formDataToSend.append("signatureFile", formData.signatureFile);
-      }
+      if (signatureFile) {
+        formDataToSend.append("signatureFile", signatureFile);
+      } 
+      // else if (existingFile) {
+      //   formDataToSend.append("signatureFile", existingFile);
+      // }
+
       if (user.email) {
         formDataToSend.append("email", user.email);
       }
@@ -166,6 +179,23 @@ export default function Step11({ back }: Props) {
       setLoading(false);
     }
   };
+
+  const signatureToFile = async (): Promise<File | null> => {
+    if (!sigCanvas.current) return null;
+
+    if (sigCanvas.current.isEmpty()) {
+      toast.error("Please provide a signature");
+      return null;
+    }
+
+    const dataURL = sigCanvas.current.getTrimmedCanvas().toDataURL("image/png");
+
+    const blob = await fetch(dataURL).then((r) => r.blob());
+
+    return new File([blob], `signature-${Date.now()}.png`, {
+      type: "image/png",
+    });
+  };
   if (loading) return <FullPageLoader />;
 
   return (
@@ -174,94 +204,156 @@ export default function Step11({ back }: Props) {
         className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
       >
         <form className="w-full space-y-2" onSubmit={handleSubmit}>
-          {/* Declaration */}
-          <div className="flex items-start gap-3 p-1 rounded-xl ">
-            <input
-              type="checkbox"
-              checked={formData.declarationConfirmed}
-              onChange={(e) =>
-                handleChange("declarationConfirmed", e.target.checked)
-              }
-              id="declaration"
-              className="h-4 w-4 mt-1"
-            />
-            <Label htmlFor="declaration" className="text-sm leading-relaxed">
-              I confirm the information provided is true and complete
-            </Label>
-          </div>
+          <div className="space-y-6">
+            {/* Candidate Information */}
+            <h3 className="font-semibold text-lg mb-4">
+              Candidate Declaration
+            </h3>
+            <div className="space-y-6 border p-4 rounded-xl max-h-[400px]  lg:max-h-[300px] overflow-y-auto">
+              <div>
+                <div className="py-2 mt-1">
+                  <Label className="font-[600] text-[16px]! ">
+                    Full Name:{" "}
+                    <span className="font-[400] underline">
+                      {user?.name || ""}
+                    </span>
+                  </Label>
+                </div>
+                <div className="pb-1">
+                  <Label className="font-[600] text-[16px]! ">
+                    Email Address:{" "}
+                    <span className="font-[400] underline">
+                      {user?.email || ""}
+                    </span>
+                  </Label>
+                </div>
+              </div>
+              {/* Authorization */}
+              <div className="space-y-3 text-sm leading-6">
+                <h3 className="font-semibold text-lg mb-4">
+                  Authorization and Consent
+                </h3>
+                <p>
+                  I, the undersigned, hereby authorize <b>Hayaibu Talent </b> to
+                  contact my current and/or previous employers, as well as other
+                  references I have provided, to verify information regarding my
+                  employment history, performance, and qualifications. This may
+                  include, but is not limited to, inquiries about my job duties,
+                  professional conduct, dates of employment, and eligibility for
+                  rehire.
+                </p>
 
-          {/* Info Box */}
-          <div className="border rounded p-3 bg-primary text-sm text-white">
-            Please download the signature document, sign it, and upload the
-            signed file below before submitting the form.
-          </div>
+                <p>
+                  I understand that this information will be used solely to
+                  assess my suitability for employment with Kingsbury
+                  Personnel's clients. I release <b>Hayaibu Talent</b> and all
+                  persons or entities providing such information from any
+                  liability arising from the release or use of this information.
+                </p>
+              </div>
 
-          {/* Main Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Download */}
-            <div className="flex flex-col gap-2 p-4 border rounded-xl">
-              <Label className="font-medium">Download Signature Document</Label>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  const name = encodeURIComponent(user.name || "");
-                  const email = encodeURIComponent(user.email || "");
-
-                  window.open(
-                    `/api/signature-doc?name=${name}&email=${email}`,
-                    "_blank",
-                  );
-                }}
-              >
-                Download Document
-              </Button>
+              {/* Acknowledgement */}
+              <div>
+                <h3 className="font-semibold text-lg mb-4">Acknowledgement</h3>
+                <p>I acknowledge that:</p>
+                <ul className="list-disc ml-6 space-y-2 text-sm">
+                  <li>I have read and understood this consent form.</li>
+                  <li>
+                    I voluntarily agree to the reference checks as described
+                    above.
+                  </li>
+                  <li>
+                    A copy of this authorization shall be as valid as the
+                    original.
+                  </li>
+                </ul>
+              </div>
             </div>
 
-            {/* Upload */}
-            <div className="flex flex-col gap-2 p-4 border rounded-xl">
-              <Label className="font-medium">
-                Upload Signed Document <span className="text-red-500">*</span>
-              </Label>
-
-              <Input
-                type="file"
-                accept=".doc,.docx,.pdf"
+            {/* Declaration */}
+            <div className="flex items-start gap-3 p-1 rounded-xl ">
+              <input
+                type="checkbox"
+                checked={formData.declarationConfirmed}
                 onChange={(e) =>
-                  handleChange("signatureFile", e.target.files?.[0] || null)
+                  handleChange("declarationConfirmed", e.target.checked)
                 }
-                className="w-full"
+                id="declaration"
+                className="h-4 w-4 mt-1"
               />
-
-              {existingFile && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  className="w-full md:w-fit"
-                  onClick={() => window.open(existingFile, "_blank")}
-                >
-                  View Uploaded Document
-                </Button>
-              )}
+              <Label htmlFor="declaration" className="text-sm leading-relaxed">
+                I confirm the information provided is true and complete
+              </Label>
             </div>
 
-            {/* Date */}
-            <div className="flex flex-col gap-2 p-4 border rounded-xl">
-              <Label className="font-medium">
-                Declaration Date <span className="text-red-500">*</span>
-              </Label>
+            {/* Signature & Date */}
+            <div
+              className={`${formData.declarationConfirmed ? "h-auto" : "h-0 overflow-hidden"} transition-all duration-300 grid md:grid-cols-2 gap-3`}
+            >
+              <div className="w-full ">
+                <Label className="font-[600] text-[17px]!">
+                  Candidate Signature:<span className="text-red-700">*</span>
+                </Label>
 
-              <Input
-                type="date"
-                value={formData.declarationDate}
-                onChange={(e) =>
-                  handleChange("declarationDate", e.target.value)
-                }
-                className="w-full"
-              />
+                {/* Upload */}
+                <div className="flex flex-col gap-2 rounded-xl">
+                  {/* ✅ Show existing signature as image preview when no new drawing yet */}
+                  {existingFile && (
+                    <div className="border rounded-md w-full h-[200px] flex flex-col items-center justify-center bg-gray-50 gap-2">
+                      <p className="text-xs text-gray-400">Saved Signature</p>
+                      <img
+                        src={existingFile}
+                        alt="Existing Signature"
+                        className="max-h-[150px] object-contain"
+                      />
+                      <button
+                        type="button"
+                        className="text-xs text-primary underline"
+                        onClick={() => setExistingFile(null)} // clears preview so canvas shows
+                      >
+                        Draw a new signature instead
+                      </button>
+                    </div>
+                  )}
+
+                  {/* ✅ Show canvas only when no existing file or user chose to redraw */}
+                  {!existingFile && (
+                    <div>
+                      <SignatureCanvas
+                        ref={sigCanvas}
+                        penColor="#5C49D8"
+                        canvasProps={{
+                          className: "border rounded-md w-full h-[200px]",
+                        }}
+                      />
+                      <div className="flex gap-2 mt-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => sigCanvas.current?.clear()}
+                        >
+                          Clear Signature
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Date */}
+              <div className="w-full ">
+                <Label className="font-[600] text-[17px]!">
+                  Declaration Date:<span className="text-red-700">*</span>
+                </Label>
+                <Input
+                  type="date"
+                  value={formData.declarationDate}
+                  onChange={(e) =>
+                    handleChange("declarationDate", e.target.value)
+                  }
+                  className="w-full"
+                />
+              </div>
             </div>
           </div>
 
@@ -278,26 +370,26 @@ export default function Step11({ back }: Props) {
       {/* Overlay */}
       {blur && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
-            <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
-              <h2 className="text-lg font-semibold mb-2">
-                Appliaction Submitted Successfully.
-              </h2>
-              <p className="text-sm text-gray-600 mb-4">
-                One of our representative will get back to you with in 24 to 48
-                hours.
-              </p>
+          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
+            <h2 className="text-lg font-semibold mb-2">
+              Appliaction Submitted Successfully.
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              One of our representative will get back to you with in 24 to 48
+              hours.
+            </p>
 
-              {/* Optional action */}
-              <div className="flex justify-evenly items-center">
-                <Link href={"/"}>
-                  <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
-                    Done
-                    {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
-                  </button>
-                </Link>
-              </div>
+            {/* Optional action */}
+            <div className="flex justify-evenly items-center">
+              <Link href={"/"}>
+                <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
+                  Done
+                  {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
+                </button>
+              </Link>
             </div>
           </div>
+        </div>
       )}
     </div>
   );

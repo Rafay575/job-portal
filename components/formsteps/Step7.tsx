@@ -43,9 +43,14 @@ export default function Step7({ next, back }: any) {
   const user = useSelector((state: RootState) => state.user);
 
   const [trainings, setTrainings] = useState<Step7Type[]>([
-    { title: "", provider: "", duration: "", completionDate: "" },
+    {
+      title: "",
+      provider: "",
+      duration: "",
+      completionDate: "",
+      certificateFile: null,
+    },
   ]);
-
   // ================= FETCH EXISTING DATA =================
   const router = useRouter();
   useEffect(() => {
@@ -79,6 +84,8 @@ export default function Step7({ next, back }: any) {
             provider: t.provider,
             duration: t.duration,
             completionDate: t.completion_date,
+            certificateFile: null, // file object always starts null
+            certificateFilePath: t.certificate_file_path, // existing path from DB
           })),
         );
       }
@@ -103,10 +110,15 @@ export default function Step7({ next, back }: any) {
   const addTraining = () => {
     setTrainings([
       ...trainings,
-      { title: "", provider: "", duration: "", completionDate: "" },
+      {
+        title: "",
+        provider: "",
+        duration: "",
+        completionDate: "",
+        certificateFile: null,
+      },
     ]);
   };
-
   // ================= REMOVE =================
   const removeTraining = (index: number) => {
     setTrainings(trainings.filter((_, i) => i !== index));
@@ -117,10 +129,16 @@ export default function Step7({ next, back }: any) {
     for (let i = 0; i < trainings.length; i++) {
       const t = trainings[i];
 
-      if (!t.title || !t.provider || !t.duration || !t.completionDate) {
+      if (
+        !t.title ||
+        !t.provider ||
+        !t.duration ||
+        (!t.certificateFile && !t.certificateFilePath) ||
+        !t.completionDate
+      ) {
         toast.error(`Complete all fields for training ${i + 1}`);
         return false;
-      }
+      }     
     }
     return true;
   };
@@ -170,7 +188,7 @@ export default function Step7({ next, back }: any) {
                   {/* Course Title */}
                   <div>
                     <Label className="text-sm font-medium flex items-center gap-1 mb-1">
-                      Course Title <span className="text-red-500">*</span>
+                      Title <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       value={t.title}
@@ -204,6 +222,39 @@ export default function Step7({ next, back }: any) {
                         updateTraining(index, "duration", e.target.value)
                       }
                     />
+                  </div>
+
+                  {/* Training Certificate */}
+                  <div>
+                    <Label className="text-sm font-medium flex items-center gap-1 mb-1">
+                      Training Certificate
+                      <span className="text-red-700">*</span>
+                    </Label>
+
+                    <Input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        const updated = [...trainings];
+                        updated[index].certificateFile = file;
+                        setTrainings(updated);
+                      }}
+                    />
+
+                    {/* Show existing file link if already uploaded from DB */}
+                    {t.certificateFilePath && !t.certificateFile && (
+                      <p className="text-xs text-primary m-1">
+                        <a
+                          href={t.certificateFilePath}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline"
+                        >
+                          View Certificate
+                        </a>
+                      </p>
+                    )}
                   </div>
 
                   {/* Completion Date */}
@@ -246,26 +297,26 @@ export default function Step7({ next, back }: any) {
       {/* Overlay */}
       {blur && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
-            <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
-              <h2 className="text-lg font-semibold mb-2">
-                Appliaction Submitted Successfully.
-              </h2>
-              <p className="text-sm text-gray-600 mb-4">
-                One of our representative will get back to you with in 24 to 48
-                hours.
-              </p>
+          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
+            <h2 className="text-lg font-semibold mb-2">
+              Appliaction Submitted Successfully.
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              One of our representative will get back to you with in 24 to 48
+              hours.
+            </p>
 
-              {/* Optional action */}
-              <div className="flex justify-evenly items-center">
-                <Link href={"/"}>
-                  <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
-                    Done
-                    {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
-                  </button>
-                </Link>
-              </div>
+            {/* Optional action */}
+            <div className="flex justify-evenly items-center">
+              <Link href={"/"}>
+                <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
+                  Done
+                  {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
+                </button>
+              </Link>
             </div>
           </div>
+        </div>
       )}
     </div>
   );

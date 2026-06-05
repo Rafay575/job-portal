@@ -233,8 +233,8 @@ export async function POST(req: NextRequest) {
         fitness_investigation,
         removed_from_register,
         crb,
-        certificate_number,  -- ← NEW COLUMN
-        full_name,           -- ← NEW COLUMN
+        certificate_number, 
+        full_name,           
         surname,
         dob,
         crb_file_path

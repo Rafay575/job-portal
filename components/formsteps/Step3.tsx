@@ -117,7 +117,7 @@ export default function Step3({ next, back }: Props) {
       }
 
       if (!formData.crbFile && !existingCRB) {
-        toast.error("Please upload CRB/DVS document");
+        toast.error("Please upload CRB/DBS document");
         return false;
       }
     }
@@ -359,7 +359,7 @@ export default function Step3({ next, back }: Props) {
           <div className="flex flex-col items-stretch gap-4 md:col-span-2">
             <div>
               <Label>
-                Do you have DVS/CRB on update service?
+                Do you have DBS/CRB on update service?
                 <span className="text-red-500">*</span>
               </Label>
               <RadioGroup
@@ -431,7 +431,7 @@ export default function Step3({ next, back }: Props) {
 
                 <div>
                   <Label>
-                    Upload DVS/CRB <span className="text-red-500">*</span>
+                    Upload DBS/CRB <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     type="file"
@@ -446,7 +446,7 @@ export default function Step3({ next, back }: Props) {
                   {existingCRB && (
                     <a href={existingCRB} target="_blank">
                       <Button type="button" className="mt-2" size="sm">
-                        View Existing DVS/CRB
+                        View Existing DBS/CRB
                       </Button>
                     </a>
                   )}

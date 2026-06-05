@@ -1,5 +1,5 @@
 export type Step1FullTimeType = {
-  type:string;
+  type: string;
   fullName: string;
   email: string;
   phone: string;
@@ -13,7 +13,7 @@ export type Step1FullTimeType = {
   previousName: string;
   changedTo: string;
   userId?: number | string | null;
-  cvFile?:  File | null;
+  cvFile?: File | null;
 };
 
 export type Step2Type = {
@@ -36,8 +36,8 @@ export type Step3Type = {
   fitnessInvestigation: boolean | null;
   removedFromRegister: boolean | null;
   crb: boolean | null;
-  certificateNumber: string;  // ← NEW FIELD (before surname)
-  fullName: string;    
+  certificateNumber: string; // ← NEW FIELD (before surname)
+  fullName: string;
   surname: string;
   dob: string;
   crbFile: File | string | null;
@@ -66,8 +66,8 @@ export type Step5Type = {
 
 export type Step6Type = {
   passport: File | string | null;
-  drivingLicenceFront: File | string | null;  // ← RENAMED
-  drivingLicenceBack: File | string | null;  
+  drivingLicenceFront: File | string | null; // ← RENAMED
+  drivingLicenceBack: File | string | null;
   proofId1: File | string | null;
   proofId2: File | string | null;
 };
@@ -75,6 +75,8 @@ export type Step7Type = {
   title: string;
   provider: string;
   duration: string;
+  certificateFile: File | string | null;
+  certificateFilePath?: string;
   completionDate: string;
 };
 
@@ -89,14 +91,14 @@ export type EducationEntry = {
   gradeOrResult: string;
   startDate: string;
   endDate: string;
-  completed: "yes" | "no"| undefined;
+  completed: "yes" | "no" | undefined;
   additionalNotes: string;
-  hasProfessionalRegistration: "yes" | "no"| undefined;
+  hasProfessionalRegistration: "yes" | "no" | undefined;
   registrationBody: string;
   registrationNumber: string;
   registrationExpiry: string;
   certificateFile: File | string | null;
-  existingCertificateFile?: string | null; 
+  existingCertificateFile?: string | null;
 };
 
 export type GapEntry8 = {
@@ -127,7 +129,6 @@ export type GapEntry9 = {
   reason: string;
 };
 
-
 export type TimelineEntry9 = ExperienceEntry | GapEntry9;
 
 export type Step9Type = {
@@ -141,7 +142,7 @@ export type Step10Type = {
 export type Step11Type = {
   declarationConfirmed: boolean | undefined;
   declarationDate: string;
-  signatureFile: File | string | null ;
+  signatureFile: File | string | null;
 };
 
 export type Form = {

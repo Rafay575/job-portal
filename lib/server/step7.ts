@@ -20,6 +20,7 @@ export async function getStep7DB(userId: number | string | null) {
         title,
         provider,
         duration,
+        certificate_file_path,
         DATE_FORMAT(completion_date, '%Y-%m-%d') AS completion_date,
         DATE_FORMAT(created_at, '%Y-%m-%d') AS created_at,
         DATE_FORMAT(updated_at, '%Y-%m-%d') AS updated_at

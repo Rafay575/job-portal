@@ -98,9 +98,9 @@ const emptyEducation = (): EducationEntry => ({
   gradeOrResult: "",
   startDate: "",
   endDate: "",
-  completed: undefined,
+  completed: "no",
   additionalNotes: "",
-  hasProfessionalRegistration: undefined,
+  hasProfessionalRegistration: "no",
   registrationBody: "",
   registrationNumber: "",
   registrationExpiry: "",
@@ -214,7 +214,7 @@ function SortableCard(props: CardProps) {
               onChange={(e) =>
                 onUpdateEducation(entry.id, "qualificationType", e.target.value)
               }
-              className="mt-2 w-full border rounded-xl p-2 text-sm bg-white"
+              className="mt-2 w-full border rounded-md p-2 text-sm bg-white focus-visible:outline-none"
             >
               <option value="">Select</option>
               {qualificationTypes.map((t) => (
@@ -449,10 +449,11 @@ function SortableCard(props: CardProps) {
           <div className="md:col-span-2">
             <Label className="text-sm">Upload Certificate (optional)</Label>
 
-            <div className="mt-2 border rounded-xl p-3">
+            <div className="mt-2 border rounded-md p-2">
               <input
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                className="border-0!"
                 onChange={(e) => {
                   const file = e.target.files?.[0] ?? null;
 
@@ -723,6 +724,12 @@ export default function Step8({ next, back }: Props) {
         if (!entry.completed) {
           toast.error(
             `${label}: Please select whether the qualification is completed`,
+          );
+          return false;
+        }
+        if(!entry.hasProfessionalRegistration){
+          toast.error(
+            `${label}: Please select whether you have a professional registration`,
           );
           return false;
         }

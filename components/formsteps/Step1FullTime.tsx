@@ -21,6 +21,7 @@ import { getStep1 } from "@/lib/api/step1";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
+import { useRouter } from "next/navigation";
 
 type NavProps = {
   onNext: () => void;
@@ -63,10 +64,11 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
   const user = useSelector((state: RootState) => state.user);
   const [loading, setLoading] = useState(false);
   const [existingCV, setExistingCV] = useState<string>();
+  const router = useRouter();
   const [formData, setFormData] = useState<Step1FullTimeType>({
     type: type,
-    fullName: "",
-    email: "",
+    fullName: user.name || "",
+    email: user.email || "",
     phone: "",
     address: "",
     postcode: "",
@@ -193,11 +195,13 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
       // 3. API CALL
       console.log("form", form);
+
       const res = await submitStep1(form);
 
       // 4. Handle response
       if (res.success) {
         toast.success(res.data?.message || "Step 1 submitted successfully!");
+        
         next();
       } else {
         toast.error(res.message || "Failed to submit Step 1");
@@ -219,8 +223,8 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         setFormData({
           userId: user.id,
           type: type,
-          fullName: d.full_name || "",
-          email: d.email || "",
+          fullName: user.name || d.full_name || "",
+          email: user.email || d.email || "",
           phone: d.phone || "",
           address: d.address || "",
           postcode: d.postcode || "",
@@ -250,6 +254,8 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
             Full Name <span className="text-red-500">*</span>
           </Label>
           <Input
+           readOnly
+           disabled
             value={formData.fullName}
             onChange={(e) => handleChange("fullName", e.target.value)}
           />
@@ -260,6 +266,9 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
             Email Address <span className="text-red-500">*</span>
           </Label>
           <Input
+           readOnly
+           disabled
+
             value={formData.email}
             onChange={(e) => handleChange("email", e.target.value)}
           />
@@ -338,13 +347,11 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         </div>
 
         <div>
-          <Label>Do you need a UK Work Permit?<span className="text-red-500">*</span></Label>
+          <Label>
+            Do you need a UK Work Permit?<span className="text-red-500">*</span>
+          </Label>
           <RadioGroup
-            value={
-               formData.workPermit
-                  ? "yes"
-                  : "no"
-            }
+            value={formData.workPermit ? "yes" : "no"}
             onValueChange={(value) =>
               handleChange("workPermit", value === "yes")
             }
@@ -363,13 +370,12 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
         </div>
 
         <div>
-          <Label>Have you changed your name before?<span className="text-red-500">*</span></Label>
+          <Label>
+            Have you changed your name before?
+            <span className="text-red-500">*</span>
+          </Label>
           <RadioGroup
-            value={
-              formData.nameChanged
-                  ? "yes"
-                  : "no"
-            }
+            value={formData.nameChanged ? "yes" : "no"}
             onValueChange={(value) =>
               handleChange("nameChanged", value === "yes")
             }

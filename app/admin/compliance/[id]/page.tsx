@@ -27,6 +27,7 @@ import { boolean } from "zod";
 import { Trash2 } from "lucide-react";
 import { FiCheck } from "react-icons/fi";
 import { RxCross1 } from "react-icons/rx";
+import Image from "next/image";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -66,7 +67,13 @@ async function safeFetch<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
     return fallback;
   }
 }
+const convertToInputDate = (date: string) => {
+  if (!date) return "";
 
+  const [day, month, year] = date.split("-");
+
+  return `${year}-${month}-${day}`;
+};
 // ── PDF Generator ─────────────────────────────────────────────────────────────
 // Add this utility above generatePDF
 async function getBase64FromUrl(url: string): Promise<string> {
@@ -81,6 +88,7 @@ async function getBase64FromUrl(url: string): Promise<string> {
 
 async function generatePDF(user: any) {
   const logoBase64 = await getBase64FromUrl("/logo.png");
+
   const {
     basic,
     questions,
@@ -96,634 +104,784 @@ async function generatePDF(user: any) {
   } = user;
 
   const isPermanent = basic?.type === "permanent";
+
   const doc = new jsPDF({ unit: "mm", format: "a4" });
 
+  // ── Constants ────────────────────────────────────────────────────────────
   const PAGE_W = 210;
+  const PAGE_H = 297;
   const MARGIN = 14;
-  const COL_W = (PAGE_W - MARGIN * 2) / 2;
-  const MAX_Y = 275;
+  const MAX_Y = 268; // leave room for footer
+  const CONTENT_W = PAGE_W - MARGIN * 2;
+  const COL_W = CONTENT_W / 2;
+
+  // ── Colours (Recruitment Ally style) ────────────────────────────────────
+  // Steel-blue table header: approx #4472C4
+  const HEADER_BG: [number, number, number] = [92, 73, 216];
+  const HEADER_TXT: [number, number, number] = [255, 255, 255];
+  // Section heading underline colour — same blue
+  const SECTION_COL: [number, number, number] = [92, 73, 216];
+  // Label in two-col tables (left cell background)
+  const LABEL_BG: [number, number, number] = [92, 73, 216];
+  const LABEL_TXT: [number, number, number] = [255, 255, 255];
+  // Value cell
+  const VALUE_BG: [number, number, number] = [255, 255, 255];
+  const VALUE_TXT: [number, number, number] = [30, 30, 30];
+  // Table border
+  const BORDER: [number, number, number] = [180, 190, 210];
+  // Footer red
+  const FOOTER_RED: [number, number, number] = [92, 73, 216];
 
   let y = 0;
 
-  // ── colour palette ────────────────────────────────────────────────────────
-  const PRIMARY = [92, 73, 216] as const; // blue
-  const HEADER_BG = [240, 245, 255] as const; // light blue-grey
-  const LABEL_COL = [90, 90, 110] as const;
-  const VALUE_COL = [30, 30, 30] as const;
-  const DIVIDER = [210, 215, 230] as const;
-
-  // ── helpers ───────────────────────────────────────────────────────────────
-
-  function checkPageBreak(needed = 10) {
-    if (y + needed > MAX_Y) {
-      doc.addPage();
-      y = 16;
-    }
-  }
   const capitalize = (str: string) => {
     if (!str) return "—";
-
     return str
       .trim()
       .split(" ")
       .filter(Boolean)
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
       .join(" ");
   };
-  function drawCoverPage() {
-    const W = PAGE_W;
 
-    // ── White Background ──
-    doc.setFillColor(255, 255, 255);
-    doc.rect(0, 0, W, 297, "F");
+  // ── Page header (logo left, company name right) ──────────────────────────
+  function drawPageHeader() {
+    // Logo top-right (matching Application Pack Form style)
+    const logoW = 38;
+    const logoH = 13;
+    doc.addImage(logoBase64, "PNG", PAGE_W - MARGIN - logoW, 6, logoW, logoH);
+  }
 
-    const PRIMARY = [96, 77, 227];
-    const TEXT_DARK = [40, 40, 60];
-    const TEXT_LIGHT = [120, 120, 140];
-
-    const LEFT = 25;
-
-    // ── Logo (Centered) ──
-    const logoW = 60;
-    const logoH = 20;
-    const logoX = (W - logoW) / 2;
-    doc.addImage(logoBase64, "PNG", logoX, 20, logoW, logoH);
-
-    // ── Accent Line (Centered under logo) ──
-    doc.setDrawColor(96, 77, 227);
-    doc.setLineWidth(1);
-    doc.line(W / 2 - 25, 45, W / 2 + 25, 45);
-
-    // ── Title (Primary Color) ──
+  // ── Page footer ──────────────────────────────────────────────────────────
+  function drawPageFooter(pageNum: number, totalPages: number) {
+    // Red bold company name centered
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.setTextColor(96, 77, 227);
-    doc.text("Applicant Details", LEFT, 60);
+    doc.setFontSize(9);
+    doc.setTextColor(...FOOTER_RED);
+    doc.text("Hayaibu Talent", PAGE_W / 2, PAGE_H - 8, { align: "center" });
 
-    // ── Info Fields ──
-    const infoFields = [
-      {
-        label: "Name",
-        value: capitalize(basic.full_name) || "—",
-      },
-      { label: "Email", value: basic.email || "—" },
-      { label: "Phone", value: basic.phone || "—" },
-      { label: "Address", value: basic.address || "—" },
-      {
-        label: "Type",
-        value:
-          basic.type === "permanent"
-            ? "Permanent"
-            : basic.type === "agency-work"
-              ? "Agency Work"
-              : basic.type === "both"
-                ? "Both"
-                : "—",
-      },
-    ];
-
-    let dy = 75;
-
-    infoFields.forEach(({ label, value }) => {
-      // Label
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
-      doc.setTextColor(120, 120, 140);
-      doc.text(label.toUpperCase(), LEFT, dy);
-
-      // Value
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(12);
-      doc.setTextColor(40, 40, 60);
-
-      const lines = doc.splitTextToSize(String(value), W - 50);
-      doc.text(lines, LEFT, dy + 7);
-
-      dy += lines.length > 1 ? 18 + (lines.length - 1) * 5 : 18;
-
-      // Divider
-      doc.setDrawColor(220, 220, 230);
-      doc.setLineWidth(0.3);
-      doc.line(LEFT, dy - 5, W - 25, dy - 5);
-    });
-
-    // ── Footer ──
+    // Page number right
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 170);
-    doc.text(
-      `Generated on ${new Date().toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      })}`,
-      W / 2,
-      285,
-      { align: "center" },
-    );
-
-    doc.addPage();
-    y = 16;
+    doc.text(`Page ${pageNum} of ${totalPages}`, PAGE_W - MARGIN, PAGE_H - 8, {
+      align: "right",
+    });
   }
 
+  // ── Section heading (underlined, blue) ───────────────────────────────────
   function sectionHeader(title: string) {
-    checkPageBreak(16);
-    doc.setFillColor(...HEADER_BG);
-    doc.rect(MARGIN, y, PAGE_W - MARGIN * 2, 10, "F");
-    doc.setDrawColor(96, 77, 227);
-    doc.setLineWidth(0.6);
-    doc.line(MARGIN, y, MARGIN, y + 10);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(96, 77, 227);
-    doc.text(title, MARGIN + 4, y + 7);
-    y += 14;
-  }
-
-  function field(
-    label: string,
-    value: string | undefined | null,
-    x: number,
-    colW: number,
-  ) {
-    const val = value || "—";
+    y += 10;
     checkPageBreak(14);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
-    doc.setTextColor(...LABEL_COL);
-    doc.text(label, x, y);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    doc.setTextColor(...VALUE_COL);
-    const lines = doc.splitTextToSize(val, colW - 4);
-    doc.text(lines, x, y + 4);
-    const lineH = lines.length * 5;
-    return lineH + 8; // height consumed
-  }
-
-  /** Renders a grid of [label, value] pairs in 2 columns */
-  function fieldGrid(pairs: [string, string | undefined | null][]) {
-    let i = 0;
-    while (i < pairs.length) {
-      checkPageBreak(18);
-      const rowStart = y;
-      const left = pairs[i];
-      const right = pairs[i + 1];
-      const lh1 = left
-        ? field(left[0], String(left[1] ?? "—"), MARGIN, COL_W)
-        : 0;
-      const lh2 = right
-        ? field(right[0], String(right[1] ?? "—"), MARGIN + COL_W, COL_W)
-        : 0;
-      y = rowStart + Math.max(lh1, lh2);
-      i += 2;
-    }
-    y += 2;
-  }
-
-  function divider() {
-    doc.setDrawColor(...DIVIDER);
-    doc.setLineWidth(0.3);
-    doc.line(MARGIN, y, PAGE_W - MARGIN, y);
-    y += 4;
-  }
-
-  function subHeader(title: string) {
-    checkPageBreak(10);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
-    doc.setTextColor(96, 77, 227);
+    doc.setFontSize(13);
+    doc.setTextColor(...SECTION_COL);
     doc.text(title, MARGIN, y);
+
+    // Underline
+    const tw = doc.getTextWidth(title);
+    doc.setDrawColor(...SECTION_COL);
+    doc.setLineWidth(0.5);
+    doc.line(MARGIN, y + 1, MARGIN + tw, y + 1);
+
     y += 5;
   }
 
-  // ── Build PDF ─────────────────────────────────────────────────────────────
+  // ── Sub-header (smaller, blue, bold) ─────────────────────────────────────
+  function subHeader(title: string) {
+    y += 7;
+    checkPageBreak(10);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(...SECTION_COL);
+    doc.text(title, MARGIN, y);
+    y += 3;
+  }
 
-  drawCoverPage();
+  // ── Page break check ─────────────────────────────────────────────────────
+  function checkPageBreak(needed = 12) {
+    if (y + needed > MAX_Y) {
+      doc.addPage();
+      drawPageHeader();
+      y = 28;
+    }
+  }
 
-  // Step 1 – Personal Info (always shown)
-  sectionHeader("Step 1 – Personal Info");
-  fieldGrid([
-    ["Full Name", basic.full_name],
-    ["Email", basic.email],
-    ["Phone", basic.phone],
-    ["Address", basic.address],
-    ["Postcode", basic.postcode],
-    ["Nationality", basic.nationality],
-    ["Immigration", basic.immigration_status],
-    ["Expiry", basic.immigration_expiry],
-    ["Work Permit", basic.work_permit ? "Yes" : "No"],
-    ["Name Changed", basic.name_changed ? "Yes" : "No"],
-    ...(basic.name_changed
-      ? ([
-          ["Previous Name", basic.previous_name],
-          ["Changed To", basic.changed_to],
-        ] as [string, string][])
-      : []),
-    ...(basic.type !== "agency-work"
-      ? ([
-          [
-            "CV",
-            basic.cv_file_path
-              ? process.env.NEXT_PUBLIC_API_URL + basic.cv_file_path
-              : "Not uploaded",
-          ],
-        ] as [string, string][])
-      : []),
-  ]);
+  // ── Two-column label/value row (like Employment History table) ────────────
+  // Left cell = dark blue label, right cell = white value
+  function tableRow(
+    label: string,
+    value: string | undefined | null,
+    rowH = 8,
+    url?: string,
+  ) {
+    const val = value || "—";
+    const labelW = 55;
+    const valueW = CONTENT_W - labelW;
+
+    // Wrap value text
+    const valLines = doc.splitTextToSize(val, valueW - 4);
+    const neededH = Math.max(rowH, valLines.length * 5 + 4);
+
+    checkPageBreak(neededH + 2);
+
+    // Label cell (blue bg)
+    doc.setFillColor(...LABEL_BG);
+    doc.setDrawColor(...BORDER);
+    doc.setLineWidth(0.3);
+    doc.rect(MARGIN, y, labelW, neededH, "FD");
+
+    // Value cell (white bg)
+    doc.setFillColor(...VALUE_BG);
+    doc.rect(MARGIN + labelW, y, valueW, neededH, "FD");
+
+    // Label text
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...LABEL_TXT);
+    doc.text(label, MARGIN + 2, y + neededH / 2 + 1.5);
+
+    // Value text
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...VALUE_TXT);
+    doc.text(valLines, MARGIN + labelW + 2, y + 5);
+
+    if (url) {
+      const linkText = "View File";
+      const x = MARGIN + labelW + 2;
+      const textY = y + 5;
+
+      // Blue text
+      doc.setTextColor(0, 0, 255);
+
+      // Underline
+      const textWidth = doc.getTextWidth(linkText);
+      doc.line(x, textY + 0.5, x + textWidth, textY + 0.5);
+
+      // Clickable link
+      doc.link(x, textY - 4, textWidth, 5, {
+        url,
+      });
+
+      // Restore text color
+      doc.setTextColor(...VALUE_TXT);
+    }
+
+    y += neededH;
+  }
+
+  // ── Not submitted notice ──────────────────────────────────────────────────
+  function notSubmitted() {
+    checkPageBreak(8);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(200, 140, 0);
+    doc.text("⚠  This section has not been submitted yet.", MARGIN, y);
+    y += 8;
+  }
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // ── PAGE 1: Cover Page ──────────────────────────────────────────────────
+  // ═════════════════════════════════════════════════════════════════════════
+
+  // White background
+  doc.setFillColor(255, 255, 255);
+  doc.rect(0, 0, PAGE_W, PAGE_H, "F");
+
+  // Logo centered
+  const logoW = 60;
+  const logoH = 20;
+  doc.addImage(logoBase64, "PNG", (PAGE_W - logoW) / 2, 20, logoW, logoH);
+
+  // Accent line
+  doc.setDrawColor(...SECTION_COL);
+  doc.setLineWidth(1);
+  doc.line(PAGE_W / 2 - 25, 44, PAGE_W / 2 + 25, 44);
+
+  // "Application Pack Form" title on cover//
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.setTextColor(...SECTION_COL);
+  doc.text("Application Pack Form", PAGE_W / 2, 58, { align: "center" });
+
+  // Applicant summary fields
+  const coverFields = [
+    { label: "Name", value: capitalize(basic?.full_name) || "—" },
+    { label: "Email", value: basic?.email || "—" },
+    { label: "Phone", value: basic?.phone || "—" },
+    { label: "Address", value: basic?.address || "—" },
+    {
+      label: "Type",
+      value:
+        basic?.type === "permanent"
+          ? "Permanent"
+          : basic?.type === "agency-work"
+            ? "Agency Work"
+            : basic?.type === "both"
+              ? "Both"
+              : "—",
+    },
+  ];
+
+  let cy = 72;
+  coverFields.forEach(({ label, value }) => {
+    // Label
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(120, 120, 140);
+    doc.text(label.toUpperCase(), MARGIN + 10, cy);
+
+    // Value
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.setTextColor(40, 40, 60);
+    const lines = doc.splitTextToSize(String(value), PAGE_W - 50);
+    doc.text(lines, MARGIN + 10, cy + 6);
+    cy += lines.length > 1 ? 10 + (lines.length - 1) * 4 : 10;
+
+    // Divider
+    doc.setDrawColor(210, 215, 230);
+    doc.setLineWidth(0.3);
+    doc.line(MARGIN + 10, cy, PAGE_W - MARGIN - 10, cy);
+    cy += 7;
+  });
+
+  // Cover footer
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.setTextColor(...FOOTER_RED);
+  doc.text("Hayaibu Talent", PAGE_W / 2, PAGE_H - 8, { align: "center" });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(150, 150, 170);
+  doc.text(
+    `Generated on ${new Date().toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })}`,
+    PAGE_W / 2,
+    PAGE_H - 14,
+    { align: "center" },
+  );
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // ── Step Pages ──────────────────────────────────────────────────────────
+  // ═════════════════════════════════════════════════════════════════════════
+
+  doc.addPage();
+  drawPageHeader();
+  y = 28;
+
+  // ── Step 1 – Personal Info ───────────────────────────────────────────────
+  sectionHeader("Step 1 – Personal Information");
+  tableRow("Full Name", basic?.full_name);
+  tableRow("Email", basic?.email);
+  tableRow("Phone", basic?.phone);
+  tableRow("Address", basic?.address);
+  tableRow("Postcode", basic?.postcode);
+  tableRow("Nationality", basic?.nationality);
+  tableRow("Immigration Status", basic?.immigration_status);
+  tableRow("Immigration Expiry", convertToInputDate(basic?.immigration_expiry));
+  tableRow("Work Permit", basic?.work_permit ? "Yes" : "No");
+  tableRow("Name Changed", basic?.name_changed ? "Yes" : "No");
+  if (basic?.name_changed) {
+    tableRow("Previous Name", basic?.previous_name);
+    tableRow("Changed To", basic?.changed_to);
+  }
+  // if (basic?.type !== "agency-work") {
+  //   tableRow(
+  //     "CV",
+  //     basic?.cv_file_path
+  //       ? process.env.NEXT_PUBLIC_API_URL + basic.cv_file_path
+  //       : "Not uploaded",
+  //   );
+  // }
+  if (basic?.type !== "agency-work") {
+    const cvUrl = basic?.cv_file_path
+      ? `${process.env.NEXT_PUBLIC_API_URL}${basic.cv_file_path}`
+      : null;
+    tableRow("CV", cvUrl ? "View CV" : "Not uploaded", 8, cvUrl || undefined);
+  }
 
   if (!isPermanent) {
-    // Step 2 – Pre-Qualifying
-    divider();
-    sectionHeader("Step 2 – Pre-Qualifying");
+    // ── Step 2 – Pre-Qualifying ────────────────────────────────────────────
+    y += 4;
+
+    sectionHeader("Step 2 – Pre-Qualifying Questions");
     if (isEmpty(questions)) {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.setTextColor(200, 140, 0);
-      doc.text("⚠ Not submitted yet.", MARGIN, y);
-      y += 8;
+      notSubmitted();
     } else {
-      fieldGrid([
-        ["Availability Issue", questions.availability_issue ? "Yes" : "No"],
-        ["Work Restrictions", questions.work_restrictions ? "Yes" : "No"],
-        ...(questions.work_restrictions
-          ? ([["Restriction Details", questions.restriction_details]] as [
-              string,
-              string,
-            ][])
-          : []),
-        ["Overtime", questions.overtime ? "Yes" : "No"],
-        ["Hours to Avoid", questions.hours_avoid],
-        ["Notice Period", questions.notice_period],
-        ["Worked Before", questions.worked_before ? "Yes" : "No"],
-        ["Applied Before", questions.applied_before ? "Yes" : "No"],
-        ...(questions.applied_before
-          ? ([["Applied Details", questions.applied_details]] as [
-              string,
-              string,
-            ][])
-          : []),
-      ]);
+      tableRow(
+        "Availability Issue",
+        questions.availability_issue ? "Yes" : "No",
+      );
+      tableRow("Work Restrictions", questions.work_restrictions ? "Yes" : "No");
+      if (questions.work_restrictions) {
+        tableRow("Restriction Details", questions.restriction_details);
+      }
+      tableRow("Overtime", questions.overtime ? "Yes" : "No");
+      tableRow("Hours to Avoid", questions.hours_avoid);
+      tableRow("Notice Period", questions.notice_period);
+      tableRow("Worked Before", questions.worked_before ? "Yes" : "No");
+      tableRow("Applied Before", questions.applied_before ? "Yes" : "No");
+      if (questions.applied_before) {
+        tableRow("Applied Details", questions.applied_details);
+      }
     }
 
-    // Step 3 – Criminal & Compliance
-    divider();
+    // ── Step 3 – Criminal & Compliance ────────────────────────────────────
+    y += 4;
+
     sectionHeader("Step 3 – Criminal & Compliance");
     if (isEmpty(background)) {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.setTextColor(200, 140, 0);
-      doc.text("⚠ Not submitted yet.", MARGIN, y);
-      y += 8;
+      notSubmitted();
     } else {
-      fieldGrid([
-        ["Any Convictions", background.has_convictions ? "Yes" : "No"],
-        ...(background.has_convictions
-          ? ([["Conviction Details", background.conviction_details]] as [
-              string,
-              string,
-            ][])
-          : []),
-        [
-          "Unspent Convictions",
-          background.has_unspent_convictions ? "Yes" : "No",
-        ],
-        ...(background.has_unspent_convictions
-          ? ([["Unspent Details", background.unspent_details]] as [
-              string,
-              string,
-            ][])
-          : []),
-        [
-          "Fitness Investigation",
-          background.fitness_investigation ? "Yes" : "No",
-        ],
-        [
-          "Removed From Register",
-          background.removed_from_register ? "Yes" : "No",
-        ],
-        ["DVS/CRB Check", background.crb ? "Yes" : "No"],
-        ...(background.crb
-          ? ([
-              ["Certificate Number", background.certificate_number], // ← NEW FIELD
-              ["Full Name", background.full_name],
-              ["Surname", background.surname],
-              ["Date of Birth", background.dob],
-              [
-                "DVS/CRB File",
-                process.env.NEXT_PUBLIC_API_URL + background.crb_file_path ||
-                  "Not uploaded",
-              ],
-            ] as [string, string][])
-          : []),
-      ]);
+      tableRow("Any Convictions", background.has_convictions ? "Yes" : "No");
+      if (background.has_convictions) {
+        tableRow("Conviction Details", background.conviction_details);
+      }
+      tableRow(
+        "Unspent Convictions",
+        background.has_unspent_convictions ? "Yes" : "No",
+      );
+      if (background.has_unspent_convictions) {
+        tableRow("Unspent Details", background.unspent_details);
+      }
+      tableRow(
+        "Fitness Investigation",
+        background.fitness_investigation ? "Yes" : "No",
+      );
+      tableRow(
+        "Removed From Register",
+        background.removed_from_register ? "Yes" : "No",
+      );
+      tableRow("DBS/CRB Check", background.crb ? "Yes" : "No");
+      if (background.crb) {
+        tableRow("Certificate Number", background.certificate_number);
+        tableRow("Full Name", background.full_name);
+        tableRow("Surname", background.surname);
+        tableRow("Date of Birth", convertToInputDate(background.dob));
+        // tableRow(
+        //   "DBS/CRB File",
+        //   background.crb_file_path
+        //     ? process.env.NEXT_PUBLIC_API_URL + background.crb_file_path
+        //     : "Not uploaded",
+        // );
+
+        const DBSFileUrl = background.crb_file_path
+          ? process.env.NEXT_PUBLIC_API_URL + background.crb_file_path
+          : null;
+        tableRow(
+          "DBS/CRB File",
+          DBSFileUrl ? "View File" : "Not uploaded",
+          8,
+          DBSFileUrl || undefined,
+        );
+      }
     }
 
-    // Step 4 – Health
-    divider();
+    // ── Step 4 – Health ────────────────────────────────────────────────────
+    y += 4;
+
     sectionHeader("Step 4 – Health Information");
     if (isEmpty(health)) {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.setTextColor(200, 140, 0);
-      doc.text("⚠ Not submitted yet.", MARGIN, y);
-      y += 8;
+      notSubmitted();
     } else {
-      fieldGrid([
-        ["Sick Leaves in last 3 years", health.absent_days],
-        ["On Medication", health.on_medication ? "Yes" : "No"],
-        ...(health.on_medication
-          ? ([["Medication Details", health.medication_details]] as [
-              string,
-              string,
-            ][])
-          : []),
-        ["Health Treatment", health.health_treatment ? "Yes" : "No"],
-        ...(health.health_treatment
-          ? ([["Treatment Details", health.treatment_details]] as [
-              string,
-              string,
-            ][])
-          : []),
-        ["Medical Condition", health.medical_condition ? "Yes" : "No"],
-        ...(health.medical_condition
-          ? ([["Condition Details", health.condition_details]] as [
-              string,
-              string,
-            ][])
-          : []),
-        ["Disabled", health.disabled ? "Yes" : "No"],
-        ...(health.disabled
-          ? ([["Impairment Type", health.impairment_type]] as [
-              string,
-              string,
-            ][])
-          : []),
-        ["Fit for Night Shift", health.night_shift_fit ? "Yes" : "No"],
-      ]);
+      tableRow("Sick Leaves (last 3 years)", health.absent_days);
+      tableRow("On Medication", health.on_medication ? "Yes" : "No");
+      if (health.on_medication) {
+        tableRow("Medication Details", health.medication_details);
+      }
+      tableRow("Health Treatment", health.health_treatment ? "Yes" : "No");
+      if (health.health_treatment) {
+        tableRow("Treatment Details", health.treatment_details);
+      }
+      tableRow("Medical Condition", health.medical_condition ? "Yes" : "No");
+      if (health.medical_condition) {
+        tableRow("Condition Details", health.condition_details);
+      }
+      tableRow("Disabled", health.disabled ? "Yes" : "No");
+      if (health.disabled) {
+        tableRow("Impairment Type", health.impairment_type);
+      }
+      tableRow("Fit for Night Shift", health.night_shift_fit ? "Yes" : "No");
     }
 
-    // Step 5 – Professional Registration
-    divider();
+    // ── Step 5 – Professional Registration ───────────────────────────────
+    y += 4;
+
     sectionHeader("Step 5 – Professional Registration");
     if (isEmpty(registration)) {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.setTextColor(200, 140, 0);
-      doc.text("⚠ Not submitted yet.", MARGIN, y);
-      y += 8;
+      notSubmitted();
     } else {
-      fieldGrid([
-        ["Is Nurse", registration.is_nurse ? "Yes" : "No"],
-        ...(registration.is_nurse
-          ? ([
-              ["Professional Body", registration.professional_body],
-              ["Registration Type", registration.registration_type],
-              ["Registration Number", registration.registration_number],
-              ["Registration Expiry", registration.registration_expiry],
-            ] as [string, string][])
-          : []),
-      ]);
+      tableRow("Is Nurse", registration.is_nurse ? "Yes" : "No");
+      if (registration.is_nurse) {
+        tableRow("Professional Body", registration.professional_body);
+        tableRow("Registration Type", registration.registration_type);
+        tableRow("Registration Number", registration.registration_number);
+        tableRow(
+          "Registration Expiry",
+          convertToInputDate(registration.registration_expiry),
+        );
+      }
     }
 
-    // Step 6 – Documents
-    divider();
+    // ── Step 6 – Documents ───────────────────────────────────────────────
+    y += 4;
+
     sectionHeader("Step 6 – Documents");
     if (isEmpty(documents)) {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.setTextColor(200, 140, 0);
-      doc.text("⚠ Not submitted yet.", MARGIN, y);
-      y += 8;
+      notSubmitted();
     } else {
-      fieldGrid([
-        [
-          "Passport",
-          process.env.NEXT_PUBLIC_API_URL + documents.passport ||
-            "Not uploaded",
-        ],
-        [
-          "Driving Licence (Front)",
-          process.env.NEXT_PUBLIC_API_URL + documents.driving_licence_front ||
-            "Not uploaded",
-        ],
-        [
-          "Driving Licence (Back)",
-          process.env.NEXT_PUBLIC_API_URL + documents.driving_licence_back ||
-            "Not uploaded",
-        ],
-        [
-          "Proof ID 1",
-          process.env.NEXT_PUBLIC_API_URL + documents.proof_id1 ||
-            "Not uploaded",
-        ],
-        [
-          "Proof ID 2",
-          process.env.NEXT_PUBLIC_API_URL + documents.proof_id2 ||
-            "Not uploaded",
-        ],
-      ]);
+      // tableRow(
+      //   "Passport",
+      //   documents.passport
+      //     ? process.env.NEXT_PUBLIC_API_URL + documents.passport
+      //     : "Not uploaded",
+      // );
+
+      const passport = documents.passport
+        ? process.env.NEXT_PUBLIC_API_URL + documents.passport
+        : null;
+      tableRow(
+        "Passport",
+        passport ? "View File" : "Not uploaded",
+        8,
+        passport || undefined,
+      );
+
+      // tableRow(
+      //   "Driving Licence (Front)",
+      //   documents.driving_licence_front
+      //     ? process.env.NEXT_PUBLIC_API_URL + documents.driving_licence_front
+      //     : "Not uploaded",
+      // );
+
+      const driving_licence_front = documents.driving_licence_front
+        ? process.env.NEXT_PUBLIC_API_URL + documents.driving_licence_front
+        : null;
+      tableRow(
+        "Driving Licence (Front)",
+        driving_licence_front ? "View File" : "Not uploaded",
+        8,
+        driving_licence_front || undefined,
+      );
+
+      // tableRow(
+      //   "Driving Licence (Back)",
+      //   documents.driving_licence_back
+      //     ? process.env.NEXT_PUBLIC_API_URL + documents.driving_licence_back
+      //     : "Not uploaded",
+      // );
+
+      const driving_licence_back = documents.driving_licence_back
+        ? process.env.NEXT_PUBLIC_API_URL + documents.driving_licence_back
+        : null;
+      tableRow(
+        "Driving Licence (Back)",
+        driving_licence_back ? "View File" : "Not uploaded",
+        8,
+        driving_licence_back || undefined,
+      );
+
+      // tableRow(
+      //   "Proof ID 1",
+      //   documents.proof_id1
+      //     ? process.env.NEXT_PUBLIC_API_URL + documents.proof_id1
+      //     : "Not uploaded",
+      // );
+
+      const proof_id1 = documents.proof_id1
+        ? process.env.NEXT_PUBLIC_API_URL + documents.proof_id1
+        : null;
+      tableRow(
+        "Proof ID 1",
+        proof_id1 ? "View File" : "Not uploaded",
+        8,
+        proof_id1 || undefined,
+      );
+
+      // tableRow(
+      //   "Proof ID 2",
+      //   documents.proof_id2
+      //     ? process.env.NEXT_PUBLIC_API_URL + documents.proof_id2
+      //     : "Not uploaded",
+      // );
+
+      const proof_id2 = documents.proof_id2
+        ? process.env.NEXT_PUBLIC_API_URL + documents.proof_id2
+        : null;
+      tableRow(
+        "Proof ID 2",
+        proof_id2 ? "View File" : "Not uploaded",
+        8,
+        proof_id2 || undefined,
+      );
     }
 
-    // Step 7 – Training
-    divider();
-    sectionHeader("Step 7 – Training");
+    // ── Step 7 – Training ─────────────────────────────────────────────────
+    y += 4;
+
+    sectionHeader("Step 7 – Training Courses Attended");
+
     if (isEmpty(trainings)) {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.setTextColor(200, 140, 0);
-      doc.text("⚠ Not submitted yet.", MARGIN, y);
-      y += 8;
+      notSubmitted();
     } else {
       trainings.forEach((item: any, i: number) => {
         subHeader(`Training ${i + 1}`);
-        fieldGrid([
-          ["Course Title", item.title],
-          ["Provider", item.provider],
-          ["Duration", item.duration],
-          ["Completion Date", item.completion_date],
-        ]);
-        if (i < trainings.length - 1) divider();
+
+        tableRow("Course Title", item.title);
+        tableRow("Training Provider", item.provider);
+        tableRow("Duration", item.duration);
+        tableRow("Date Completion", convertToInputDate(item.completion_date));
+        // tableRow(
+        //   "Certificate",
+        //   item.certificate_file_path
+        //     ? `${process.env.NEXT_PUBLIC_API_URL}${item.certificate_file_path}`
+        //     : "Not uploaded",
+        // );
+
+        const certificate_file_path = item.certificate_file_path
+          ? `${process.env.NEXT_PUBLIC_API_URL}${item.certificate_file_path}`
+          : null;
+        tableRow(
+          "Certificate",
+          certificate_file_path ? "View File" : "Not uploaded",
+          8,
+          certificate_file_path || undefined,
+        );
       });
     }
 
-    // Step 8 – Education & Gaps
-    divider();
+    // ── Step 8 – Education & Gaps ─────────────────────────────────────────
+    y += 4;
+
     sectionHeader("Step 8 – Education & Gaps");
     if (isEmpty(educations)) {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.setTextColor(200, 140, 0);
-      doc.text("⚠ Not submitted yet.", MARGIN, y);
-      y += 8;
+      notSubmitted();
     } else {
       educations.forEach((item: any, i: number) => {
         if (item.kind === "education") {
-          subHeader("Education");
-          fieldGrid([
-            ["Qualification Type", item.qualificationType],
-            ["Title", item.qualificationTitle],
-            ["Institution", item.institutionName],
-            ["Country", item.institutionCountry],
-            ["Awarding Body", item.awardingBody],
-            ["Grade", item.gradeOrResult],
-            ["Start Date", item.startDate],
-            ["End Date", item.endDate],
-            ["Completed", item.completed],
-            ["Professional Registration", item.hasProfessionalRegistration],
-            ...(item.hasProfessionalRegistration === "yes"
-              ? ([
-                  ["Registration Body", item.registrationBody],
-                  ["Registration Number", item.registrationNumber],
-                  ["Registration Expiry", item.registrationExpiry],
-                ] as [string, string][])
-              : []),
-            [
-              "Certificate",
-              item.certificateFile
-                ? `${process.env.NEXT_PUBLIC_API_URL}${item.certificateFile}`
-                : "Not uploaded",
-            ],
-            
-            ["Additional Notes", item.additionalNotes],
-          ]);
+          subHeader(`Education`);
+          tableRow("Qualification Type", item.qualificationType);
+          tableRow("Title", item.qualificationTitle);
+          tableRow("Institution", item.institutionName);
+          tableRow("Country", item.institutionCountry);
+          tableRow("Awarding Body", item.awardingBody);
+          tableRow("Grade", item.gradeOrResult);
+          tableRow("Start Date", convertToInputDate(item.startDate));
+          tableRow("End Date", convertToInputDate(item.endDate));
+          tableRow("Completed", item.completed);
+          tableRow(
+            "Professional Registration",
+            item.hasProfessionalRegistration,
+          );
+          if (item.hasProfessionalRegistration === "yes") {
+            tableRow("Registration Body", item.registrationBody);
+            tableRow("Registration Number", item.registrationNumber);
+            tableRow(
+              "Registration Expiry",
+              convertToInputDate(item.registrationExpiry),
+            );
+          }
+
+          // tableRow(
+          //   "Certificate",
+          //   item.certificateFile
+          //     ? `${process.env.NEXT_PUBLIC_API_URL}${item.certificateFile}`
+          //     : "Not uploaded",
+          // );
+
+          const certificateFile = item.certificateFile
+            ? `${process.env.NEXT_PUBLIC_API_URL}${item.certificateFile}`
+            : null;
+          tableRow(
+            "Certificate",
+            certificateFile ? "View File" : "Not uploaded",
+            8,
+            certificateFile || undefined,
+          );
+
+          tableRow("Additional Notes", item.additionalNotes);
         } else {
-          subHeader("Gap");
-          fieldGrid([
-            ["Gap From", item.gapFrom],
-            ["Gap To", item.gapTo],
-            ["Reason", item.reason],
-          ]);
+          subHeader(`Gap`);
+          tableRow("Gap From", convertToInputDate(item.gapFrom));
+          tableRow("Gap To", convertToInputDate(item.gapTo));
+          tableRow("Reason", item.reason);
         }
-        if (i < educations.length - 1) divider();
       });
     }
 
-    // Step 9 – Experience
-    divider();
-    sectionHeader("Step 9 – Experience");
+    // ── Step 9 – Experience ───────────────────────────────────────────────
+    y += 4;
+
+    sectionHeader("Step 9 – Employment History & Experience");
     if (isEmpty(experience)) {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.setTextColor(200, 140, 0);
-      doc.text("⚠ Not submitted yet.", MARGIN, y);
-      y += 8;
+      notSubmitted();
     } else {
+      y += 2;
+      // Experience areas
       if (experience.areas?.length) {
-        subHeader("Areas");
+        checkPageBreak(14);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9);
+        doc.setTextColor(...SECTION_COL);
+        doc.text("Experience Areas:", MARGIN, y);
+        y += 5;
+
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
-        doc.setTextColor(...VALUE_COL);
+        doc.setTextColor(...VALUE_TXT);
         const areasText = experience.areas.join(", ");
-        const wrapped = doc.splitTextToSize(areasText, PAGE_W - MARGIN * 2);
+        const wrapped = doc.splitTextToSize(areasText, CONTENT_W);
         checkPageBreak(wrapped.length * 5 + 4);
         doc.text(wrapped, MARGIN, y);
         y += wrapped.length * 5 + 6;
       }
+
       experience.timeline?.forEach((item: any, i: number) => {
         if (item.kind === "experience") {
-          subHeader("Experience");
-          fieldGrid([
-            ["Employer", item.employerName],
-            ["Job Title", item.jobTitle],
-            [
-              "From",
-              item.dateFrom
-                ? new Date(item.dateFrom).toLocaleDateString()
-                : undefined,
-            ],
-            [
-              "To",
-              item.dateTo
-                ? new Date(item.dateTo).toLocaleDateString()
-                : undefined,
-            ],
-            ["Duties", item.duties],
-          ]);
+          subHeader(`Employment`);
+          // Two-col employment table (like the reference PDF)
+          tableRow("Employer Name", item.employerName);
+          tableRow("Job Title", item.jobTitle);
+          tableRow(
+            "Start Date",
+            item.dateFrom
+              ? new Date(convertToInputDate(item.dateFrom)).toLocaleDateString(
+                  "en-GB",
+                )
+              : "—",
+          );
+          tableRow(
+            "End Date",
+            item.dateTo
+              ? new Date(convertToInputDate(item.dateTo)).toLocaleDateString(
+                  "en-GB",
+                )
+              : "—",
+          );
+          tableRow("Description of Duties", item.duties);
         } else {
-          subHeader("Gap");
-          fieldGrid([
-            [
-              "Gap From",
-              item.gapFrom
-                ? new Date(item.gapFrom).toLocaleDateString()
-                : undefined,
-            ],
-            [
-              "Gap To",
-              item.gapTo
-                ? new Date(item.gapTo).toLocaleDateString()
-                : undefined,
-            ],
-            ["Reason", item.reason],
-          ]);
+          subHeader(`Gap`);
+          tableRow(
+            "Gap From",
+            item.gapFrom
+              ? new Date(convertToInputDate(item.gapFrom)).toLocaleDateString(
+                  "en-GB",
+                )
+              : "—",
+          );
+          tableRow(
+            "Gap To",
+            item.gapTo
+              ? new Date(convertToInputDate(item.gapTo)).toLocaleDateString(
+                  "en-GB",
+                )
+              : "—",
+          );
+          tableRow("Reason", item.reason);
         }
-        if (i < (experience.timeline?.length ?? 0) - 1) divider();
+        if (i < (experience.timeline?.length ?? 0) - 1) {
+          y += 3;
+        }
       });
     }
 
-    // Step 10 – Supporting Statement
-    divider();
-    sectionHeader("Step 10 – Supporting Statement");
+    // ── Step 10 – Supporting Statement ───────────────────────────────────
+    y += 4;
+
+    sectionHeader("Step 10 – Supporting Information");
     if (isEmpty(statement)) {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.setTextColor(200, 140, 0);
-      doc.text("⚠ Not submitted yet.", MARGIN, y);
-      y += 8;
+      notSubmitted();
     } else {
+      checkPageBreak(14);
+      y += 2;
       const text = statement.supporting_statement || "—";
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9.5);
-      doc.setTextColor(...VALUE_COL);
-      const lines = doc.splitTextToSize(text, PAGE_W - MARGIN * 2);
+      doc.setTextColor(...VALUE_TXT);
+      const lines = doc.splitTextToSize(text, CONTENT_W);
       checkPageBreak(lines.length * 5 + 4);
       doc.text(lines, MARGIN, y);
       y += lines.length * 5 + 6;
     }
 
-    // Step 11 – Declaration
-    divider();
+    // ── Step 11 – Declaration ─────────────────────────────────────────────
+    y += 4;
+
     sectionHeader("Step 11 – Declaration");
+
     if (isEmpty(declaration)) {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.setTextColor(200, 140, 0);
-      doc.text("⚠ Not submitted yet.", MARGIN, y);
-      y += 8;
+      notSubmitted();
     } else {
-      fieldGrid([
-        [
-          "Declaration Confirmed",
-          declaration.declaration_confirmed ? "Yes" : "No",
-        ],
-        ["Declaration Date", declaration.declaration_date],
-        [
-          "Signature",
-          process.env.NEXT_PUBLIC_API_URL + declaration.signature_file ||
-            "Not uploaded",
-        ],
-      ]);
+      checkPageBreak(20);
+      y += 2;
+
+      const sigBase64 = declaration.signature_file
+        ? await getBase64FromUrl(
+            process.env.NEXT_PUBLIC_API_URL + declaration.signature_file,
+          )
+        : null;
+
+      console.log("sigBase64:", sigBase64);
+
+      // NAME
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.5);
+      doc.setTextColor(...VALUE_TXT);
+
+      doc.text(`Name: ${basic?.full_name || ""}`, MARGIN, y);
+
+      y += 6;
+
+      // DATE
+      doc.text(
+        `Date: ${convertToInputDate(declaration.declaration_date) || ""}`,
+        MARGIN,
+        y,
+      );
+
+      y += 8;
+
+      // SIGNATURE IMAGE
+      if (sigBase64) {
+        const imgWidth = 40; // adjust as needed
+        const imgHeight = 18; // adjust as needed
+
+        checkPageBreak(imgHeight + 5);
+        doc.text(`Signature:`, MARGIN, y);
+        y += 3;
+        doc.addImage(sigBase64, "PNG", MARGIN, y, imgWidth, imgHeight);
+
+        y += imgHeight + 6;
+      } else {
+        doc.text("No signature provided", MARGIN, y);
+        y += 6;
+      }
     }
   }
 
-  // Page numbers
-  // Page numbers
+  // ── Stamp headers & footers on every page ─────────────────────────────────
   const pageCount = doc.internal.pages.length - 1;
-
-  for (let p = 1; p <= pageCount; p++) {
+  for (let p = 2; p <= pageCount; p++) {
+    // cover page (p=1) already has its own footer
     doc.setPage(p);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(160, 160, 180);
-
-    doc.text(`Page ${p} of ${pageCount}`, PAGE_W - MARGIN, 291, {
-      align: "right",
-    });
+    drawPageFooter(p, pageCount);
   }
+  // Fix cover page footer page number
+  doc.setPage(1);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(150, 150, 170);
+  doc.text(`Page 1 of ${pageCount}`, PAGE_W - MARGIN, PAGE_H - 8, {
+    align: "right",
+  });
 
-  const filename = `${(basic.full_name || "applicant").replace(/\s+/g, "_")}_application.pdf`;
+  const filename = `${(basic?.full_name || "applicant").replace(/\s+/g, "_")}_application.pdf`;
   doc.save(filename);
 }
 
@@ -935,7 +1093,10 @@ export default function UserDetailPage() {
               <Info label="Postcode" value={basic.postcode} />
               <Info label="Nationality" value={basic.nationality} />
               <Info label="Immigration" value={basic.immigration_status} />
-              <Info label="Expiry" value={basic.immigration_expiry} />
+              <Info
+                label="Expiry"
+                value={convertToInputDate(basic.immigration_expiry)}
+              />
               <Info
                 label="Work Permit"
                 value={basic.work_permit ? "Yes" : "No"}
@@ -1059,7 +1220,7 @@ export default function UserDetailPage() {
                   value={background.removed_from_register ? "Yes" : "No"}
                 />
                 <Info
-                  label="DVS/CRB Check"
+                  label="DBS/CRB Check"
                   value={background.crb ? "Yes" : "No"}
                 />
                 {Boolean(background.crb) && (
@@ -1071,9 +1232,12 @@ export default function UserDetailPage() {
                     />
                     <Info label="Full Name" value={background.full_name} />
                     <Info label="Surname" value={background.surname} />
-                    <Info label="Date of Birth" value={background.dob} />
                     <Info
-                      label="DVS/CRB File"
+                      label="Date of Birth"
+                      value={convertToInputDate(background.dob)}
+                    />
+                    <Info
+                      label="DBS/CRB File"
                       value={<FileLink path={background.crb_file_path} />}
                     />
                   </>
@@ -1134,7 +1298,10 @@ export default function UserDetailPage() {
                     value={health.impairment_type}
                   />
                 )}
-                <Info label="Sick Leaves in last 3 years" value={health.absent_days } />
+                <Info
+                  label="Sick Leaves in last 3 years"
+                  value={health.absent_days}
+                />
                 <Info
                   label="Fit for Night Shift"
                   value={health.night_shift_fit ? "Yes" : "No"}
@@ -1178,7 +1345,9 @@ export default function UserDetailPage() {
                     />
                     <Info
                       label="Registration Expiry"
-                      value={registration.registration_expiry}
+                      value={convertToInputDate(
+                        registration.registration_expiry,
+                      )}
                     />
                   </>
                 )}
@@ -1246,7 +1415,11 @@ export default function UserDetailPage() {
                     <Info label="Duration" value={item.duration} />
                     <Info
                       label="Completion Date"
-                      value={item.completion_date}
+                      value={convertToInputDate(item.completion_date)}
+                    />
+                    <Info
+                      label="Training Certificate"
+                      value={<FileLink path={item.certificate_file_path} />}
                     />
                   </div>
                 </div>
@@ -1288,8 +1461,14 @@ export default function UserDetailPage() {
                         <Info label="Country" value={item.institutionCountry} />
                         <Info label="Awarding Body" value={item.awardingBody} />
                         <Info label="Grade" value={item.gradeOrResult} />
-                        <Info label="Start Date" value={item.startDate} />
-                        <Info label="End Date" value={item.endDate} />
+                        <Info
+                          label="Start Date"
+                          value={convertToInputDate(item.startDate)}
+                        />
+                        <Info
+                          label="End Date"
+                          value={convertToInputDate(item.endDate)}
+                        />
                         <Info label="Completed" value={item.completed} />
                         <Info
                           label="Professional Registration"
@@ -1307,7 +1486,9 @@ export default function UserDetailPage() {
                             />
                             <Info
                               label="Registration Expiry"
-                              value={item.registrationExpiry}
+                              value={convertToInputDate(
+                                item.registrationExpiry,
+                              )}
                             />
                           </>
                         )}
@@ -1325,8 +1506,14 @@ export default function UserDetailPage() {
                     <>
                       <div className="text-primary font-semibold mb-2">Gap</div>
                       <div className="grid sm:grid-cols-2 lg:grid-cols-3  gap-4">
-                        <Info label="Gap From" value={item.gapFrom} />
-                        <Info label="Gap To" value={item.gapTo} />
+                        <Info
+                          label="Gap From"
+                          value={convertToInputDate(item.gapFrom)}
+                        />
+                        <Info
+                          label="Gap To"
+                          value={convertToInputDate(item.gapTo)}
+                        />
                         <Info label="Reason" value={item.reason} />
                       </div>
                     </>
@@ -1391,7 +1578,7 @@ export default function UserDetailPage() {
                                 value={
                                   item.dateFrom
                                     ? new Date(
-                                        item.dateFrom,
+                                        convertToInputDate(item.dateFrom),
                                       ).toLocaleDateString()
                                     : undefined
                                 }
@@ -1400,7 +1587,9 @@ export default function UserDetailPage() {
                                 label="To"
                                 value={
                                   item.dateTo
-                                    ? new Date(item.dateTo).toLocaleDateString()
+                                    ? new Date(
+                                        convertToInputDate(item.dateTo),
+                                      ).toLocaleDateString()
                                     : undefined
                                 }
                               />
@@ -1418,7 +1607,7 @@ export default function UserDetailPage() {
                                 value={
                                   item.gapFrom
                                     ? new Date(
-                                        item.gapFrom,
+                                        convertToInputDate(item.gapFrom),
                                       ).toLocaleDateString()
                                     : undefined
                                 }
@@ -1427,7 +1616,9 @@ export default function UserDetailPage() {
                                 label="Gap To"
                                 value={
                                   item.gapTo
-                                    ? new Date(item.gapTo).toLocaleDateString()
+                                    ? new Date(
+                                        convertToInputDate(item.gapTo),
+                                      ).toLocaleDateString()
                                     : undefined
                                 }
                               />
@@ -1488,11 +1679,20 @@ export default function UserDetailPage() {
                 />
                 <Info
                   label="Declaration Date"
-                  value={declaration.declaration_date}
+                  value={convertToInputDate(declaration.declaration_date)}
                 />
+
                 <Info
                   label="Signature File"
-                  value={<FileLink path={declaration.signature_file} />}
+                  value={
+                    <Image
+                      src={declaration.signature_file}
+                      alt="Signature"
+                      width={400}
+                      height={200}
+                      className="border rounded-md w-[40%] p-2 mt-1  object-contain"
+                    />
+                  }
                 />
               </div>
             )}
