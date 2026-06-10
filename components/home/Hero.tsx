@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Button } from "../ui/button";
 import { GoArrowUpRight } from "react-icons/go";
-
+import  Link  from "next/link";
 
 export default function Hero() {
   const cards = [
@@ -10,19 +10,21 @@ export default function Hero() {
       subtitle: "Elevate Your Career with Top Opportunities",
       image: "/hero1.png",
       btn: "Find a Job Now ",
+      link: "/user/dashboard",
     },
     {
       title: "EMPLOYER JOURNEY",
       subtitle: "Access Premier Talent Hire Faster ",
       image: "/hero2.png",
       btn: "Post a Job Now ",
+      link: "/coming-soon",
     },
   ];
 
   return (
     <div className=" md:h-[70vh]  bg-primary flex items-center justify-center px-6 py-4 md:py-10 relative ">
       <Image
-        src='/boy.png'
+        src="/boy.png"
         alt="hero-image"
         width={500}
         height={900}
@@ -30,7 +32,7 @@ export default function Hero() {
         unoptimized
       />
       <Image
-        src='/girl.png'
+        src="/girl.png"
         alt="hero-image"
         width={500}
         height={900}
@@ -59,15 +61,16 @@ export default function Hero() {
               className="w-full h-auto mt-auto"
               unoptimized
             />
-            
 
-            <Button
-              type="button"
-              className="bg-white text-primary font-semibold hover:text-white border border-white cursor-pointer w-full text-[15pxz] sm:text-[17px] md:text-[23px] py-[2vw] sm:py-[1.5vw]"
-            >
-              {card.btn}
-              <GoArrowUpRight className="font-semibold size-4 md:size-[1.5vw]" />
-            </Button>
+            <Link href={card.link} className="w-full">
+              <Button
+                type="button"
+                className="bg-white text-primary font-semibold hover:text-white border border-white cursor-pointer w-full text-[15pxz] sm:text-[17px] md:text-[23px] py-[2vw] sm:py-[1.5vw]"
+              >
+                {card.btn}
+                <GoArrowUpRight className="font-semibold size-4 md:size-[1.5vw]" />
+              </Button>
+            </Link>
           </div>
         ))}
       </div>

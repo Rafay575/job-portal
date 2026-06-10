@@ -201,7 +201,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
       // 4. Handle response
       if (res.success) {
         toast.success(res.data?.message || "Step 1 submitted successfully!");
-        
+
         next();
       } else {
         toast.error(res.message || "Failed to submit Step 1");
@@ -254,8 +254,8 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
             Full Name <span className="text-red-500">*</span>
           </Label>
           <Input
-           readOnly
-           disabled
+            readOnly
+            disabled
             value={formData.fullName}
             onChange={(e) => handleChange("fullName", e.target.value)}
           />
@@ -266,9 +266,8 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
             Email Address <span className="text-red-500">*</span>
           </Label>
           <Input
-           readOnly
-           disabled
-
+            readOnly
+            disabled
             value={formData.email}
             onChange={(e) => handleChange("email", e.target.value)}
           />
@@ -318,21 +317,25 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
           <Label>
             Immigration Status <span className="text-red-500">*</span>
           </Label>
-          <Select
-            value={formData.immigrationStatus}
-            onValueChange={(value) => handleChange("immigrationStatus", value)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select status" />
-            </SelectTrigger>
-            <SelectContent className="w-full">
-              <SelectItem value="citizen">UK Citizen</SelectItem>
-              <SelectItem value="settled">Settled Status</SelectItem>
-              <SelectItem value="pre-settled">Pre-Settled</SelectItem>
-              <SelectItem value="visa">Work Visa</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="border rounded-lg border-[#f0f0f0]">
+            <Select
+              value={formData.immigrationStatus}
+              onValueChange={(value) =>
+                handleChange("immigrationStatus", value)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent className="w-full">
+                <SelectItem value="citizen">UK Citizen</SelectItem>
+                <SelectItem value="settled">Settled Status</SelectItem>
+                <SelectItem value="pre-settled">Pre-Settled</SelectItem>
+                <SelectItem value="visa">Work Visa</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div>

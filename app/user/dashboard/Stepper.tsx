@@ -52,13 +52,15 @@ export default function Stepper({
             {/* Step Circle */}
             <div
 
-            
-              onClick={() => {
-                if (!isLocked ) {
-                  setCurrentStep(stepNumber);
-                }
-              }}
 
+              // section for comment
+
+              // onClick={() => {
+              //   if (!isLocked ) {
+              //     setCurrentStep(stepNumber);
+              //   }
+              // }}
+              
 
               className={clsx(
                 "h-9 w-9 rounded-full flex items-center justify-center text-sm font-medium cursor-pointer transition-all duration-300 z-10",

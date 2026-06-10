@@ -40,7 +40,7 @@ export default function Navbar() {
         </Link>
 
         {/* DESKTOP NAV */}
-        <nav className="hidden lg:flex items-center gap-8 text-md">
+        <nav className="hidden lg:flex items-center gap-2 text-md">
           {navLinks.map((link) => {
             if (!user.loggedIn) {
               if (link.name === "Dashboard") return false;
@@ -53,8 +53,8 @@ export default function Navbar() {
               return null;
             }
             return (
-              <Link key={link.name} href={link.href} className="font-medium">
-                <div className="flex items-center gap-1">
+              <Link key={link.name} href={link.href} className="font-medium hover:text-white hover:bg-primary px-5 py-1.5 rounded-full transition">
+                <div className="flex items-center ">
                   <p>{link.name}</p>
                 </div>
               </Link>
@@ -153,9 +153,11 @@ export default function Navbar() {
                   Recruiting? Post a Job
                 </Button>
                 <Button className="bg-primary">Register a CV</Button>
-                <Button variant="outline" className="bg-primary text-white">
-                  Sign in
-                </Button>
+                <Link href={"/auth/login"} className="w-full">
+                  <Button variant="outline" className="bg-primary text-white w-full">
+                    Sign in
+                  </Button>
+                </Link>
               </>
             )}
           </SheetContent>
