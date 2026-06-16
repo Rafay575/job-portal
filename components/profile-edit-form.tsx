@@ -67,7 +67,7 @@ export default function ProfileEditForm() {
       confirmPassword,
     };
 
-    console.log(payload);
+    
     toast.success("Profile Updated Successfully");
   };
 

@@ -751,17 +751,13 @@ async function generatePDF(user: any) {
           tableRow(
             "Start Date",
             item.dateFrom
-              ? new Date(convertToInputDate(item.dateFrom)).toLocaleDateString(
-                  "en-GB",
-                )
+              ? convertToInputDate(item.dateFrom)
               : "—",
           );
           tableRow(
             "End Date",
             item.dateTo
-              ? new Date(convertToInputDate(item.dateTo)).toLocaleDateString(
-                  "en-GB",
-                )
+              ? convertToInputDate(item.dateTo)
               : "—",
           );
           tableRow("Description of Duties", item.duties);
@@ -770,17 +766,13 @@ async function generatePDF(user: any) {
           tableRow(
             "Gap From",
             item.gapFrom
-              ? new Date(convertToInputDate(item.gapFrom)).toLocaleDateString(
-                  "en-GB",
-                )
+              ? convertToInputDate(item.gapFrom)
               : "—",
           );
           tableRow(
             "Gap To",
             item.gapTo
-              ? new Date(convertToInputDate(item.gapTo)).toLocaleDateString(
-                  "en-GB",
-                )
+              ? convertToInputDate(item.gapTo)
               : "—",
           );
           tableRow("Reason", item.reason);
@@ -827,7 +819,6 @@ async function generatePDF(user: any) {
           )
         : null;
 
-      console.log("sigBase64:", sigBase64);
 
       // NAME
       doc.setFont("helvetica", "normal");
@@ -980,7 +971,7 @@ export default function UserDetailPage() {
     await generatePDF(user);
     setDownloading(false);
   };
-
+  console.log("User data:", user.experience.timeline);
   if (!user_id)
     return (
       <div className="p-6 text-red-500 font-medium">
@@ -1577,9 +1568,8 @@ export default function UserDetailPage() {
                                 label="From"
                                 value={
                                   item.dateFrom
-                                    ? new Date(
-                                        convertToInputDate(item.dateFrom),
-                                      ).toLocaleDateString()
+                                    ? 
+                                        convertToInputDate(item.dateFrom)
                                     : undefined
                                 }
                               />
@@ -1587,9 +1577,8 @@ export default function UserDetailPage() {
                                 label="To"
                                 value={
                                   item.dateTo
-                                    ? new Date(
-                                        convertToInputDate(item.dateTo),
-                                      ).toLocaleDateString()
+                                    ? 
+                                        convertToInputDate(item.dateTo)
                                     : undefined
                                 }
                               />
@@ -1606,9 +1595,8 @@ export default function UserDetailPage() {
                                 label="Gap From"
                                 value={
                                   item.gapFrom
-                                    ? new Date(
-                                        convertToInputDate(item.gapFrom),
-                                      ).toLocaleDateString()
+                                    ?
+                                        convertToInputDate(item.gapFrom)
                                     : undefined
                                 }
                               />
@@ -1616,9 +1604,8 @@ export default function UserDetailPage() {
                                 label="Gap To"
                                 value={
                                   item.gapTo
-                                    ? new Date(
-                                        convertToInputDate(item.gapTo),
-                                      ).toLocaleDateString()
+                                    ?
+                                        convertToInputDate(item.gapTo)
                                     : undefined
                                 }
                               />

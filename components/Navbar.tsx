@@ -53,7 +53,11 @@ export default function Navbar() {
               return null;
             }
             return (
-              <Link key={link.name} href={link.href} className="font-medium hover:text-white hover:bg-primary px-5 py-1.5 rounded-full transition">
+              <Link
+                key={link.name}
+                href={link.href}
+                className="font-medium hover:text-white hover:bg-primary px-5 py-1.5 rounded-full transition"
+              >
                 <div className="flex items-center ">
                   <p>{link.name}</p>
                 </div>
@@ -67,16 +71,16 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-3">
             <div className="inline-flex rounded-full border  bg-white ">
               {/* Left button: outlined/ghost */}
-              <Button
+              {/* <Button
                 variant="outline"
                 className="rounded-full px-6 py-2 border-0 shadow-none bg-white hover:bg-white"
               >
                 Post a Job
-              </Button>
+              </Button> */}
 
               {/* Right button: filled/primary */}
               <Link href={"/auth/register"}>
-                <Button className="rounded-full px-6 py-2">
+                <Button className="rounded-full px-4 py-2">
                   Register a CV
                 </Button>
               </Link>
@@ -146,15 +150,21 @@ export default function Navbar() {
             </div>
             {user.loggedIn == false && (
               <>
-                <Button
+                {/* <Button
                   variant="outline"
                   className="border-primary text-primary mt-2"
                 >
                   Recruiting? Post a Job
-                </Button>
-                <Button className="bg-primary">Register a CV</Button>
+                </Button> */}
+
+                <Link href={"/auth/register"} className="w-full">
+                  <Button className="bg-primary w-full">Register a CV</Button>
+                </Link>
                 <Link href={"/auth/login"} className="w-full">
-                  <Button variant="outline" className="bg-primary text-white w-full">
+                  <Button
+                    variant="outline"
+                    className="bg-primary text-white w-full"
+                  >
                     Sign in
                   </Button>
                 </Link>
@@ -166,4 +176,3 @@ export default function Navbar() {
     </div>
   );
 }
-

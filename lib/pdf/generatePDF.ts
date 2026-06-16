@@ -708,17 +708,13 @@ export async function generatePDFBuffer(user: any) {
           tableRow(
             "Start Date",
             item.dateFrom
-              ? new Date(convertToInputDate(item.dateFrom)).toLocaleDateString(
-                  "en-GB",
-                )
+              ? convertToInputDate(item.dateFrom)
               : "—",
           );
           tableRow(
             "End Date",
             item.dateTo
-              ? new Date(convertToInputDate(item.dateTo)).toLocaleDateString(
-                  "en-GB",
-                )
+              ? convertToInputDate(item.dateTo)
               : "—",
           );
           tableRow("Description of Duties", item.duties);
@@ -727,17 +723,13 @@ export async function generatePDFBuffer(user: any) {
           tableRow(
             "Gap From",
             item.gapFrom
-              ? new Date(convertToInputDate(item.gapFrom)).toLocaleDateString(
-                  "en-GB",
-                )
+              ? convertToInputDate(item.gapFrom)
               : "—",
           );
           tableRow(
             "Gap To",
             item.gapTo
-              ? new Date(convertToInputDate(item.gapTo)).toLocaleDateString(
-                  "en-GB",
-                )
+              ? convertToInputDate(item.gapTo)
               : "—",
           );
           tableRow("Reason", item.reason);
@@ -782,7 +774,7 @@ export async function generatePDFBuffer(user: any) {
         ? await getSignatureBase64(declaration.signature_file)
         : null;
 
-      console.log("sigBase64:", sigBase64);
+      
 
       // NAME
       doc.setFont("helvetica", "normal");

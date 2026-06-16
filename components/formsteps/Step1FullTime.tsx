@@ -193,8 +193,6 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
       form.append("roleType", roleType);
 
-      // 3. API CALL
-      console.log("form", form);
 
       const res = await submitStep1(form);
 

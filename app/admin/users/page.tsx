@@ -133,7 +133,6 @@ export default function UsersListTable() {
     });
     if (result.success) {
       setUsers(result.data);
-      console.log(result.data);
       setTotalCount(result.total);
     } else {
       toast.error(result.message ?? "Failed to load users");

@@ -7,7 +7,6 @@ import bcrypt from "bcryptjs";
 export async function POST(req: NextRequest) {
   try {
     const { email, otp, type, userId } = await req.json();
-    console.log(email, type);
 
     const [rows]: any = await pool.execute(
       "SELECT * FROM otp_verifications WHERE email = ? ",

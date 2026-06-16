@@ -188,7 +188,6 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     const res = await getDashboard();
     if (res.success) {
-      console.log("res.data", res.data);
       setData(res.data);
     } else {
       setError(res.message);
@@ -212,7 +211,6 @@ export default function AdminDashboard() {
 
   if (loading) return <FullPageLoader />;
   if (error) return <p>{error}</p>;
-  console.log(data);
   return (
     <div className="w-full min-h-screen bg-gradient-to-br  p-8">
       <div className="">

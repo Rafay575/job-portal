@@ -43,5 +43,4 @@ temp_auto_push.bat
 temp_interactive_push.bat
 
 # local database config (uncomment if you want to use local db config)
-/lib/db.ts
 /public/uploads/*
