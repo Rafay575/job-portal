@@ -750,31 +750,20 @@ async function generatePDF(user: any) {
           tableRow("Job Title", item.jobTitle);
           tableRow(
             "Start Date",
-            item.dateFrom
-              ? convertToInputDate(item.dateFrom)
-              : "—",
+            item.dateFrom ? convertToInputDate(item.dateFrom) : "—",
           );
           tableRow(
             "End Date",
-            item.dateTo
-              ? convertToInputDate(item.dateTo)
-              : "—",
+            item.dateTo ? convertToInputDate(item.dateTo) : "—",
           );
           tableRow("Description of Duties", item.duties);
         } else {
           subHeader(`Gap`);
           tableRow(
             "Gap From",
-            item.gapFrom
-              ? convertToInputDate(item.gapFrom)
-              : "—",
+            item.gapFrom ? convertToInputDate(item.gapFrom) : "—",
           );
-          tableRow(
-            "Gap To",
-            item.gapTo
-              ? convertToInputDate(item.gapTo)
-              : "—",
-          );
+          tableRow("Gap To", item.gapTo ? convertToInputDate(item.gapTo) : "—");
           tableRow("Reason", item.reason);
         }
         if (i < (experience.timeline?.length ?? 0) - 1) {
@@ -818,7 +807,6 @@ async function generatePDF(user: any) {
             process.env.NEXT_PUBLIC_API_URL + declaration.signature_file,
           )
         : null;
-
 
       // NAME
       doc.setFont("helvetica", "normal");
@@ -971,7 +959,9 @@ export default function UserDetailPage() {
     await generatePDF(user);
     setDownloading(false);
   };
-  console.log("User data:", user.experience.timeline);
+
+
+
   if (!user_id)
     return (
       <div className="p-6 text-red-500 font-medium">
@@ -1568,8 +1558,7 @@ export default function UserDetailPage() {
                                 label="From"
                                 value={
                                   item.dateFrom
-                                    ? 
-                                        convertToInputDate(item.dateFrom)
+                                    ? convertToInputDate(item.dateFrom)
                                     : undefined
                                 }
                               />
@@ -1577,8 +1566,7 @@ export default function UserDetailPage() {
                                 label="To"
                                 value={
                                   item.dateTo
-                                    ? 
-                                        convertToInputDate(item.dateTo)
+                                    ? convertToInputDate(item.dateTo)
                                     : undefined
                                 }
                               />
@@ -1595,8 +1583,7 @@ export default function UserDetailPage() {
                                 label="Gap From"
                                 value={
                                   item.gapFrom
-                                    ?
-                                        convertToInputDate(item.gapFrom)
+                                    ? convertToInputDate(item.gapFrom)
                                     : undefined
                                 }
                               />
@@ -1604,8 +1591,7 @@ export default function UserDetailPage() {
                                 label="Gap To"
                                 value={
                                   item.gapTo
-                                    ?
-                                        convertToInputDate(item.gapTo)
+                                    ? convertToInputDate(item.gapTo)
                                     : undefined
                                 }
                               />
@@ -1672,8 +1658,8 @@ export default function UserDetailPage() {
                 <Info
                   label="Signature File"
                   value={
-                    <Image
-                      src={declaration.signature_file}
+                    <img
+                      src={`${process.env.NEXT_PUBLIC_API_URL}${user.declaration.signature_file}`}
                       alt="Signature"
                       width={400}
                       height={200}

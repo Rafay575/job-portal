@@ -4,27 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { Trash2, GraduationCap, CalendarOff, GripVertical } from "lucide-react";
-
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  UniqueIdentifier,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  useSortable,
-  arrayMove,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-
+import { Trash2, GraduationCap, CalendarOff } from "lucide-react";
 import { EducationEntry } from "@/types/Form";
 import { GapEntry8 } from "@/types/Form";
 import { Step8Type } from "@/types/Form";
@@ -115,13 +95,95 @@ const emptyGap = (): GapEntry8 => ({
   gapTo: "",
   reason: "",
 });
+// ─── Gap Detection Helpers ─────────────────────────────────────────────────────
 
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+const MIN_GAP_DAYS = 365; // "at least 1 year"
+
+const addDays = (dateStr: string, days: number): string => {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split("T")[0];
+};
+
+const diffInDays = (a: string, b: string): number => {
+  return Math.round(
+    (new Date(b).getTime() - new Date(a).getTime()) / MS_PER_DAY,
+  );
+};
+
+const formatDisplayDate = (dateStr: string): string => {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+type DetectedGap8 = { gapFrom: string; gapTo: string };
+
+// Sorts educations by startDate ascending, walks consecutive pairs,
+// flags uncovered periods >= MIN_GAP_DAYS. Overlapping/touching pairs are skipped.
+const detectMissingEducationGaps = (tl: Step8Type[]): DetectedGap8[] => {
+  const educations = tl
+    .filter((e): e is EducationEntry => e.kind === "education")
+    .filter((e) => e.startDate && e.endDate)
+    .sort(
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+    );
+
+  const gaps: DetectedGap8[] = [];
+
+  for (let i = 0; i < educations.length - 1; i++) {
+    const current = educations[i];
+    const next = educations[i + 1];
+
+    const gapStart = addDays(current.endDate, 1);
+    const gapEnd = addDays(next.startDate, -1);
+
+    if (diffInDays(gapStart, gapEnd) < 0) continue; // overlap/touching → no gap
+
+    const gapLengthDays = diffInDays(gapStart, gapEnd) + 1;
+    if (gapLengthDays >= MIN_GAP_DAYS) {
+      gaps.push({ gapFrom: gapStart, gapTo: gapEnd });
+    }
+  }
+
+  return gaps;
+};
+
+const gapAlreadyExists8 = (gap: DetectedGap8, tl: Step8Type[]): boolean => {
+  return tl.some(
+    (e) =>
+      e.kind === "gap" && e.gapFrom === gap.gapFrom && e.gapTo === gap.gapTo,
+  );
+};
+
+// ─── Sort Helper ────────────────────────────────────────────────────────────────
+// Descending by start date (most recent first). Entries without a date sink to
+// the bottom; among those, higher id (added later) comes first.
+const getStartDate8 = (entry: Step8Type): string =>
+  entry.kind === "education" ? entry.startDate : entry.gapFrom;
+
+const sortTimelineDescending8 = (tl: Step8Type[]): Step8Type[] => {
+  return [...tl].sort((a, b) => {
+    const dateA = getStartDate8(a);
+    const dateB = getStartDate8(b);
+
+    if (dateA && dateB)
+      return new Date(dateB).getTime() - new Date(dateA).getTime();
+    if (dateA && !dateB) return -1;
+    if (!dateA && dateB) return 1;
+    return b.id - a.id;
+  });
+};
 // ─── Sortable Card ────────────────────────────────────────────────────────────
 
 type CardProps = {
   entry: Step8Type;
   label: string;
-  isDragOverlay?: boolean;
   onRemove: (id: number) => void;
   onUpdateEducation: (
     id: number,
@@ -135,52 +197,19 @@ type CardProps = {
   ) => void;
 };
 
-function SortableCard(props: CardProps) {
-  const {
-    entry,
-    label,
-    isDragOverlay,
-    onRemove,
-    onUpdateEducation,
-    onUpdateGap,
-  } = props;
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: entry.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
+function TimelineCard(props: CardProps) {
+  const { entry, label, onRemove, onUpdateEducation, onUpdateGap } = props;
 
   return (
     <div
-      ref={setNodeRef}
-      style={isDragOverlay ? undefined : style}
+      id={`timeline-entry-${entry.id}`}
       className={`rounded-xl border px-2 p-4 ${
         entry.kind === "gap" ? "border-primary bg-amber-50/40" : "bg-white"
-      } ${isDragOverlay ? "shadow-2xl rotate-1 scale-[1.02] opacity-95" : ""}`}
+      }`}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            {...attributes}
-            {...listeners}
-            className="cursor-grab active:cursor-grabbing touch-none p-1 rounded hover:bg-muted/60 text-muted-foreground"
-            aria-label="Drag to reorder"
-          >
-            <GripVertical className="h-4 w-4" />
-          </button>
-
           {entry.kind === "education" ? (
             <GraduationCap className="h-4 w-4 text-primary" />
           ) : (
@@ -560,12 +589,8 @@ export default function Step8({ next, back }: Props) {
   const [blur, setBlur] = useState(false);
   const user = useSelector((state: RootState) => state.user);
   const [timeline, setTimeline] = useState<Step8Type[]>([]);
-  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [initialLoad, setInitialLoad] = useState(true);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-  );
+  const [pendingGapIds, setPendingGapIds] = useState<number[]>([]);
 
   // Load data on page load
   const router = useRouter();
@@ -618,12 +643,14 @@ export default function Step8({ next, back }: Props) {
   }, []);
 
   // ── Add / Remove ────────────────────────────────────────────────────────────
-  const addEducation = () => setTimeline((prev) => [...prev, emptyEducation()]);
+  const addEducation = () => setTimeline((prev) => [emptyEducation(), ...prev]);
 
-  const addGap = () => setTimeline((prev) => [...prev, emptyGap()]);
+  const addGap = () => setTimeline((prev) => [emptyGap(), ...prev]);
 
   const removeEntry = (id: number) =>
-    setTimeline((prev) => prev.filter((e) => e.id !== id));
+    setTimeline((prev) =>
+      sortTimelineDescending8(prev.filter((e) => e.id !== id)),
+    );
 
   // ── Update ──────────────────────────────────────────────────────────────────
   const updateEducation = (
@@ -648,21 +675,6 @@ export default function Step8({ next, back }: Props) {
       ),
     );
 
-  // DnD handlers
-  const handleDragStart = (event: DragStartEvent) =>
-    setActiveId(event.active.id);
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-    if (!over || active.id === over.id) return;
-    setTimeline((prev) => {
-      const oldIndex = prev.findIndex((e) => e.id === active.id);
-      const newIndex = prev.findIndex((e) => e.id === over.id);
-      return arrayMove(prev, oldIndex, newIndex);
-    });
-  };
-
   // ── Label ───────────────────────────────────────────────────────────────────
   const getLabel = (entry: Step8Type, tl: Step8Type[]) => {
     let count = 0;
@@ -670,7 +682,8 @@ export default function Step8({ next, back }: Props) {
       if (e.kind === entry.kind) count++;
       if (e.id === entry.id) break;
     }
-    return entry.kind === "education" ? `Education #${count}` : `Gap #${count}`;
+    // return entry.kind === "education" ? `Education #${count}` : `Gap #${count}`;
+    return entry.kind === "education" ? `Education` : `Gap`;
   };
 
   // ── Validation ───────────────────────────────────────────────────────────────
@@ -727,7 +740,7 @@ export default function Step8({ next, back }: Props) {
           );
           return false;
         }
-        if(!entry.hasProfessionalRegistration){
+        if (!entry.hasProfessionalRegistration) {
           toast.error(
             `${label}: Please select whether you have a professional registration`,
           );
@@ -788,13 +801,71 @@ export default function Step8({ next, back }: Props) {
   };
   // Handle Next: validate → save → proceed
   const handleNext = async () => {
-    if (!validateStep()) return;
-    const saved = await handleSave();
-    if (saved) next();
-  };
+    // ─── Step A: Detect missing education gaps ─────────────────────────────
+    const detected = detectMissingEducationGaps(timeline);
+    const missing = detected.filter((g) => !gapAlreadyExists8(g, timeline));
 
-  const activeEntry =
-    activeId != null ? (timeline.find((e) => e.id === activeId) ?? null) : null;
+    if (missing.length > 0) {
+      const newGaps: GapEntry8[] = missing.map((g) => ({
+        kind: "gap",
+        id: nextId(),
+        gapFrom: g.gapFrom,
+        gapTo: g.gapTo,
+        reason: "",
+      }));
+
+      setTimeline((prev) => sortTimelineDescending8([...prev, ...newGaps]));
+      setPendingGapIds(newGaps.map((g) => g.id));
+
+      const lines = missing
+        .map(
+          (g, idx) =>
+            `Gap ${idx + 1}: ${formatDisplayDate(g.gapFrom)} - ${formatDisplayDate(g.gapTo)}`,
+        )
+        .join("\n");
+      toast.error(
+        `Education gaps were detected and automatically added.\n${lines}\nPlease provide a reason for each gap before continuing.`,
+        { duration: 6000 },
+      );
+
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`timeline-entry-${newGaps[0].id}`);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+
+      return; // block submission
+    }
+
+    // ─── Step B: Block if previously auto-added gaps still lack a reason ───
+    const unfinishedPending = timeline.filter(
+      (e): e is GapEntry8 =>
+        e.kind === "gap" && pendingGapIds.includes(e.id) && !e.reason?.trim(),
+    );
+    if (unfinishedPending.length > 0) {
+      toast.error(
+        "Please provide a reason for each auto-detected gap before continuing.",
+      );
+      requestAnimationFrame(() => {
+        const el = document.getElementById(
+          `timeline-entry-${unfinishedPending[0].id}`,
+        );
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      return;
+    }
+
+    // ─── Step C: existing validation + save, unchanged ─────────────────────
+    if (!validateStep()) return;
+
+    // Final descending sort right before save (matches Step9's pattern)
+    setTimeline((prev) => sortTimelineDescending8(prev));
+
+    const saved = await handleSave();
+    if (saved) {
+      setPendingGapIds([]);
+      next();
+    }
+  };
 
   // Show loading state only on initial load
   if (initialLoad && loading) {
@@ -829,9 +900,8 @@ export default function Step8({ next, back }: Props) {
               Qualifications &amp; Education (UK)
             </h2>
             <p className="text-sm text-muted-foreground">
-              Add your complete education history and any gaps from your school
-              level to university in ascending order. Drag the ⠿ handle to
-              reorder entries.
+              Add your complete education history and any gaps. Entries are
+              ordered automatically by date, most recent first.
             </p>
           </div>
 
@@ -864,43 +934,18 @@ export default function Step8({ next, back }: Props) {
               education gaps.
             </div>
           ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={timeline.map((e) => e.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-3">
-                  {timeline.map((entry) => (
-                    <SortableCard
-                      key={entry.id}
-                      entry={entry}
-                      label={getLabel(entry, timeline)}
-                      onRemove={removeEntry}
-                      onUpdateEducation={updateEducation}
-                      onUpdateGap={updateGap}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-
-              <DragOverlay>
-                {activeEntry ? (
-                  <SortableCard
-                    entry={activeEntry}
-                    label={getLabel(activeEntry, timeline)}
-                    isDragOverlay
-                    onRemove={() => {}}
-                    onUpdateEducation={() => {}}
-                    onUpdateGap={() => {}}
-                  />
-                ) : null}
-              </DragOverlay>
-            </DndContext>
+            <div className="space-y-3">
+              {timeline.map((entry) => (
+                <TimelineCard
+                  key={entry.id}
+                  entry={entry}
+                  label={getLabel(entry, timeline)}
+                  onRemove={removeEntry}
+                  onUpdateEducation={updateEducation}
+                  onUpdateGap={updateGap}
+                />
+              ))}
+            </div>
           )}
 
           <SignupNavButtons
