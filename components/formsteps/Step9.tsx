@@ -326,35 +326,112 @@ type DetectedGap = { gapFrom: string; gapTo: string };
 // Sorts experiences by dateFrom ascending, then walks consecutive pairs
 // looking for uncovered periods of at least MIN_GAP_DAYS.
 // Overlapping or touching experiences produce no gap (difference <= 0 is skipped).
-const detectMissingGaps = (timeline: TimelineEntry9[]): DetectedGap[] => {
-  const experiences = timeline
-    .filter((e): e is ExperienceEntry => e.kind === "experience")
-    .filter((e) => e.dateFrom && e.dateTo) // ignore incomplete rows
-    .sort(
-      (a, b) => new Date(a.dateFrom).getTime() - new Date(b.dateFrom).getTime(),
-    );
+// const detectMissingGaps = (timeline: TimelineEntry9[]): DetectedGap[] => {
+//   const experiences = timeline
+//     .filter((e): e is ExperienceEntry => e.kind === "experience")
+//     .filter((e) => e.dateFrom && e.dateTo) // ignore incomplete rows
+//     .sort(
+//       (a, b) => new Date(a.dateFrom).getTime() - new Date(b.dateFrom).getTime(),
+//     );
 
-  const gaps: DetectedGap[] = [];
+//   const gaps: DetectedGap[] = [];
 
-  for (let i = 0; i < experiences.length - 1; i++) {
-    const current = experiences[i];
-    const next = experiences[i + 1];
+//   for (let i = 0; i < experiences.length - 1; i++) {
+//     const current = experiences[i];
+//     const next = experiences[i + 1];
 
-    const gapStart = addDays(current.dateTo, 1);
-    const gapEnd = addDays(next.dateFrom, -1);
+//     const gapStart = addDays(current.dateTo, 1);
+//     const gapEnd = addDays(next.dateFrom, -1);
 
-    // next starts before/at current ends => overlap or touching, no gap
-    if (diffInDays(gapStart, gapEnd) < 0) continue;
+//     // next starts before/at current ends => overlap or touching, no gap
+//     if (diffInDays(gapStart, gapEnd) < 0) continue;
 
-    const gapLengthDays = diffInDays(gapStart, gapEnd) + 1; // inclusive
-    if (gapLengthDays >= MIN_GAP_DAYS) {
-      gaps.push({ gapFrom: gapStart, gapTo: gapEnd });
+//     const gapLengthDays = diffInDays(gapStart, gapEnd) + 1; // inclusive
+//     if (gapLengthDays >= MIN_GAP_DAYS) {
+//       gaps.push({ gapFrom: gapStart, gapTo: gapEnd });
+//     }
+//   }
+
+//   return gaps;
+// };
+// ─── Improved Gap Detection (covers Experience AND existing Gap cards) ───────
+
+type CoveredInterval9 = { from: string; to: string };
+
+// Merge overlapping/touching intervals into a minimal sorted set
+const mergeIntervals9 = (intervals: CoveredInterval9[]): CoveredInterval9[] => {
+  if (intervals.length === 0) return [];
+
+  const sorted = [...intervals].sort((a, b) =>
+    a.from < b.from ? -1 : a.from > b.from ? 1 : 0,
+  );
+  const merged: CoveredInterval9[] = [sorted[0]];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const last = merged[merged.length - 1];
+    const current = sorted[i];
+
+    // Touching means current.from is at most 1 day after last.to (no uncovered day between them)
+    const gapBetween = diffInDays(last.to, current.from);
+
+    if (gapBetween <= 1) {
+      // Overlapping or directly adjacent → merge
+      if (current.to > last.to) {
+        last.to = current.to;
+      }
+    } else {
+      merged.push({ from: current.from, to: current.to });
     }
   }
 
-  return gaps;
+  return merged;
 };
 
+const detectMissingExperienceGaps = (
+  timeline: TimelineEntry9[],
+): DetectedGap[] => {
+  // 1. Collect Experience intervals
+  const experienceIntervals: CoveredInterval9[] = timeline
+    .filter((e): e is ExperienceEntry => e.kind === "experience")
+    .filter((e) => e.dateFrom && e.dateTo)
+    .map((e) => ({ from: e.dateFrom, to: e.dateTo }));
+
+  // 2. Collect EXISTING Gap intervals — these are already "covered" and must
+  //    not be re-suggested or duplicated
+  const existingGapIntervals: CoveredInterval9[] = timeline
+    .filter((e): e is GapEntry9 => e.kind === "gap")
+    .filter((e) => e.gapFrom && e.gapTo)
+    .map((e) => ({ from: e.gapFrom, to: e.gapTo }));
+
+  // 3. Merge Experience + existing Gaps into one covered timeline
+  const covered = mergeIntervals9([
+    ...experienceIntervals,
+    ...existingGapIntervals,
+  ]);
+
+  if (covered.length < 2) return [];
+
+  // 4. Walk consecutive merged intervals; whatever sits between them is
+  //    genuinely uncovered and becomes a candidate new Gap
+  const newGaps: DetectedGap[] = [];
+
+  for (let i = 0; i < covered.length - 1; i++) {
+    const current = covered[i];
+    const next = covered[i + 1];
+
+    const uncoveredStart = addDays(current.to, 1);
+    const uncoveredEnd = addDays(next.from, -1);
+
+    if (diffInDays(uncoveredStart, uncoveredEnd) < 0) continue; // shouldn't happen post-merge, but safe
+
+    const uncoveredLengthDays = diffInDays(uncoveredStart, uncoveredEnd) + 1;
+    if (uncoveredLengthDays >= MIN_GAP_DAYS) {
+      newGaps.push({ gapFrom: uncoveredStart, gapTo: uncoveredEnd });
+    }
+  }
+
+  return newGaps;
+};
 // Checks if a detected gap already has a matching Gap entry in the timeline
 // (same from/to dates — exact match, since that's what defines "the same gap")
 const gapAlreadyExists = (
@@ -365,6 +442,42 @@ const gapAlreadyExists = (
     (e) =>
       e.kind === "gap" && e.gapFrom === gap.gapFrom && e.gapTo === gap.gapTo,
   );
+};
+
+// ─── Future Date Validation ───────────────────────────────────────────────────
+
+const getTodayStr = (): string => {
+  return new Date().toISOString().split("T")[0];
+};
+
+const isFutureDate = (dateStr: string): boolean => {
+  if (!dateStr) return false;
+  return dateStr > getTodayStr(); // plain ISO "yyyy-mm-dd" string comparison is safe
+};
+
+type FutureDateCheck9 = { entryId: number; field: string; label: string };
+
+const findFutureDateViolation9 = (
+  timeline: TimelineEntry9[],
+): FutureDateCheck9 | null => {
+  for (const entry of timeline) {
+    if (entry.kind === "experience") {
+      if (isFutureDate(entry.dateFrom)) {
+        return { entryId: entry.id, field: "Start Date", label: "Experience" };
+      }
+      if (isFutureDate(entry.dateTo)) {
+        return { entryId: entry.id, field: "End Date", label: "Experience" };
+      }
+    } else {
+      if (isFutureDate(entry.gapFrom)) {
+        return { entryId: entry.id, field: "Gap From", label: "Gap" };
+      }
+      if (isFutureDate(entry.gapTo)) {
+        return { entryId: entry.id, field: "Gap To", label: "Gap" };
+      }
+    }
+  }
+  return null;
 };
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -401,43 +514,116 @@ export default function Step9({ next, back }: Props) {
   // Sort only when adding or removing — NOT while the user is typing
 
   const addExperience = () => {
+    const newExperience = emptyExperience();
+
     setData((prev) => ({
       ...prev,
-      timeline: sortTimelineDescending([...prev.timeline, emptyExperience()]),
+      timeline: sortTimelineDescending([...prev.timeline, newExperience]),
     }));
+
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`timeline-entry-${newExperience.id}`);
+
+      el?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    });
   };
 
   const addGap = () => {
-    setData((prev) => ({
-      ...prev,
-      timeline: sortTimelineDescending([...prev.timeline, emptyGap()]),
-    }));
-  };
+    const newGap = emptyGap();
 
-  const removeEntry = (id: number) => {
     setData((prev) => ({
       ...prev,
-      timeline: sortTimelineDescending(
-        prev.timeline.filter((e) => e.id !== id),
-      ),
+      timeline: sortTimelineDescending([...prev.timeline, newGap]),
     }));
+
+    setTimeout(() => {
+      document.getElementById(`timeline-entry-${newGap.id}`)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 100);
+  };
+  const removeEntry = (id: number) => {
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm">Are you sure you want to remove this entry?</p>
+
+        <div className="flex justify-end gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            No
+          </Button>
+
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => {
+              setData((prev) => ({
+                ...prev,
+                timeline: sortTimelineDescending(
+                  prev.timeline.filter((e) => e.id !== id),
+                ),
+              }));
+
+              toast.dismiss(t.id);
+              toast.success("Entry removed");
+            }}
+          >
+            Yes
+          </Button>
+        </div>
+      </div>
+    ));
   };
 
   // ─── Update Handlers ────────────────────────────────────────────────────────
   // Do NOT re-sort here — cards jumping while the user types is bad UX.
   // The definitive sort happens just before saving in handleNext.
 
+  // Date keys that should trigger a live re-sort + scroll. Text fields (name,
+  // title, duties, reason) must NOT trigger this — typing would cause jumpy UX.
+  const DATE_KEYS_EXPERIENCE = new Set(["dateFrom", "dateTo"]);
+  const DATE_KEYS_GAP = new Set(["gapFrom", "gapTo"]);
+
+  // Re-scrolls the given entry back into view after a re-sort has potentially
+  // moved its position in the list. Runs after the DOM has repainted.
+  const scrollEntryIntoView9 = (id: number) => {
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`timeline-entry-${id}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  };
+
   const updateExperience = (
     id: number,
     key: keyof Omit<ExperienceEntry, "kind" | "id">,
     value: string,
   ) => {
-    setData((prev) => ({
-      ...prev,
-      timeline: prev.timeline.map((e) =>
+    const isDateField = DATE_KEYS_EXPERIENCE.has(key as string);
+
+    setData((prev) => {
+      const updatedTimeline = prev.timeline.map((e) =>
         e.id === id && e.kind === "experience" ? { ...e, [key]: value } : e,
-      ),
-    }));
+      );
+
+      return {
+        ...prev,
+        timeline: isDateField
+          ? sortTimelineDescending(updatedTimeline)
+          : updatedTimeline,
+      };
+    });
+
+    // Only re-scroll when a date change could have moved this card's position
+    if (isDateField) {
+      scrollEntryIntoView9(id);
+    }
   };
 
   const updateGap = (
@@ -445,14 +631,25 @@ export default function Step9({ next, back }: Props) {
     key: keyof Omit<GapEntry9, "kind" | "id">,
     value: string,
   ) => {
-    setData((prev) => ({
-      ...prev,
-      timeline: prev.timeline.map((e) =>
-        e.id === id && e.kind === "gap" ? { ...e, [key]: value } : e,
-      ),
-    }));
-  };
+    const isDateField = DATE_KEYS_GAP.has(key as string);
 
+    setData((prev) => {
+      const updatedTimeline = prev.timeline.map((e) =>
+        e.id === id && e.kind === "gap" ? { ...e, [key]: value } : e,
+      );
+
+      return {
+        ...prev,
+        timeline: isDateField
+          ? sortTimelineDescending(updatedTimeline)
+          : updatedTimeline,
+      };
+    });
+
+    if (isDateField) {
+      scrollEntryIntoView9(id);
+    }
+  };
   // ─── Label ──────────────────────────────────────────────────────────────────
 
   const getLabel = (entry: TimelineEntry9, timeline: TimelineEntry9[]) => {
@@ -462,7 +659,7 @@ export default function Step9({ next, back }: Props) {
       if (e.id === entry.id) break;
     }
     // return entry.kind === "experience" ? `Experience #${count}`: `Gap #${count}`;
-    return entry.kind === "experience" ? `Experience`: `Gap`;
+    return entry.kind === "experience" ? `Experience` : `Gap`;
   };
 
   // ─── Validation ─────────────────────────────────────────────────────────────
@@ -494,8 +691,35 @@ export default function Step9({ next, back }: Props) {
           toast.error(`Please complete all fields in ${label}`);
           return false;
         }
+        if (dateFrom === dateTo) {
+          toast.error(
+            `${label}: Date From and Date To cannot be the same date`,
+          );
+
+          requestAnimationFrame(() => {
+            document
+              .getElementById(`timeline-entry-${entry.id}`)
+              ?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+          });
+
+          return false;
+        }
+
         if (new Date(dateFrom) > new Date(dateTo)) {
           toast.error(`${label}: "Date From" cannot be after "Date To"`);
+
+          requestAnimationFrame(() => {
+            document
+              .getElementById(`timeline-entry-${entry.id}`)
+              ?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+          });
+
           return false;
         }
       }
@@ -507,8 +731,33 @@ export default function Step9({ next, back }: Props) {
           toast.error(`Please complete all fields in ${label}`);
           return false;
         }
+        if (gapFrom === gapTo) {
+          toast.error(`${label}: Gap From and Gap To cannot be the same date`);
+
+          requestAnimationFrame(() => {
+            document
+              .getElementById(`timeline-entry-${entry.id}`)
+              ?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+          });
+
+          return false;
+        }
+
         if (new Date(gapFrom) > new Date(gapTo)) {
           toast.error(`${label}: "Gap From" cannot be after "Gap To"`);
+
+          requestAnimationFrame(() => {
+            document
+              .getElementById(`timeline-entry-${entry.id}`)
+              ?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+          });
+
           return false;
         }
       }
@@ -560,8 +809,117 @@ export default function Step9({ next, back }: Props) {
       return;
     }
 
+    // ─── Step 0: Future date validation (NEW — runs first) ─────────────────
+    const futureViolation = findFutureDateViolation9(data.timeline);
+    if (futureViolation) {
+      toast.error(
+        `${futureViolation.label} contains a future ${futureViolation.field}. Dates must be today or in the past.`,
+      );
+      requestAnimationFrame(() => {
+        const el = document.getElementById(
+          `timeline-entry-${futureViolation.entryId}`,
+        );
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      return;
+    }
+
+    // ─── Overlap Validation ───────────────────────────────────────────────────────
+
+    type DateRange9 = {
+      entryId: number;
+      kind: "experience" | "gap";
+      label: string;
+      from: string;
+      to: string;
+    };
+
+    const getRanges9 = (timeline: TimelineEntry9[]): DateRange9[] => {
+      const ranges: DateRange9[] = [];
+
+      for (const e of timeline) {
+        if (e.kind === "experience" && e.dateFrom && e.dateTo) {
+          ranges.push({
+            entryId: e.id,
+            kind: "experience",
+            label: "Experience",
+            from: e.dateFrom,
+            to: e.dateTo,
+          });
+        } else if (e.kind === "gap" && e.gapFrom && e.gapTo) {
+          ranges.push({
+            entryId: e.id,
+            kind: "gap",
+            label: "Gap",
+            from: e.gapFrom,
+            to: e.gapTo,
+          });
+        }
+      }
+
+      return ranges;
+    };
+
+    // Two inclusive ranges overlap if (startA <= endB) && (startB <= endA)
+    const rangesOverlap9 = (a: DateRange9, b: DateRange9): boolean => {
+      return a.from <= b.to && b.from <= a.to;
+    };
+
+    type OverlapViolation9 = {
+      first: DateRange9;
+      second: DateRange9;
+    };
+
+    const findOverlapViolation9 = (
+      timeline: TimelineEntry9[],
+    ): OverlapViolation9 | null => {
+      const ranges = getRanges9(timeline).sort((a, b) =>
+        a.from < b.from ? -1 : a.from > b.from ? 1 : 0,
+      );
+
+      for (let i = 0; i < ranges.length; i++) {
+        for (let j = i + 1; j < ranges.length; j++) {
+          if (rangesOverlap9(ranges[i], ranges[j])) {
+            return { first: ranges[i], second: ranges[j] };
+          }
+        }
+      }
+
+      return null;
+    };
+
+    const buildOverlapMessage9 = (v: OverlapViolation9): string => {
+      const { first, second } = v;
+
+      if (
+        (first.kind === "gap" && second.kind === "experience") ||
+        (first.kind === "experience" && second.kind === "gap")
+      ) {
+        return `Gap period overlaps with Experience period. Please adjust the dates so they do not overlap.`;
+      }
+      if (first.kind === "experience" && second.kind === "experience") {
+        return `Two Experience periods overlap. Please adjust the dates so they do not overlap.`;
+      }
+      return `Two Gap periods overlap. Please adjust the dates so they do not overlap.`;
+    };
+
+    // ─── Step 0.5: Overlap validation (NEW) ─────────────────────────────────
+    const overlapViolation = findOverlapViolation9(data.timeline);
+    if (overlapViolation) {
+      toast.error(buildOverlapMessage9(overlapViolation));
+      requestAnimationFrame(() => {
+        const targetId =
+          overlapViolation.second.from >= overlapViolation.first.from
+            ? overlapViolation.second.entryId
+            : overlapViolation.first.entryId;
+        const el = document.getElementById(`timeline-entry-${targetId}`);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      return;
+    }
+
     // ─── Step A: Detect missing gaps ────────────────────────────────────────
-    const detected = detectMissingGaps(data.timeline);
+    const detected = detectMissingExperienceGaps(data.timeline);
     const missing = detected.filter((g) => !gapAlreadyExists(g, data.timeline));
 
     if (missing.length > 0) {

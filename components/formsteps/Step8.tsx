@@ -98,7 +98,7 @@ const emptyGap = (): GapEntry8 => ({
 // ─── Gap Detection Helpers ─────────────────────────────────────────────────────
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
-const MIN_GAP_DAYS = 365; // "at least 1 year"
+const MIN_GAP_DAYS = 30;
 
 const addDays = (dateStr: string, days: number): string => {
   const d = new Date(dateStr);
@@ -125,33 +125,109 @@ type DetectedGap8 = { gapFrom: string; gapTo: string };
 
 // Sorts educations by startDate ascending, walks consecutive pairs,
 // flags uncovered periods >= MIN_GAP_DAYS. Overlapping/touching pairs are skipped.
-const detectMissingEducationGaps = (tl: Step8Type[]): DetectedGap8[] => {
-  const educations = tl
-    .filter((e): e is EducationEntry => e.kind === "education")
-    .filter((e) => e.startDate && e.endDate)
-    .sort(
-      (a, b) =>
-        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-    );
+// const detectMissingEducationGaps = (tl: Step8Type[]): DetectedGap8[] => {
+//   const educations = tl
+//     .filter((e): e is EducationEntry => e.kind === "education")
+//     .filter((e) => e.startDate && e.endDate)
+//     .sort(
+//       (a, b) =>
+//         new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+//     );
 
-  const gaps: DetectedGap8[] = [];
+//   const gaps: DetectedGap8[] = [];
 
-  for (let i = 0; i < educations.length - 1; i++) {
-    const current = educations[i];
-    const next = educations[i + 1];
+//   for (let i = 0; i < educations.length - 1; i++) {
+//     const current = educations[i];
+//     const next = educations[i + 1];
 
-    const gapStart = addDays(current.endDate, 1);
-    const gapEnd = addDays(next.startDate, -1);
+//     const gapStart = addDays(current.endDate, 1);
+//     const gapEnd = addDays(next.startDate, -1);
 
-    if (diffInDays(gapStart, gapEnd) < 0) continue; // overlap/touching → no gap
+//     if (diffInDays(gapStart, gapEnd) < 0) continue; // overlap/touching → no gap
 
-    const gapLengthDays = diffInDays(gapStart, gapEnd) + 1;
-    if (gapLengthDays >= MIN_GAP_DAYS) {
-      gaps.push({ gapFrom: gapStart, gapTo: gapEnd });
+//     const gapLengthDays = diffInDays(gapStart, gapEnd) + 1;
+//     if (gapLengthDays >= MIN_GAP_DAYS) {
+//       gaps.push({ gapFrom: gapStart, gapTo: gapEnd });
+//     }
+//   }
+
+//   return gaps;
+// };
+// ─── Improved Gap Detection (covers Education AND existing Gap cards) ────────
+
+type CoveredInterval8 = { from: string; to: string };
+
+// Merge overlapping/touching intervals into a minimal sorted set
+const mergeIntervals8 = (intervals: CoveredInterval8[]): CoveredInterval8[] => {
+  if (intervals.length === 0) return [];
+
+  const sorted = [...intervals].sort((a, b) =>
+    a.from < b.from ? -1 : a.from > b.from ? 1 : 0,
+  );
+  const merged: CoveredInterval8[] = [sorted[0]];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const last = merged[merged.length - 1];
+    const current = sorted[i];
+
+    // Touching means current.from is at most 1 day after last.to (no uncovered day between them)
+    const gapBetween = diffInDays(last.to, current.from);
+
+    if (gapBetween <= 1) {
+      // Overlapping or directly adjacent → merge
+      if (current.to > last.to) {
+        last.to = current.to;
+      }
+    } else {
+      merged.push({ from: current.from, to: current.to });
     }
   }
 
-  return gaps;
+  return merged;
+};
+
+const detectMissingEducationGaps = (tl: Step8Type[]): DetectedGap8[] => {
+  // 1. Collect Education intervals
+  const educationIntervals: CoveredInterval8[] = tl
+    .filter((e): e is EducationEntry => e.kind === "education")
+    .filter((e) => e.startDate && e.endDate)
+    .map((e) => ({ from: e.startDate, to: e.endDate }));
+
+  // 2. Collect EXISTING Gap intervals — these are already "covered" and must
+  //    not be re-suggested or duplicated
+  const existingGapIntervals: CoveredInterval8[] = tl
+    .filter((e): e is GapEntry8 => e.kind === "gap")
+    .filter((e) => e.gapFrom && e.gapTo)
+    .map((e) => ({ from: e.gapFrom, to: e.gapTo }));
+
+  // 3. Merge Education + existing Gaps into one covered timeline
+  const covered = mergeIntervals8([
+    ...educationIntervals,
+    ...existingGapIntervals,
+  ]);
+
+  if (covered.length < 2) return [];
+
+  // 4. Walk consecutive merged intervals; whatever sits between them is
+  //    genuinely uncovered and becomes a candidate new Gap
+  const newGaps: DetectedGap8[] = [];
+
+  for (let i = 0; i < covered.length - 1; i++) {
+    const current = covered[i];
+    const next = covered[i + 1];
+
+    const uncoveredStart = addDays(current.to, 1);
+    const uncoveredEnd = addDays(next.from, -1);
+
+    if (diffInDays(uncoveredStart, uncoveredEnd) < 0) continue; // shouldn't happen post-merge, but safe
+
+    const uncoveredLengthDays = diffInDays(uncoveredStart, uncoveredEnd) + 1;
+    if (uncoveredLengthDays >= MIN_GAP_DAYS) {
+      newGaps.push({ gapFrom: uncoveredStart, gapTo: uncoveredEnd });
+    }
+  }
+
+  return newGaps;
 };
 
 const gapAlreadyExists8 = (gap: DetectedGap8, tl: Step8Type[]): boolean => {
@@ -178,6 +254,64 @@ const sortTimelineDescending8 = (tl: Step8Type[]): Step8Type[] => {
     if (!dateA && dateB) return 1;
     return b.id - a.id;
   });
+};
+// ─── Future Date Validation ───────────────────────────────────────────────────
+
+const getTodayStr = (): string => {
+  return new Date().toISOString().split("T")[0];
+};
+
+const isFutureDate = (dateStr: string): boolean => {
+  if (!dateStr) return false;
+  return dateStr > getTodayStr(); // safe as plain ISO "yyyy-mm-dd" string comparison
+};
+
+type FutureDateCheck = {
+  entryId: number;
+  kind: "education" | "gap";
+  field: string;
+  label: string;
+};
+
+const findFutureDateViolation = (tl: Step8Type[]): FutureDateCheck | null => {
+  for (const entry of tl) {
+    if (entry.kind === "education") {
+      if (isFutureDate(entry.startDate)) {
+        return {
+          entryId: entry.id,
+          kind: "education",
+          field: "Start Date",
+          label: "Education",
+        };
+      }
+      if (isFutureDate(entry.endDate)) {
+        return {
+          entryId: entry.id,
+          kind: "education",
+          field: "End Date",
+          label: "Education",
+        };
+      }
+    } else {
+      if (isFutureDate(entry.gapFrom)) {
+        return {
+          entryId: entry.id,
+          kind: "gap",
+          field: "Gap From",
+          label: "Gap",
+        };
+      }
+      if (isFutureDate(entry.gapTo)) {
+        return {
+          entryId: entry.id,
+          kind: "gap",
+          field: "Gap To",
+          label: "Gap",
+        };
+      }
+    }
+  }
+  return null;
 };
 // ─── Sortable Card ────────────────────────────────────────────────────────────
 
@@ -643,38 +777,127 @@ export default function Step8({ next, back }: Props) {
   }, []);
 
   // ── Add / Remove ────────────────────────────────────────────────────────────
-  const addEducation = () => setTimeline((prev) => [emptyEducation(), ...prev]);
+  // const addEducation = () => setTimeline((prev) => [emptyEducation(), ...prev]);
+  const addEducation = () => {
+    const newEducation = emptyEducation();
 
-  const addGap = () => setTimeline((prev) => [emptyGap(), ...prev]);
+    setTimeline((prev) => sortTimelineDescending8([...prev, newEducation]));
 
-  const removeEntry = (id: number) =>
-    setTimeline((prev) =>
-      sortTimelineDescending8(prev.filter((e) => e.id !== id)),
-    );
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`timeline-entry-${newEducation.id}`);
+
+      el?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    });
+  };
+
+  // const addGap = () => setTimeline((prev) => [emptyGap(), ...prev]);
+  const addGap = () => {
+    const newGap = emptyGap();
+
+    setTimeline((prev) => sortTimelineDescending8([...prev, newGap]));
+
+    setTimeout(() => {
+      document.getElementById(`timeline-entry-${newGap.id}`)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 100);
+  };
+
+  const removeEntry = (id: number) => {
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p>Are you sure you want to remove this entry?</p>
+
+        <div className="flex gap-2 justify-end">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            No
+          </Button>
+
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => {
+              setTimeline((prev) =>
+                sortTimelineDescending8(prev.filter((e) => e.id !== id)),
+              );
+
+              toast.dismiss(t.id);
+              toast.success("Entry removed");
+            }}
+          >
+            Yes
+          </Button>
+        </div>
+      </div>
+    ));
+  };
 
   // ── Update ──────────────────────────────────────────────────────────────────
+
+  // Only these fields should trigger a live re-sort + scroll. Text fields
+  // (institution name, notes, grade, etc.) must NOT trigger this — re-sorting
+  // while the user is mid-keystroke in a text field yanks the card away from
+  // under their cursor.
+  const DATE_KEYS_EDUCATION = new Set(["startDate", "endDate"]);
+  const DATE_KEYS_GAP = new Set(["gapFrom", "gapTo"]);
+
+  // Scrolls the given entry back into view after a re-sort may have moved its
+  // position. Runs after React has committed the re-sorted DOM.
+  const scrollEntryIntoView8 = (id: number) => {
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`timeline-entry-${id}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  };
+
   const updateEducation = (
     id: number,
     key: keyof Omit<EducationEntry, "kind" | "id">,
     value: any,
-  ) =>
-    setTimeline((prev) =>
-      prev.map((e) =>
+  ) => {
+    const isDateField = DATE_KEYS_EDUCATION.has(key as string);
+
+    setTimeline((prev) => {
+      const updated = prev.map((e) =>
         e.id === id && e.kind === "education" ? { ...e, [key]: value } : e,
-      ),
-    );
+      );
+
+      return isDateField ? sortTimelineDescending8(updated) : updated;
+    });
+
+    // Only re-scroll when a date change could have moved this card's position
+    if (isDateField) {
+      scrollEntryIntoView8(id);
+    }
+  };
 
   const updateGap = (
     id: number,
     key: keyof Omit<GapEntry8, "kind" | "id">,
     value: string,
-  ) =>
-    setTimeline((prev) =>
-      prev.map((e) =>
-        e.id === id && e.kind === "gap" ? { ...e, [key]: value } : e,
-      ),
-    );
+  ) => {
+    const isDateField = DATE_KEYS_GAP.has(key as string);
 
+    setTimeline((prev) => {
+      const updated = prev.map((e) =>
+        e.id === id && e.kind === "gap" ? { ...e, [key]: value } : e,
+      );
+
+      return isDateField ? sortTimelineDescending8(updated) : updated;
+    });
+
+    if (isDateField) {
+      scrollEntryIntoView8(id);
+    }
+  };
   // ── Label ───────────────────────────────────────────────────────────────────
   const getLabel = (entry: Step8Type, tl: Step8Type[]) => {
     let count = 0;
@@ -730,8 +953,35 @@ export default function Step8({ next, back }: Props) {
           return false;
         }
 
+        if (startDate === endDate) {
+          toast.error(
+            `${label}: Start Date and End Date cannot be the same date`,
+          );
+
+          requestAnimationFrame(() => {
+            document
+              .getElementById(`timeline-entry-${entry.id}`)
+              ?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+          });
+
+          return false;
+        }
+
         if (new Date(startDate) > new Date(endDate)) {
           toast.error(`${label}: Start Date cannot be after End Date`);
+
+          requestAnimationFrame(() => {
+            document
+              .getElementById(`timeline-entry-${entry.id}`)
+              ?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+          });
+
           return false;
         }
         if (!entry.completed) {
@@ -768,8 +1018,33 @@ export default function Step8({ next, back }: Props) {
           toast.error(`Please complete all fields in ${label}`);
           return false;
         }
+        if (gapFrom === gapTo) {
+          toast.error(`${label}: Gap From and Gap To cannot be the same date`);
+
+          requestAnimationFrame(() => {
+            document
+              .getElementById(`timeline-entry-${entry.id}`)
+              ?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+          });
+
+          return false;
+        }
+
         if (new Date(gapFrom) > new Date(gapTo)) {
-          toast.error(`${label}: "Gap From" cannot be after "Gap To"`);
+          toast.error(`${label}: Gap From cannot be after Gap To`);
+
+          requestAnimationFrame(() => {
+            document
+              .getElementById(`timeline-entry-${entry.id}`)
+              ?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+          });
+
           return false;
         }
       }
@@ -801,6 +1076,120 @@ export default function Step8({ next, back }: Props) {
   };
   // Handle Next: validate → save → proceed
   const handleNext = async () => {
+    // ─── Step 0: Future date validation (NEW — runs first) ─────────────────
+    const futureViolation = findFutureDateViolation(timeline);
+    if (futureViolation) {
+      toast.error(
+        `${futureViolation.label} contains a future ${futureViolation.field}. Dates must be today or in the past.`,
+      );
+      requestAnimationFrame(() => {
+        const el = document.getElementById(
+          `timeline-entry-${futureViolation.entryId}`,
+        );
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      return;
+    }
+
+    // ─── Overlap Validation ───────────────────────────────────────────────────────
+
+    type DateRange8 = {
+      entryId: number;
+      kind: "education" | "gap";
+      label: string;
+      from: string;
+      to: string;
+    };
+
+    const getRanges8 = (tl: Step8Type[]): DateRange8[] => {
+      const ranges: DateRange8[] = [];
+
+      for (const e of tl) {
+        if (e.kind === "education" && e.startDate && e.endDate) {
+          ranges.push({
+            entryId: e.id,
+            kind: "education",
+            label: "Education",
+            from: e.startDate,
+            to: e.endDate,
+          });
+        } else if (e.kind === "gap" && e.gapFrom && e.gapTo) {
+          ranges.push({
+            entryId: e.id,
+            kind: "gap",
+            label: "Gap",
+            from: e.gapFrom,
+            to: e.gapTo,
+          });
+        }
+      }
+
+      return ranges;
+    };
+
+    // Two inclusive ranges overlap if (startA <= endB) && (startB <= endA)
+    const rangesOverlap8 = (a: DateRange8, b: DateRange8): boolean => {
+      return a.from <= b.to && b.from <= a.to;
+    };
+
+    type OverlapViolation8 = {
+      first: DateRange8;
+      second: DateRange8;
+    };
+
+    const findOverlapViolation = (
+      tl: Step8Type[],
+    ): OverlapViolation8 | null => {
+      const ranges = getRanges8(tl).sort((a, b) =>
+        a.from < b.from ? -1 : a.from > b.from ? 1 : 0,
+      );
+
+      for (let i = 0; i < ranges.length; i++) {
+        for (let j = i + 1; j < ranges.length; j++) {
+          if (rangesOverlap8(ranges[i], ranges[j])) {
+            return { first: ranges[i], second: ranges[j] };
+          }
+        }
+      }
+
+      return null;
+    };
+
+    const buildOverlapMessage8 = (v: OverlapViolation8): string => {
+      const { first, second } = v;
+
+      // Gap vs Education
+      if (
+        (first.kind === "gap" && second.kind === "education") ||
+        (first.kind === "education" && second.kind === "gap")
+      ) {
+        return `A Gap period overlaps with an Education period. Please adjust the dates so they do not overlap.`;
+      }
+
+      // Education vs Education
+      if (first.kind === "education" && second.kind === "education") {
+        return `Two Education periods overlap. Please adjust the dates so they do not overlap.`;
+      }
+
+      // Gap vs Gap
+      return `Two Gap periods overlap. Please adjust the dates so they do not overlap.`;
+    };
+    // ─── Step 0.5: Overlap validation (NEW) ─────────────────────────────────
+    const overlapViolation = findOverlapViolation(timeline);
+    if (overlapViolation) {
+      toast.error(buildOverlapMessage8(overlapViolation));
+      requestAnimationFrame(() => {
+        // Scroll to the later-starting entry — that's typically the one the user needs to fix
+        const targetId =
+          overlapViolation.second.from >= overlapViolation.first.from
+            ? overlapViolation.second.entryId
+            : overlapViolation.first.entryId;
+        const el = document.getElementById(`timeline-entry-${targetId}`);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      return;
+    }
+
     // ─── Step A: Detect missing education gaps ─────────────────────────────
     const detected = detectMissingEducationGaps(timeline);
     const missing = detected.filter((g) => !gapAlreadyExists8(g, timeline));

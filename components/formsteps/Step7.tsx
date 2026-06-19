@@ -121,9 +121,39 @@ export default function Step7({ next, back }: any) {
   };
   // ================= REMOVE =================
   const removeTraining = (index: number) => {
-    setTrainings(trainings.filter((_, i) => i !== index));
-  };
+  toast((t) => (
+    <div className="flex flex-col gap-3">
+      <p className="text-sm">
+        Are you sure you want to remove this training?
+      </p>
 
+      <div className="flex justify-end gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => toast.dismiss(t.id)}
+        >
+          No
+        </Button>
+
+        <Button
+          size="sm"
+          variant="destructive"
+          onClick={() => {
+            setTrainings((prev) =>
+              prev.filter((_, i) => i !== index)
+            );
+
+            toast.dismiss(t.id);
+            toast.success("Training removed");
+          }}
+        >
+          Yes
+        </Button>
+      </div>
+    </div>
+  ));
+};
   // ================= VALIDATION =================
   const validateStep = () => {
     for (let i = 0; i < trainings.length; i++) {
