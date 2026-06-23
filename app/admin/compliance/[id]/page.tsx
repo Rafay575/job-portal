@@ -28,6 +28,8 @@ import { Trash2 } from "lucide-react";
 import { FiCheck } from "react-icons/fi";
 import { RxCross1 } from "react-icons/rx";
 import Image from "next/image";
+import { CiEdit } from "react-icons/ci";
+import Link from "next/link";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -960,8 +962,6 @@ export default function UserDetailPage() {
     setDownloading(false);
   };
 
-
-
   if (!user_id)
     return (
       <div className="p-6 text-red-500 font-medium">
@@ -1849,6 +1849,12 @@ const ActionsButtons = ({
             Reject User
           </Button>
         )}
+        <Link href={`/admin/compliance/${id}/edit`}>
+          <Button className=" text-white ">
+            <CiEdit className="w-4 h-4  text-white" />
+            Edit User
+          </Button>
+        </Link>
         <Button
           onClick={handleDelete}
           variant="destructive"

@@ -7,6 +7,66 @@ import {
 } from "@/lib/mailer";
 import { writeFile, unlink } from "fs/promises";
 
+// Get name and email of user 
+export async function PUT(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("userId");
+
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "userId is required",
+        },
+        { status: 400 }
+      );
+    }
+
+    const [rows]: any = await pool.execute(
+      `
+      SELECT
+        id,
+        name,
+        email
+      FROM users
+      WHERE id = ?
+      `,
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "User not found",
+          data: null,
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        id: rows[0].id,
+        name: rows[0].name,
+        email: rows[0].email,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Internal server error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
 // Get Step1
 export async function GET(req: NextRequest) {
   try {
@@ -22,28 +82,31 @@ export async function GET(req: NextRequest) {
 
     const [rows]: any = await pool.execute(
       `
-      SELECT 
-        id,
-        user_id,
-        type,
-        full_name,
-        email,
-        phone,
-        address,
-        postcode,
-        nationality,
-        immigration_status,
-        DATE_FORMAT(immigration_expiry, '%Y-%m-%d') AS immigration_expiry,
-        work_permit,
-        name_changed,
-        previous_name,
-        changed_to,
-        cv_file_path,
-        created_at,
-        updated_at
-      FROM employee_basic_information 
-      WHERE user_id = ?
-      `,
+  SELECT 
+    e.id,
+    e.user_id,
+    e.type,
+    e.full_name,
+    e.email,
+    e.phone,
+    e.address,
+    e.postcode,
+    e.nationality,
+    e.immigration_status,
+    DATE_FORMAT(e.immigration_expiry, '%Y-%m-%d') AS immigration_expiry,
+    e.work_permit,
+    e.name_changed,
+    e.previous_name,
+    e.changed_to,
+    e.cv_file_path,
+    e.created_at,
+    e.updated_at,
+    u.name AS main_name,
+    u.email AS main_email
+  FROM employee_basic_information e
+  INNER JOIN users u ON u.id = e.user_id
+  WHERE e.user_id = ?
+  `,
       [userId],
     );
 
@@ -79,20 +142,20 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
 
     const userId = Number(formData.get("userId"));
-
-    // Geting user original email for send emails
-    const [rows]: any = await pool.execute(
-      `SELECT email FROM users WHERE id = ?`,
-      [userId],
-    );
-    const userEmail = rows.length > 0 ? rows[0].email : null;
-
     if (!userId) {
       return NextResponse.json(
         { success: false, message: "User Id is missing" },
         { status: 400 },
       );
     }
+
+    // Geting user original email for send emails
+    const [rows]: any = await pool.execute(
+      `SELECT email FROM users WHERE id = ?`,
+      [userId],
+    );
+    // const userEmail = rows.length > 0 ? rows[0].email : null;
+
     const type = formData.get("type") as string;
     const fullName = formData.get("fullName") as string;
     const email = formData.get("email") as string;
@@ -127,8 +190,6 @@ export async function POST(req: NextRequest) {
         process.env.IS_LOCAL === "true"
           ? path.join(process.cwd(), "public/uploads")
           : "/var/www/uploads";
-
-          
 
       console.log("uploadDir: ", uploadDir);
 
@@ -179,8 +240,8 @@ export async function POST(req: NextRequest) {
         [id],
       );
 
-      const currentType = currentRows?.[0]?.type;
-      const typeChanged = currentType !== type;
+    //   const currentType = currentRows?.[0]?.type;
+    //   const typeChanged = currentType !== type;
       await pool.execute(
         `
         UPDATE employee_basic_information SET
@@ -220,42 +281,42 @@ export async function POST(req: NextRequest) {
         ],
       );
 
-      if (typeChanged) {
-        await pool.execute(
-          `UPDATE users SET is_approved = 'pending' WHERE id = ?`,
-          [userId],
-        );
-      }
+    //   if (typeChanged) {
+    //     await pool.execute(
+    //       `UPDATE users SET is_approved = 'pending' WHERE id = ?`,
+    //       [userId],
+    //     );
+    //   }
 
-      if (
-        typeChanged &&
-        (type === "agency-work" || type === "both") &&
-        email &&
-        fullName
-      ) {
-        try {
-          console.log("sending email of pending");
-          await sendApprovalPendingEmail(fullName, userEmail, type);
-        } catch (error) {
-          console.error("Failed to send Form approval pending email");
-          return NextResponse.json(
-            { message: "Failed to send Form approval pending email" },
-            { status: 500 },
-          );
-        }
-      }
+    //   if (
+    //     typeChanged &&
+    //     (type === "agency-work" || type === "both") &&
+    //     email &&
+    //     fullName
+    //   ) {
+    //     try {
+    //       console.log("sending email of pending");
+    //       await sendApprovalPendingEmail(fullName, userEmail, type);
+    //     } catch (error) {
+    //       console.error("Failed to send Form approval pending email");
+    //       return NextResponse.json(
+    //         { message: "Failed to send Form approval pending email" },
+    //         { status: 500 },
+    //       );
+    //     }
+    //   }
 
-      if (typeChanged && type === "permanent" && email && fullName && userId) {
-        try {
-          await sendFormSubmissionEmail(userId, userEmail, fullName, type);
-        } catch (error) {
-          console.error("Failed to send Form submission email");
-          return NextResponse.json(
-            { message: "Failed to send Form submission email" },
-            { status: 500 },
-          );
-        }
-      }
+    //   if (typeChanged && type === "permanent" && email && fullName && userId) {
+    //     try {
+    //       await sendFormSubmissionEmail(userId, userEmail, fullName, type);
+    //     } catch (error) {
+    //       console.error("Failed to send Form submission email");
+    //       return NextResponse.json(
+    //         { message: "Failed to send Form submission email" },
+    //         { status: 500 },
+    //       );
+    //     }
+    //   }
       if (type === "permanent") {
         return NextResponse.json({
           success: true,
@@ -313,31 +374,31 @@ export async function POST(req: NextRequest) {
       ],
     );
 
-    if (!email || !fullName) {
-      console.log("no email or name found in email block");
-    } else {
-      if (type === "permanent") {
-        try {
-          await sendFormSubmissionEmail(userId, userEmail, fullName, type);
-        } catch (error) {
-          console.error("Failed to send Form submission email");
-          return NextResponse.json(
-            { message: "Failed to send Form submission email" },
-            { status: 500 },
-          );
-        }
-      } else {
-        try {
-          await sendApprovalPendingEmail(fullName, userEmail, type);
-        } catch (error) {
-          console.error("Failed to send Form approval pending email");
-          return NextResponse.json(
-            { message: "Failed to send Form approval pending email" },
-            { status: 500 },
-          );
-        }
-      }
-    }
+    // if (!email || !fullName) {
+    //   console.log("no email or name found in email block");
+    // } else {
+    //   if (type === "permanent") {
+    //     try {
+    //       await sendFormSubmissionEmail(userId, userEmail, fullName, type);
+    //     } catch (error) {
+    //       console.error("Failed to send Form submission email");
+    //       return NextResponse.json(
+    //         { message: "Failed to send Form submission email" },
+    //         { status: 500 },
+    //       );
+    //     }
+    //   } else {
+    //     try {
+    //       await sendApprovalPendingEmail(fullName, userEmail, type);
+    //     } catch (error) {
+    //       console.error("Failed to send Form approval pending email");
+    //       return NextResponse.json(
+    //         { message: "Failed to send Form approval pending email" },
+    //         { status: 500 },
+    //       );
+    //     }
+    //   }
+    // }
     if (type === "permanent") {
       return NextResponse.json({
         success: true,

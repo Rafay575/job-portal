@@ -1,22 +1,22 @@
 "use client";
+
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Step1FullTime from "@/components/formsteps/Step1FullTime";
-import Step2 from "@/components/formsteps/Step2";
-import Step3 from "@/components/formsteps/Step3";
-import Step4 from "@/components/formsteps/Step4";
-import Step5 from "@/components/formsteps/Step5";
-import Step6 from "@/components/formsteps/Step6";
-import Step7 from "@/components/formsteps/Step7";
-import Step8 from "@/components/formsteps/Step8";
-import Step9 from "@/components/formsteps/Step9";
-import Step10 from "@/components/formsteps/Step10";
-import Step11 from "@/components/formsteps/Step11";
+
+import Step1FullTime from "@/components/admin-formsteps/Step1FullTime";
+import Step2 from "@/components/admin-formsteps/Step2";
+import Step3 from "@/components/admin-formsteps/Step3";
+import Step4 from "@/components/admin-formsteps/Step4";
+import Step5 from "@/components/admin-formsteps/Step5";
+import Step6 from "@/components/admin-formsteps/Step6";
+import Step7 from "@/components/admin-formsteps/Step7";
+import Step8 from "@/components/admin-formsteps/Step8";
+import Step9 from "@/components/admin-formsteps/Step9";
+import Step10 from "@/components/admin-formsteps/Step10";
+import Step11 from "@/components/admin-formsteps/Step11";
 
 import { Label } from "@/components/ui/label";
-import Stepper from "./Stepper";
-import RoleSelector from "@/components/RoleSelector";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { checkApproval } from "@/lib/users";
 import { toast } from "react-hot-toast";
@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { getStep1 } from "@/lib/api/step1";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import Stepper2 from "@/components/Stepper2";
 
 const allStepLabels = [
   "Basic",
@@ -39,28 +40,14 @@ const allStepLabels = [
   "Declaration",
 ];
 
-export default function Page() {
-  const router = useRouter();
+export default function EditUserPage() {
+  const params = useParams();
+  const id = params.id;
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(1); // 1 = next, -1 = back
-  const [open, setOpen] = useState(false);
-  const user = useSelector((state: RootState) => state.user);
+
 
   const handleNext = async () => {
-    // 👇 Only apply logic on STEP 1
-    if (step === 1 && (roleType === "agency-work" || roleType === "both")) {
-      const {isApproved} = await checkApproval(user.id);
-      if (!isApproved) {
-        toast.success(
-          "One of our representative will get back to you within 24 to 48 hours.",
-        );
-        setDirection(1);
-        setStep((prev) => prev + 1);
-
-        return;
-      }
-    }
-
     // normal next
     if (step < totalSteps) {
       setDirection(1);
@@ -79,6 +66,8 @@ export default function Page() {
     "permanent" | "agency-work" | "both"
   >("permanent");
 
+
+
   const steps =
     roleType === "permanent"
       ? [
@@ -86,6 +75,7 @@ export default function Page() {
             type={roleType}
             next={handleNext}
             back={back}
+            userId={id}
             key="step1"
             roleType={roleType}
           />,
@@ -95,19 +85,20 @@ export default function Page() {
             type={roleType}
             next={handleNext}
             back={back}
+            userId={id}
             key="step1"
             roleType={roleType}
           />,
-          <Step2 next={handleNext} back={back} key="step2" />,
-          <Step3 next={handleNext} back={back} key="step3" />,
-          <Step4 next={handleNext} back={back} key="step4" />,
-          <Step5 next={handleNext} back={back} key="step5" />,
-          <Step6 next={handleNext} back={back} key="step6" />,
-          <Step7 next={handleNext} back={back} key="step7" />,
-          <Step8 next={handleNext} back={back} key="step8" />,
-          <Step9 next={handleNext} back={back} key="step9" />,
-          <Step10 next={handleNext} back={back} key="step10" />,
-          <Step11 back={back} key="step11" />,
+          <Step2 next={handleNext} back={back} userId={id} key="step2" />,
+          <Step3 next={handleNext} back={back} userId={id} key="step3" />,
+          <Step4 next={handleNext} back={back} userId={id} key="step4" />,
+          <Step5 next={handleNext} back={back} userId={id} key="step5" />,
+          <Step6 next={handleNext} back={back} userId={id} key="step6" />,
+          <Step7 next={handleNext} back={back} userId={id} key="step7" />,
+          <Step8 next={handleNext} back={back} userId={id} key="step8" />,
+          <Step9 next={handleNext} back={back} userId={id} key="step9" />,
+          <Step10 next={handleNext} back={back} userId={id} key="step10" />,
+          <Step11 back={back} userId={id} key="step11" />,
         ];
 
   const stepsforStepper =
@@ -119,35 +110,20 @@ export default function Page() {
     setStep(1);
   }, [roleType]);
 
-
-useEffect(() => {
+  useEffect(() => {
     const fetchData = async () => {
-      const res = await getStep1(user.id);
+      const res = await getStep1(id);
+      console.log("res",res)
       if (res.success === false) {
-        setOpen(true);
-      }else{
-        setRoleType(res.data[0].type)
+      } else {
+        setRoleType(res.data[0].type);
       }
     };
     fetchData();
   }, []);
 
   return (
-    <div className="overflow-hidden">
-      {/* Shadcn Modal */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTitle className="text-white">.</DialogTitle>
-        <DialogContent className="sm:max-w-[50%] w-[90%]">
-          <RoleSelector
-            value={roleType}
-            onChange={(role) => {
-              setRoleType(role);
-              setOpen(false); // optional: close modal after selection
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-
+    <div className="overflow-hidden p-5">
       <div className="flex flex-col items-center gap-1 mb-3 w-full">
         <Label className="text-2xl text-primary">Choose Role Type</Label>
 
@@ -165,7 +141,6 @@ useEffect(() => {
           >
             Permanent
           </Button>
-
           {/* agency-work */}
           <Button
             type="button"
@@ -209,9 +184,8 @@ useEffect(() => {
           }
         `}
       >
-        <Stepper
+        <Stepper2
           currentStep={step}
-          userId={user.id}
           setCurrentStep={setStep}
           steps={stepsforStepper}
         />

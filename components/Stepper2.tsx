@@ -7,29 +7,17 @@ import { useEffect, useState } from "react";
 interface StepperProps {
   steps: string[];
   currentStep: number;
-  userId: string | number | null;
   setCurrentStep: React.Dispatch<React.SetStateAction<number>>;
 }
 
-export default function Stepper({
-  userId,
+export default function Stepper2({
   steps,
   currentStep,
   setCurrentStep,
 }: StepperProps) {
-  const [isApproved, setIsApproved] = useState(false);
+  
 
-  useEffect(() => {
-    if (!userId) return; // ✅ prevent undefined call
-
-    const fetchApproval = async () => {
-      
-      const { isApproved } = await checkApproval(userId);
-      setIsApproved(isApproved); // ✅ safe
-    };
-
-    fetchApproval();
-  }, [userId]);
+  
 
   return (
     <div className="hidden lg:flex justify-between mb-10 w-full relative">
@@ -37,7 +25,7 @@ export default function Stepper({
         const stepNumber = index + 1;
 
         // 🔥 lock logic
-        const isLocked = !isApproved && stepNumber > 1;
+        const isLocked = false;
 
         return (
           <div
@@ -45,7 +33,7 @@ export default function Stepper({
             className={clsx(
               "flex flex-col items-center flex-1 relative transition-all p-1",
               {
-                " blur-[3px] pointer-events-none": isLocked, // 👈 blur + disable
+                "pointer-events-none": isLocked, // 👈 blur + disable
               },
             )}
           >
@@ -55,11 +43,11 @@ export default function Stepper({
 
               // section for comment
 
-              // onClick={() => {
-              //   if (!isLocked ) {
-              //     setCurrentStep(stepNumber);
-              //   }
-              // }}
+              onClick={() => {
+                if (!isLocked ) {
+                  setCurrentStep(stepNumber);
+                }
+              }}
               
 
               className={clsx(

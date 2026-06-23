@@ -19,6 +19,24 @@ export const submitStep11 = async (payload: FormData) => {
     };
   }
 };
+export const submitStep11Admin = async (payload: FormData) => {
+  try {
+    const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/step11-admin`, payload);
+
+    return {
+      success: true,
+      data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message:
+        error?.response?.data?.message ||
+        error.message ||
+        "Something went wrong",
+    };
+  }
+};
 
 // 🟢 Get Step11
 export const getStep11 = async (userId: number | string) => {

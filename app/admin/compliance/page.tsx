@@ -42,6 +42,7 @@ import { RxCross1 } from "react-icons/rx";
 import { useDebouncedCallback } from "use-debounce";
 import { FullPageLoader } from "@/components/Loading";
 import { bulkApproveUsers, bulkRejectUsers, bulkDeleteUsers } from "@/lib/users";
+import { CiEdit } from "react-icons/ci";
 
 type User = {
   id: number;
@@ -747,6 +748,7 @@ const ActionsMenu = ({
           >
             Cancel
           </button>
+          
           <button
             className="px-3 py-1 text-sm rounded bg-red-600 text-white"
             onClick={async () => {
@@ -777,22 +779,29 @@ const ActionsMenu = ({
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" >
         <DropdownMenuItem
           onClick={() => router.push(`/admin/compliance/${id}`)}
-          className="text-primary"
+          className="text-primary cursor-pointer"
         >
           <Eye className="w-4 h-4 mr-2 text-primary" />
-          View
+          <span className="text-primary">View</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => router.push(`/admin/compliance/${id}/edit`)}
+          className="text-primary cursor-pointer"
+        >
+          <CiEdit  className="w-5 h-5 mr-2 text-primary" />
+          <span className="text-primary">Edit</span>
         </DropdownMenuItem>
 
         {status === "pending" && (
           <>
-            <DropdownMenuItem onClick={handleApprove}>
+            <DropdownMenuItem onClick={handleApprove} className="cursor-pointer">
               <FiCheck className="w-4 h-4 mr-2 text-green-600" />
               <span className="text-green-600">Approve</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleReject}>
+            <DropdownMenuItem onClick={handleReject} className="cursor-pointer">
               <RxCross1 className="w-4 h-4 mr-2 text-red-600" />
               <span className="text-red-600">Reject</span>
             </DropdownMenuItem>
@@ -800,22 +809,22 @@ const ActionsMenu = ({
         )}
 
         {status === "approved" && (
-          <DropdownMenuItem onClick={handleReject}>
+          <DropdownMenuItem onClick={handleReject} className="cursor-pointer">
             <RxCross1 className="w-4 h-4 mr-2 text-red-600" />
             <span className="text-red-600">Reject</span>
           </DropdownMenuItem>
         )}
 
         {status === "rejected" && (
-          <DropdownMenuItem onClick={handleApprove}>
+          <DropdownMenuItem onClick={handleApprove} className="cursor-pointer">
             <FiCheck className="w-4 h-4 mr-2 text-green-600" />
             <span className="text-green-600">Approve</span>
           </DropdownMenuItem>
         )}
 
-        <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+        <DropdownMenuItem onClick={handleDelete} className="text-red-600 cursor-pointer">
           <Trash2 className="w-4 h-4 mr-2 text-red-600" />
-          Delete
+          <span className="text-red-600">Delete</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
