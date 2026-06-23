@@ -41,7 +41,11 @@ import { FiCheck } from "react-icons/fi";
 import { RxCross1 } from "react-icons/rx";
 import { useDebouncedCallback } from "use-debounce";
 import { FullPageLoader } from "@/components/Loading";
-import { bulkApproveUsers, bulkRejectUsers, bulkDeleteUsers } from "@/lib/users";
+import {
+  bulkApproveUsers,
+  bulkRejectUsers,
+  bulkDeleteUsers,
+} from "@/lib/users";
 import { CiEdit } from "react-icons/ci";
 
 type User = {
@@ -187,126 +191,130 @@ export default function UsersTable() {
 
   // ── Bulk action visibility logic ──
   // Hide bulk approve if filter is "all" or "approved"
-  const showBulkApprove = statusFilter === "pending" || statusFilter === "rejected";
+  const showBulkApprove =
+    statusFilter === "pending" || statusFilter === "rejected";
   // Hide bulk reject if filter is "all" or "rejected"
-  const showBulkReject = statusFilter === "pending" || statusFilter === "approved";
+  const showBulkReject =
+    statusFilter === "pending" || statusFilter === "approved";
 
   // ── Bulk actions ──
 
+  const handleBulkApprove = () => {
+    const ids = Array.from(selectedIds);
+    if (!ids.length) return toast.error("No users selected");
 
-const handleBulkApprove = () => {
-  const ids = Array.from(selectedIds);
-  if (!ids.length) return toast.error("No users selected");
-
-  toast.custom((t) => (
-    <div className="bg-white shadow-lg rounded-lg p-4 border w-[300px]">
-      <p className="text-sm font-medium mb-3">
-        Approve <span className="font-bold">{ids.length}</span> selected user(s)?
-      </p>
-      <div className="flex justify-end gap-2">
-        <button
-          className="px-3 py-1 text-sm rounded bg-gray-200"
-          onClick={() => toast.dismiss(t.id)}
-        >
-          Cancel
-        </button>
-        <button
-          className="px-3 py-1 text-sm rounded bg-primary text-white"
-          onClick={async () => {
-            toast.dismiss(t.id);
-            setBulkLoading(true);
-            const res = await bulkApproveUsers(ids);
-            if (res.success) {
-              toast.success(`${res.updated} user(s) approved`);
-              fetchUsers();
-            } else {
-              toast.error(res.message);
-            }
-            setBulkLoading(false);
-          }}
-        >
-          Approve
-        </button>
+    toast.custom((t) => (
+      <div className="bg-white shadow-lg rounded-lg p-4 border w-[300px]">
+        <p className="text-sm font-medium mb-3">
+          Approve <span className="font-bold">{ids.length}</span> selected
+          user(s)?
+        </p>
+        <div className="flex justify-end gap-2">
+          <button
+            className="px-3 py-1 text-sm rounded bg-gray-200"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-3 py-1 text-sm rounded bg-primary text-white"
+            onClick={async () => {
+              toast.dismiss(t.id);
+              setBulkLoading(true);
+              const res = await bulkApproveUsers(ids);
+              if (res.success) {
+                toast.success(`${res.updated} user(s) approved`);
+                fetchUsers();
+              } else {
+                toast.error(res.message);
+              }
+              setBulkLoading(false);
+            }}
+          >
+            Approve
+          </button>
+        </div>
       </div>
-    </div>
-  ));
-};
+    ));
+  };
 
-const handleBulkReject = () => {
-  const ids = Array.from(selectedIds);
-  if (!ids.length) return toast.error("No users selected");
+  const handleBulkReject = () => {
+    const ids = Array.from(selectedIds);
+    if (!ids.length) return toast.error("No users selected");
 
-  toast.custom((t) => (
-    <div className="bg-white shadow-lg rounded-lg p-4 border w-[300px]">
-      <p className="text-sm font-medium mb-3">
-        Reject <span className="font-bold">{ids.length}</span> selected user(s)?
-      </p>
-      <div className="flex justify-end gap-2">
-        <button
-          className="px-3 py-1 text-sm rounded bg-gray-200"
-          onClick={() => toast.dismiss(t.id)}
-        >
-          Cancel
-        </button>
-        <button
-          className="px-3 py-1 text-sm rounded bg-red-600 text-white"
-          onClick={async () => {
-            toast.dismiss(t.id);
-            setBulkLoading(true);
-            const res = await bulkRejectUsers(ids);
-            if (res.success) {
-              toast.success(`${res.updated} user(s) rejected`);
-              fetchUsers();
-            } else {
-              toast.error(res.message);
-            }
-            setBulkLoading(false);
-          }}
-        >
-          Reject
-        </button>
+    toast.custom((t) => (
+      <div className="bg-white shadow-lg rounded-lg p-4 border w-[300px]">
+        <p className="text-sm font-medium mb-3">
+          Reject <span className="font-bold">{ids.length}</span> selected
+          user(s)?
+        </p>
+        <div className="flex justify-end gap-2">
+          <button
+            className="px-3 py-1 text-sm rounded bg-gray-200"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-3 py-1 text-sm rounded bg-red-600 text-white"
+            onClick={async () => {
+              toast.dismiss(t.id);
+              setBulkLoading(true);
+              const res = await bulkRejectUsers(ids);
+              if (res.success) {
+                toast.success(`${res.updated} user(s) rejected`);
+                fetchUsers();
+              } else {
+                toast.error(res.message);
+              }
+              setBulkLoading(false);
+            }}
+          >
+            Reject
+          </button>
+        </div>
       </div>
-    </div>
-  ));
-};
+    ));
+  };
 
-const handleBulkDelete = () => {
-  const ids = Array.from(selectedIds);
-  if (!ids.length) return toast.error("No users selected");
+  const handleBulkDelete = () => {
+    const ids = Array.from(selectedIds);
+    if (!ids.length) return toast.error("No users selected");
 
-  toast.custom((t) => (
-    <div className="bg-white shadow-lg rounded-lg p-4 border w-[300px]">
-      <p className="text-sm font-medium mb-3">
-        Delete <span className="font-bold">{ids.length}</span> selected user(s)? This cannot be undone.
-      </p>
-      <div className="flex justify-end gap-2">
-        <button
-          className="px-3 py-1 text-sm rounded bg-gray-200"
-          onClick={() => toast.dismiss(t.id)}
-        >
-          Cancel
-        </button>
-        <button
-          className="px-3 py-1 text-sm rounded bg-red-600 text-white"
-          onClick={async () => {
-            toast.dismiss(t.id);
-            setBulkLoading(true);
-            const res = await bulkDeleteUsers(ids);
-            if (res.success) {
-              toast.success(`${res.deleted} user(s) deleted`);
-              fetchUsers();
-            } else {
-              toast.error(res.message);
-            }
-            setBulkLoading(false);
-          }}
-        >
-          Delete
-        </button>
+    toast.custom((t) => (
+      <div className="bg-white shadow-lg rounded-lg p-4 border w-[300px]">
+        <p className="text-sm font-medium mb-3">
+          Delete <span className="font-bold">{ids.length}</span> selected
+          user(s)? This cannot be undone.
+        </p>
+        <div className="flex justify-end gap-2">
+          <button
+            className="px-3 py-1 text-sm rounded bg-gray-200"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-3 py-1 text-sm rounded bg-red-600 text-white"
+            onClick={async () => {
+              toast.dismiss(t.id);
+              setBulkLoading(true);
+              const res = await bulkDeleteUsers(ids);
+              if (res.success) {
+                toast.success(`${res.deleted} user(s) deleted`);
+                fetchUsers();
+              } else {
+                toast.error(res.message);
+              }
+              setBulkLoading(false);
+            }}
+          >
+            Delete
+          </button>
+        </div>
       </div>
-    </div>
-  ));
-};
+    ));
+  };
 
   const handleStatusChange = (v: string) => {
     setStatusFilter(v as StatusFilter);
@@ -333,14 +341,23 @@ const handleBulkDelete = () => {
   const left = Math.max(1, currentPage - delta);
   const right = Math.min(totalPages, currentPage + delta);
   for (let i = left; i <= right; i++) pageNumbers.push(i);
-
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
   if (loadingForStatus || bulkLoading) return <FullPageLoader />;
 
   return (
     <Card className="border-0 shadow-none max-w-[100%]">
       <CardHeader>
         <CardTitle className="text-primary text-3xl">Compliance</CardTitle>
-        <p className="text-gray-600">Monitor hiring activities to ensure policies and regulations are followed.</p>    
+        <p className="text-gray-600">
+          Monitor hiring activities to ensure policies and regulations are
+          followed.
+        </p>
       </CardHeader>
 
       <CardContent className="space-y-4 w-full!">
@@ -390,7 +407,7 @@ const handleBulkDelete = () => {
               <Button
                 size="sm"
                 variant="destructive"
-                  className=" text-white  gap-1.5"
+                className=" text-white  gap-1.5"
                 onClick={handleBulkDelete}
               >
                 <Trash2 className="w-4 h-4" />
@@ -551,9 +568,7 @@ const handleBulkDelete = () => {
                     </TableCell>
 
                     <TableCell>
-                      {user.created_at
-                        ? new Date(user.created_at).toLocaleDateString()
-                        : "N/A"}
+                      {user.created_at ? formatDate(user.created_at) : "N/A"}
                     </TableCell>
 
                     <TableCell className="text-center">
@@ -748,7 +763,7 @@ const ActionsMenu = ({
           >
             Cancel
           </button>
-          
+
           <button
             className="px-3 py-1 text-sm rounded bg-red-600 text-white"
             onClick={async () => {
@@ -779,7 +794,7 @@ const ActionsMenu = ({
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" >
+      <DropdownMenuContent align="end">
         <DropdownMenuItem
           onClick={() => router.push(`/admin/compliance/${id}`)}
           className="text-primary cursor-pointer"
@@ -791,13 +806,16 @@ const ActionsMenu = ({
           onClick={() => router.push(`/admin/compliance/${id}/edit`)}
           className="text-primary cursor-pointer"
         >
-          <CiEdit  className="w-5 h-5 mr-2 text-primary" />
+          <CiEdit className="w-5 h-5 mr-2 text-primary" />
           <span className="text-primary">Edit</span>
         </DropdownMenuItem>
 
         {status === "pending" && (
           <>
-            <DropdownMenuItem onClick={handleApprove} className="cursor-pointer">
+            <DropdownMenuItem
+              onClick={handleApprove}
+              className="cursor-pointer"
+            >
               <FiCheck className="w-4 h-4 mr-2 text-green-600" />
               <span className="text-green-600">Approve</span>
             </DropdownMenuItem>
@@ -822,7 +840,10 @@ const ActionsMenu = ({
           </DropdownMenuItem>
         )}
 
-        <DropdownMenuItem onClick={handleDelete} className="text-red-600 cursor-pointer">
+        <DropdownMenuItem
+          onClick={handleDelete}
+          className="text-red-600 cursor-pointer"
+        >
           <Trash2 className="w-4 h-4 mr-2 text-red-600" />
           <span className="text-red-600">Delete</span>
         </DropdownMenuItem>

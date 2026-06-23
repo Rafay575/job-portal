@@ -318,6 +318,14 @@ export default function UsersListTable() {
   const right = Math.min(totalPages, currentPage + delta);
   for (let i = left; i <= right; i++) pageNumbers.push(i);
 
+   const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   if (loadingForStatus || bulkLoading) return <FullPageLoader />;
 
   return (
@@ -516,7 +524,7 @@ export default function UsersListTable() {
                     </TableCell>
                     <TableCell>
                       {user.created_at
-                        ? new Date(user.created_at).toLocaleDateString()
+                        ? formatDate(user.created_at)
                         : "N/A"}
                     </TableCell>
                     <TableCell className="text-center">
