@@ -51,6 +51,8 @@ import {
 } from "@/lib/users";
 import { Badge } from "@/components/ui/badge";
 import { CiEdit } from "react-icons/ci";
+import Link from "next/link";
+import { GoPlus } from "react-icons/go";
 type User = {
   id: number;
   name: string | null;
@@ -425,6 +427,9 @@ export default function UsersListTable() {
               ))}
             </SelectContent>
           </Select>
+          <Link href={"/admin/users/create"}>
+          <Button>Add New<GoPlus className="size-5"/></Button>
+          </Link>
         </div>
 
         {/* ── Table ── */}
