@@ -51,7 +51,7 @@ export default function Stepper2({
               
 
               className={clsx(
-                "h-9 w-9 rounded-full flex items-center justify-center text-sm font-medium cursor-pointer transition-all duration-300 z-10",
+                "h-9 w-9 rounded-full flex items-center justify-center text-sm font-medium cursor-pointer transition-all duration-300 z-10 ",
                 {
                   "bg-primary text-white shadow-md": stepNumber <= currentStep,
                   "bg-gray-200 text-gray-500": stepNumber > currentStep,

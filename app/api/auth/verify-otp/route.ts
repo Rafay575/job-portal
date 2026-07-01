@@ -74,7 +74,7 @@ export async function POST(req: Request) {
         id: result.insertId,
         name,
         email,
-        role: "user",
+        role: "employee",
       },
     });
 
