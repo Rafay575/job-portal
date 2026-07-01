@@ -237,7 +237,7 @@ export default function Step3({ next, back }: Props) {
           <div className="flex flex-col items-stretch gap-4">
             <div>
               <Label>
-                Any convictions?<span className="text-red-500">*</span>
+                <span>Any convictions?<span className="text-red-500">*</span></span>
               </Label>
               <RadioGroup
                 value={formData.hasConvictions ? "yes" : "no"}
@@ -262,7 +262,7 @@ export default function Step3({ next, back }: Props) {
               }`}
             >
               <Label>
-                Conviction Details <span className="text-red-500">*</span>
+                <span>Conviction Details <span className="text-red-500">*</span></span>
               </Label>
               <Textarea
                 value={formData.convictionDetails}
@@ -277,8 +277,8 @@ export default function Step3({ next, back }: Props) {
           <div className="flex flex-col items-stretch gap-4">
             <div>
               <Label>
-                Do you have any unspent convictions?
-                <span className="text-red-500">*</span>
+                <span>Do you have any unspent convictions?
+                <span className="text-red-500">*</span></span>
               </Label>
               <RadioGroup
                 value={formData.hasUnspentConvictions ? "yes" : "no"}
@@ -303,8 +303,8 @@ export default function Step3({ next, back }: Props) {
               }`}
             >
               <Label>
-                Unspent Conviction Details{" "}
-                <span className="text-red-500">*</span>
+                <span>Unspent Conviction Details<span className="text-red-500">*</span></span>
+                
               </Label>
               <Textarea
                 value={formData.unspentDetails}
@@ -316,8 +316,8 @@ export default function Step3({ next, back }: Props) {
           {/* Fitness Investigation */}
           <div>
             <Label>
-              Currently under fitness to practice investigation?
-              <span className="text-red-500">*</span>
+              <span>Currently under fitness to practice investigation?
+              <span className="text-red-500">*</span></span>
             </Label>
             <RadioGroup
               value={formData.fitnessInvestigation ? "yes" : "no"}
@@ -337,8 +337,8 @@ export default function Step3({ next, back }: Props) {
           {/* Removed From Register */}
           <div>
             <Label>
-              Have you been ever removed from professional registeration?
-              <span className="text-red-500">*</span>
+              <span>Have you been ever removed from professional registeration? 
+              <span className="text-red-500">*</span></span>
             </Label>
             <RadioGroup
               value={formData.removedFromRegister ? "yes" : "no"}
@@ -359,8 +359,8 @@ export default function Step3({ next, back }: Props) {
           <div className="flex flex-col items-stretch gap-4 md:col-span-2">
             <div>
               <Label>
-                Do you have DBS/CRB on update service?
-                <span className="text-red-500">*</span>
+                <span>Do you have DBS/CRB on update service? 
+                <span className="text-red-500">*</span></span>
               </Label>
               <RadioGroup
                 value={formData.crb ? "yes" : "no"}
@@ -391,7 +391,7 @@ export default function Step3({ next, back }: Props) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
                 {/* Certificate Number - NEW FIELD */}
                 <div>
-                  <Label>Certificate Number <span className="text-red-500">*</span></Label>
+                  <Label><span>Certificate Number <span className="text-red-500">*</span></span></Label>
                   <Input
                     value={formData.certificateNumber}
                     onChange={(e) =>
@@ -402,7 +402,7 @@ export default function Step3({ next, back }: Props) {
 
                 {/* Full Name - NEW FIELD */}
                 <div>
-                  <Label>Full Name <span className="text-red-500">*</span></Label>
+                  <Label><span>Full Name <span className="text-red-500">*</span></span></Label>
                   <Input
                     value={formData.fullName}
                     onChange={(e) => handleChange("fullName", e.target.value)}
@@ -410,7 +410,7 @@ export default function Step3({ next, back }: Props) {
                 </div>
                 <div>
                   <Label>
-                    Surname <span className="text-red-500">*</span>
+                    <span>Surname <span className="text-red-500">*</span></span>
                   </Label>
                   <Input
                     value={formData.surname}
@@ -420,7 +420,7 @@ export default function Step3({ next, back }: Props) {
 
                 <div>
                   <Label>
-                    Date of Birth <span className="text-red-500">*</span>
+                    <span>Date of Birth <span className="text-red-500">*</span></span>
                   </Label>
                   <Input
                     type="date"
@@ -431,7 +431,7 @@ export default function Step3({ next, back }: Props) {
 
                 <div>
                   <Label>
-                    Upload DBS/CRB <span className="text-red-500">*</span>
+                    <span>Upload DBS/CRB <span className="text-red-500">*</span></span>
                   </Label>
                   <Input
                     type="file"

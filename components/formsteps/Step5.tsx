@@ -175,7 +175,7 @@ export default function Step5({ next, back }: Props) {
       >
         {/* Nurse Radio */}
         <div className="col-span-2 mb-2">
-          <Label>Are you a Nurse?<span className="text-red-500">*</span></Label>
+          <Label><span>Are you a Nurse?<span className="text-red-500">*</span></span></Label>
 
           <RadioGroup
             value={
@@ -209,7 +209,7 @@ export default function Step5({ next, back }: Props) {
         >
           <div>
             <Label>
-              Professional Body Name <span className="text-red-500">*</span>
+              <span>Professional Body Name <span className="text-red-500">*</span></span>
             </Label>
             <Input
               value={formData.professionalBody}
@@ -219,7 +219,7 @@ export default function Step5({ next, back }: Props) {
 
           <div>
             <Label>
-              Registration Type <span className="text-red-500">*</span>
+              <span>Registration Type <span className="text-red-500">*</span></span>
             </Label>
             <Input
               value={formData.registrationType}
@@ -229,7 +229,7 @@ export default function Step5({ next, back }: Props) {
 
           <div>
             <Label>
-              Registration / PIN Number <span className="text-red-500">*</span>
+              <span>Registration / PIN Number <span className="text-red-500">*</span></span>
             </Label>
             <Input
               value={formData.registrationNumber}
@@ -241,7 +241,7 @@ export default function Step5({ next, back }: Props) {
 
           <div>
             <Label>
-              Expiry Date <span className="text-red-500">*</span>
+              <span>Expiry Date <span className="text-red-500">*</span></span>
             </Label>
             <Input
               type="date"

@@ -988,11 +988,11 @@ export default function UserDetailPage() {
       {/* ── Header + Download Button ─────────────────────────────────────── */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <div className="flex items-center sm:gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-2xl md:text-4xl font-bold text-primary capitalize">
               {basic.full_name || "Unknown Applicant"}
             </h1>
-            <span className="text-white bg px-2 py-0.5 text-[11px] rounded-full">
+            <span className="text-white bg px-2 py-0.5 text-[11px] rounded-full uppercase" >
               {basic.type}
             </span>
           </div>
@@ -1824,13 +1824,21 @@ const ActionsButtons = ({
       {/* STATUS */}
       <div className="font-semibold text-md">
         Status:{" "}
-        <span className="font-medium underline">
-          {status === "approved"
-            ? "Approved"
-            : status === "rejected"
-              ? "Rejected"
-              : "Pending"}
-        </span>
+        <span
+  className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
+    status === "approved"
+      ? "bg-green-100 text-green-700"
+      : status === "rejected"
+        ? "bg-red-100 text-red-700"
+        : "bg-gray-100 text-gray-600"
+  }`}
+>
+  {status === "approved"
+    ? "Approved"
+    : status === "rejected"
+      ? "Rejected"
+      : "Pending"}
+</span>
       </div>
 
       <div className="flex gap-2 flex-wrap">

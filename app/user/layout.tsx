@@ -15,19 +15,19 @@ export default function RootLayout({
     <div className="users-layout">
       <title>Hayaibu Talent | Dashboard</title>
       <div className="">
-        <SidebarProvider>
-          <div className="flex-1 ">
+        {/* <SidebarProvider> */}
+          <div className="flex-1  max-w-screen overflow-x-hidden">
             <TooltipProvider>
               <Header />
               <div className="flex container mx-auto items-start ">
                 {/* <JobSidebar /> */}
                 <DashboardCheck>
-                  <div className="flex-1 p-2">{children}</div>
+                  <div className="flex-1 pb-2 max-w-full">{children}</div>
                 </DashboardCheck>
               </div>
             </TooltipProvider>
           </div>
-        </SidebarProvider>
+        {/* </SidebarProvider>x` */}
       </div>
     </div>
   );

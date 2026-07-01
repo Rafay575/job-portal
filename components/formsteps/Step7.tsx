@@ -121,39 +121,39 @@ export default function Step7({ next, back }: any) {
   };
   // ================= REMOVE =================
   const removeTraining = (index: number) => {
-  toast((t) => (
-    <div className="flex flex-col gap-3">
-      <p className="text-sm">
-        Are you sure you want to remove this training?
-      </p>
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm">
+          Are you sure you want to remove this training?
+        </p>
 
-      <div className="flex justify-end gap-2">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => toast.dismiss(t.id)}
-        >
-          No
-        </Button>
+        <div className="flex justify-end gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            No
+          </Button>
 
-        <Button
-          size="sm"
-          variant="destructive"
-          onClick={() => {
-            setTrainings((prev) =>
-              prev.filter((_, i) => i !== index)
-            );
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => {
+              setTrainings((prev) => prev.filter((_, i) => i !== index));
 
-            toast.dismiss(t.id);
-            toast.success("Training removed");
-          }}
-        >
-          Yes
-        </Button>
+              toast.dismiss(t.id);
+              toast.success("Training removed", {
+                duration: 2000, // 5 seconds
+              });
+            }}
+          >
+            Yes
+          </Button>
+        </div>
       </div>
-    </div>
-  ));
-};
+    ));
+  };
   // ================= VALIDATION =================
   const validateStep = () => {
     for (let i = 0; i < trainings.length; i++) {
@@ -168,7 +168,7 @@ export default function Step7({ next, back }: any) {
       ) {
         toast.error(`Complete all fields for training ${i + 1}`);
         return false;
-      }     
+      }
     }
     return true;
   };
@@ -211,7 +211,7 @@ export default function Step7({ next, back }: any) {
                   className="border rounded-xl p-4 space-y-4 bg-white shadow-sm"
                 >
                   {/* Title */}
-                  <Label className="font-semibold text-lg">
+                  <Label className="font-semibold text-lg text-primary">
                     Training {index + 1}
                   </Label>
 

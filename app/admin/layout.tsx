@@ -4,7 +4,7 @@ import "@/app/globals.css";
 // import Sidebar from "@/components/Sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import AdminHeader from "@/components/AdminHeader";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
@@ -32,14 +32,13 @@ export default function RootLayout({
   const router = useRouter();
   const [checking, setChecking] = useState(true);
 
-useEffect(() => {
+  useEffect(() => {
     if (user === undefined) return;
 
     if (user.loggedIn === false) {
-      console.log("logout")
+      console.log("logout");
       router.replace("/auth/login");
       return;
-
     }
     if (user.role !== "admin") {
       toast.error("Access denied", {
@@ -57,17 +56,21 @@ useEffect(() => {
   }
   return (
     <div className="dashboard-layout">
-      <title>Hayaibu Talent | Admin Portal</title>
-      <div className="">
-        <SidebarProvider>
-          <TooltipProvider>
+      {/* <title>Hayaibu Talent | Admin Portal</title> */}
+      <div className="w-full">
+        <TooltipProvider>
+          <SidebarProvider>
             <AppSidebar />
-            <div className="flex-1  ">
-              <AdminHeader />
-              {children}
-            </div>
-          </TooltipProvider>
-        </SidebarProvider>
+            <SidebarInset>
+              <div className="flex-1 max-w-full">
+                <div className="max-w-screen">
+                  <AdminHeader />
+                  {children}
+                </div>
+              </div>
+            </SidebarInset>
+          </SidebarProvider>
+        </TooltipProvider>
       </div>
     </div>
   );

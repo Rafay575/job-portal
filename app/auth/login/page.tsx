@@ -83,9 +83,9 @@ export default function SignInPage() {
           loggedIn: true,
         }),
       );
-      if (data?.user?.role  !== "admin") {
+      if (data?.user?.role !== "admin") {
         router.push("/user/dashboard");
-      }else{
+      } else {
         router.push("/admin/dashboard");
       }
     },
@@ -337,14 +337,14 @@ export default function SignInPage() {
             </form>
 
             {/* Or */}
-            <div className="flex items-center gap-2 my-5">
+            {/* <div className="flex items-center gap-2 my-5">
               <div className="flex-1 h-px bg-gray-200" />
               <span className="text-sm text-gray-500">or</span>
               <div className="flex-1 h-px bg-gray-200" />
-            </div>
+            </div> */}
 
             {/* Social buttons */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Button
                 type="button"
                 variant="outline"
@@ -370,7 +370,7 @@ export default function SignInPage() {
                 Sign in with Apple
               </Button>
             </div>
-
+            */}
             {/* Terms */}
             <p className="mt-5 text-[11px] leading-4 text-gray-500">
               By clicking next, you agree to Hayabiu Talent&apos;s{" "}
@@ -464,7 +464,7 @@ export default function SignInPage() {
                 Reset Password
               </h2>
               <p className="text-sm text-gray-600 mt-2">
-                Enter the OTP sent to 
+                Enter the OTP sent to
                 <span className="font-semibold"> {forgotEmail}</span>
               </p>
             </div>

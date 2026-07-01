@@ -249,7 +249,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
       <div className="min-w-full space-y-5  grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 px-2">
         <div>
           <Label>
-            Full Name <span className="text-red-500">*</span>
+            <span>Full Name <span className="text-red-500">*</span></span>
           </Label>
           <Input
             readOnly
@@ -261,7 +261,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            Email Address <span className="text-red-500">*</span>
+            <span>Email Address <span className="text-red-500">*</span></span>
           </Label>
           <Input
             readOnly
@@ -273,7 +273,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            Phone Number <span className="text-red-500">*</span>
+            <span>Phone Number <span className="text-red-500">*</span></span>
           </Label>
           <Input
             value={formData.phone}
@@ -283,7 +283,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            Current Address <span className="text-red-500">*</span>
+            <span>Current Address <span className="text-red-500">*</span></span>
           </Label>
           <Input
             value={formData.address}
@@ -293,7 +293,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            Postcode <span className="text-red-500">*</span>
+            <span>Postcode <span className="text-red-500">*</span></span>
           </Label>
           <Input
             value={formData.postcode}
@@ -303,7 +303,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            Nationality <span className="text-red-500">*</span>
+            <span>Nationality <span className="text-red-500">*</span></span>
           </Label>
           <Input
             value={formData.nationality}
@@ -313,7 +313,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            Immigration Status <span className="text-red-500">*</span>
+            <span>Immigration Status <span className="text-red-500">*</span></span>
           </Label>
           <div className="border rounded-lg border-[#f0f0f0]">
             <Select
@@ -338,7 +338,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            Immigration Expiry Date <span className="text-red-500">*</span>
+            <span>Immigration Expiry Date <span className="text-red-500">*</span></span>
           </Label>
           <Input
             type="date"
@@ -349,7 +349,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            Do you need a UK Work Permit?<span className="text-red-500">*</span>
+            <span>Do you need a UK Work Permit?<span className="text-red-500">*</span></span>
           </Label>
           <RadioGroup
             value={formData.workPermit ? "yes" : "no"}
@@ -372,8 +372,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            Have you changed your name before?
-            <span className="text-red-500">*</span>
+            <span>Have you changed your name before?<span className="text-red-500">*</span></span>
           </Label>
           <RadioGroup
             value={formData.nameChanged ? "yes" : "no"}
@@ -398,11 +397,11 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
           className={`transition-all duration-500 ease-in-out  ${
             formData.nameChanged
               ? "h-auto!  opacity-100 "
-              : "h-0! overflow-hidden!  opacity-0"
+              : "h-0! overflow-hidden!  opacity-0 "
           }`}
         >
           <Label>
-            Previous Name <span className="text-red-500">*</span>
+            <span>Previous Name <span className="text-red-500">*</span></span>
           </Label>
           <Input
             value={formData.previousName}
@@ -414,11 +413,11 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
           className={`transition-all duration-500 ease-in-out  ${
             formData.nameChanged
               ? "h-auto!  opacity-100 "
-              : "h-0! overflow-hidden!  opacity-0"
+              : "h-0! overflow-hidden!  opacity-0 "
           }`}
         >
           <Label>
-            Changed To <span className="text-red-500">*</span>
+            <span>Changed To <span className="text-red-500">*</span></span>
           </Label>
           <Input
             value={formData.changedTo}
@@ -430,14 +429,14 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
           className={`${
             roleType === "permanent" || roleType === "both"
               ? "h-auto!  opacity-100 "
-              : "h-0! overflow-hidden!  opacity-0"
-          } transition-all duration-500 ease-in-out  md:col-span-2`}
+              : "h-0! overflow-hidden!  opacity-0 "
+          } transition-all duration-500 ease-in-out   md:col-span-2`}
         >
           <Label>
-            Upload CV <span className="text-red-500">*</span>
+            <span>Upload CV <span className="text-red-500">*</span></span>
           </Label>
 
-          <div className="mt-2 relative border! border-dashed shadow-0 outline-0 border-primary rounded-xl p-6 text-center transition">
+          <div className="mt-2 relative border-2! border-dashed shadow-0 outline-0 border-primary rounded-xl p-6 text-center transition">
             <input
               type="file"
               accept=".pdf,.doc,.docx"

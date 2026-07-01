@@ -208,9 +208,8 @@ export default function Step2({ next, back }: Props) {
           <div className="min-w-full space-y-5  grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
             {/* Availability Issue */}
             <div>
-              <Label>
-                Are you involved in any activities that limit your work availibility?
-                <span className="text-red-500">*</span>
+              <Label >
+                <span>Are you involved in any activities that limit your work availibility? <span className="text-red-500">*</span></span> 
               </Label>
               <RadioGroup
                 value={formData.availabilityIssue ? "yes" : "no"}
@@ -234,8 +233,7 @@ export default function Step2({ next, back }: Props) {
             {/* Overtime */}
             <div>
               <Label>
-                Willing to work overtime & weekends?
-                <span className="text-red-500">*</span>
+                <span>Willing to work overtime & weekends?<span className="text-red-500">*</span></span>
               </Label>
               <RadioGroup
                 value={formData.overtime ? "yes" : "no"}
@@ -257,8 +255,7 @@ export default function Step2({ next, back }: Props) {
             {/* Hours Avoid */}
             <div>
               <Label>
-                Hours you do not wish to work{" "}
-                <span className="text-red-500">*</span>
+                <span>Hours you do not wish to work<span className="text-red-500">*</span></span>
               </Label>
               <Input
                 value={formData.hoursAvoid}
@@ -270,7 +267,7 @@ export default function Step2({ next, back }: Props) {
             {/* Notice Period */}
             <div>
               <Label>
-                Notice period required <span className="text-red-500">*</span>
+                <span>Notice period required <span className="text-red-500">*</span></span>
               </Label>
               <Input
                 value={formData.noticePeriod}
@@ -283,7 +280,7 @@ export default function Step2({ next, back }: Props) {
             <div className="flex flex-col items-stretch gap-4">
               <div>
                 <Label>
-                  Applied before?<span className="text-red-500">*</span>
+                  <span>Applied before?<span className="text-red-500">*</span></span>
                 </Label>
                 <RadioGroup
                   value={formData.appliedBefore ? "yes" : "no"}
@@ -312,7 +309,7 @@ export default function Step2({ next, back }: Props) {
                 }`}
               >
                 <Label>
-                  Application Details <span className="text-red-500">*</span>
+                  <span>Application Details <span className="text-red-500">*</span></span>
                 </Label>
                 <Textarea
                   value={formData.appliedDetails}
@@ -327,8 +324,7 @@ export default function Step2({ next, back }: Props) {
             <div className="flex flex-col items-stretch gap-4">
               <div>
                 <Label>
-                  Subject to work restrictions / covenants?
-                  <span className="text-red-500">*</span>
+                  <span>Subject to work restrictions / covenants?<span className="text-red-500">*</span></span>
                 </Label>
                 <RadioGroup
                   value={formData.workRestrictions ? "yes" : "no"}
@@ -357,7 +353,7 @@ export default function Step2({ next, back }: Props) {
                 }`}
               >
                 <Label>
-                  Restriction Details <span className="text-red-500">*</span>
+                  <span>Restriction Details <span className="text-red-500">*</span></span>
                 </Label>
                 <Textarea
                   value={formData.restrictionDetails}
@@ -371,8 +367,8 @@ export default function Step2({ next, back }: Props) {
             {/* Worked Before */}
             <div>
               <Label>
-                Have you worked for us before?
-                <span className="text-red-500">*</span>
+                <span>Have you worked for us before?
+                <span className="text-red-500">*</span></span>
               </Label>
               <RadioGroup
                 value={formData.workedBefore ? "yes" : "no"}
