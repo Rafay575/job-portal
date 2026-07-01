@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { checkApproval } from "@/lib/users";
 import { IoRefresh } from "react-icons/io5";
 import Link from "next/link";
+import { DocCard } from "../common/DocCard";
 
 // ================= NAV BUTTONS =================
 function SignupNavButtons({ onNext, onBack }: any) {
@@ -84,8 +85,7 @@ export default function Step7({ next, back }: any) {
             provider: t.provider,
             duration: t.duration,
             completionDate: t.completion_date,
-            certificateFile: null, // file object always starts null
-            certificateFilePath: t.certificate_file_path, // existing path from DB
+            certificateFile: t.certificate_file_path || null, // ← merged
           })),
         );
       }
@@ -143,9 +143,7 @@ export default function Step7({ next, back }: any) {
               setTrainings((prev) => prev.filter((_, i) => i !== index));
 
               toast.dismiss(t.id);
-              toast.success("Training removed", {
-                duration: 2000, // 5 seconds
-              });
+              toast.success("Training removed");
             }}
           >
             Yes
@@ -163,7 +161,7 @@ export default function Step7({ next, back }: any) {
         !t.title ||
         !t.provider ||
         !t.duration ||
-        (!t.certificateFile && !t.certificateFilePath) ||
+        !t.certificateFile || // ← simplified
         !t.completionDate
       ) {
         toast.error(`Complete all fields for training ${i + 1}`);
@@ -191,6 +189,16 @@ export default function Step7({ next, back }: any) {
     }
     setLoading(false);
   };
+
+  const updateTrainingFile =
+    (index: number) =>
+    <K extends keyof Step7Type>(field: K, value: Step7Type[K]) => {
+      setTrainings((prev) => {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], [field]: value };
+        return updated;
+      });
+    };
   if (loading) return <FullPageLoader />;
 
   // ================= UI =================
@@ -211,7 +219,7 @@ export default function Step7({ next, back }: any) {
                   className="border rounded-xl p-4 space-y-4 bg-white shadow-sm"
                 >
                   {/* Title */}
-                  <Label className="font-semibold text-lg text-primary">
+                  <Label className="font-semibold text-lg">
                     Training {index + 1}
                   </Label>
 
@@ -261,30 +269,14 @@ export default function Step7({ next, back }: any) {
                       <span className="text-red-700">*</span>
                     </Label>
 
-                    <Input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0] || null;
-                        const updated = [...trainings];
-                        updated[index].certificateFile = file;
-                        setTrainings(updated);
-                      }}
+                    <DocCard<Step7Type>
+                      title="Training Certificate"
+                      fieldKey="certificateFile"
+                      hint="Upload certificate (PDF, DOC, DOCX, JPG, JPEG or PNG)"
+                      file={t.certificateFile}
+                      onUpdate={updateTrainingFile(index)}
+                      acceptedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png", ".jpeg"]}
                     />
-
-                    {/* Show existing file link if already uploaded from DB */}
-                    {t.certificateFilePath && !t.certificateFile && (
-                      <p className="text-xs text-primary m-1">
-                        <a
-                          href={t.certificateFilePath}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="underline"
-                        >
-                          View Certificate
-                        </a>
-                      </p>
-                    )}
                   </div>
 
                   {/* Completion Date */}

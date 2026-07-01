@@ -13,6 +13,7 @@ import { useEffect } from "react";
 import { getStep3 } from "@/lib/api/step3";
 import { submitStep3 } from "@/lib/api/step3";
 import { FullPageLoader } from "../Loading";
+import { DocCard } from "../common/DocCard";
 
 type NavProps = {
   onNext: () => void;
@@ -23,7 +24,7 @@ type NavProps = {
 type Props = {
   next: () => void;
   back: () => void;
-  userId:any
+  userId: any;
 };
 
 // ------------------ Navigation Buttons ------------------
@@ -49,13 +50,11 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 }
 
 // ------------------ Step 3 Component ------------------
-export default function Step3({ next, back,userId }: Props) {
+export default function Step3({ next, back, userId }: Props) {
   const [loading, setLoading] = useState(false);
- 
 
   // const user = useSelector((state: RootState) => state.user);
 
-  const [existingCRB, setExistingCRB] = useState<string>();
   const [formData, setFormData] = useState<Step3Type>({
     hasConvictions: null,
     convictionDetails: "",
@@ -111,7 +110,7 @@ export default function Step3({ next, back,userId }: Props) {
         return false;
       }
 
-      if (!formData.crbFile && !existingCRB) {
+      if (!formData.crbFile) {
         toast.error("Please upload CRB/DBS document");
         return false;
       }
@@ -145,10 +144,8 @@ export default function Step3({ next, back,userId }: Props) {
           fullName: d.full_name || "",
           surname: d.surname || "",
           dob: d.dob ? d.dob.split("T")[0] : "",
-          crbFile: null, // important
+          crbFile: d.crb_file_path || null,
         });
-
-        setExistingCRB(d.crb_file_path);
       }
       setLoading(false);
     };
@@ -186,7 +183,7 @@ export default function Step3({ next, back,userId }: Props) {
       form.append("surname", formData.surname);
       form.append("dob", formData.dob);
 
-      if (formData.crbFile) {
+      if (formData.crbFile instanceof File) {
         form.append("crbFile", formData.crbFile);
       }
 
@@ -209,15 +206,15 @@ export default function Step3({ next, back,userId }: Props) {
 
   return (
     <div className="relative px-2">
-      <div
-       
-      >
+      <div>
         <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
           {/* Convictions */}
           <div className="flex flex-col items-stretch gap-4">
             <div>
               <Label>
-                Any convictions?<span className="text-red-500">*</span>
+                <span>
+                  Any convictions?<span className="text-red-500">*</span>
+                </span>
               </Label>
               <RadioGroup
                 value={formData.hasConvictions ? "yes" : "no"}
@@ -242,7 +239,9 @@ export default function Step3({ next, back,userId }: Props) {
               }`}
             >
               <Label>
-                Conviction Details <span className="text-red-500">*</span>
+                <span>
+                  Conviction Details <span className="text-red-500">*</span>
+                </span>
               </Label>
               <Textarea
                 value={formData.convictionDetails}
@@ -257,8 +256,10 @@ export default function Step3({ next, back,userId }: Props) {
           <div className="flex flex-col items-stretch gap-4">
             <div>
               <Label>
-                Do you have any unspent convictions?
-                <span className="text-red-500">*</span>
+                <span>
+                  Do you have any unspent convictions?
+                  <span className="text-red-500">*</span>
+                </span>
               </Label>
               <RadioGroup
                 value={formData.hasUnspentConvictions ? "yes" : "no"}
@@ -283,8 +284,10 @@ export default function Step3({ next, back,userId }: Props) {
               }`}
             >
               <Label>
-                Unspent Conviction Details{" "}
-                <span className="text-red-500">*</span>
+                <span>
+                  Unspent Conviction Details
+                  <span className="text-red-500">*</span>
+                </span>
               </Label>
               <Textarea
                 value={formData.unspentDetails}
@@ -296,8 +299,10 @@ export default function Step3({ next, back,userId }: Props) {
           {/* Fitness Investigation */}
           <div>
             <Label>
-              Currently under fitness to practice investigation?
-              <span className="text-red-500">*</span>
+              <span>
+                Currently under fitness to practice investigation?
+                <span className="text-red-500">*</span>
+              </span>
             </Label>
             <RadioGroup
               value={formData.fitnessInvestigation ? "yes" : "no"}
@@ -317,8 +322,10 @@ export default function Step3({ next, back,userId }: Props) {
           {/* Removed From Register */}
           <div>
             <Label>
-              Have you been ever removed from professional registeration?
-              <span className="text-red-500">*</span>
+              <span>
+                Have you been ever removed from professional registeration?
+                <span className="text-red-500">*</span>
+              </span>
             </Label>
             <RadioGroup
               value={formData.removedFromRegister ? "yes" : "no"}
@@ -339,8 +346,10 @@ export default function Step3({ next, back,userId }: Props) {
           <div className="flex flex-col items-stretch gap-4 md:col-span-2">
             <div>
               <Label>
-                Do you have DBS/CRB on update service?
-                <span className="text-red-500">*</span>
+                <span>
+                  Do you have DBS/CRB on update service?
+                  <span className="text-red-500">*</span>
+                </span>
               </Label>
               <RadioGroup
                 value={formData.crb ? "yes" : "no"}
@@ -364,14 +373,18 @@ export default function Step3({ next, back,userId }: Props) {
             <div
               className={`transition-all duration-500 ease-in-out ${
                 formData.crb
-                  ? "opacity-100 max-h-[500px]"
+                  ? "opacity-100 max-h-[900px]"
                   : "opacity-0 max-h-0 overflow-hidden"
               }`}
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
                 {/* Certificate Number - NEW FIELD */}
                 <div>
-                  <Label>Certificate Number <span className="text-red-500">*</span></Label>
+                  <Label>
+                    <span>
+                      Certificate Number <span className="text-red-500">*</span>
+                    </span>
+                  </Label>
                   <Input
                     value={formData.certificateNumber}
                     onChange={(e) =>
@@ -382,7 +395,11 @@ export default function Step3({ next, back,userId }: Props) {
 
                 {/* Full Name - NEW FIELD */}
                 <div>
-                  <Label>Full Name <span className="text-red-500">*</span></Label>
+                  <Label>
+                    <span>
+                      Full Name <span className="text-red-500">*</span>
+                    </span>
+                  </Label>
                   <Input
                     value={formData.fullName}
                     onChange={(e) => handleChange("fullName", e.target.value)}
@@ -390,7 +407,9 @@ export default function Step3({ next, back,userId }: Props) {
                 </div>
                 <div>
                   <Label>
-                    Surname <span className="text-red-500">*</span>
+                      <span>
+                      Surname <span className="text-red-500">*</span>
+                    </span>
                   </Label>
                   <Input
                     value={formData.surname}
@@ -400,7 +419,9 @@ export default function Step3({ next, back,userId }: Props) {
 
                 <div>
                   <Label>
-                    Date of Birth <span className="text-red-500">*</span>
+                      <span>
+                      Date of Birth <span className="text-red-500">*</span>
+                    </span>
                   </Label>
                   <Input
                     type="date"
@@ -411,25 +432,18 @@ export default function Step3({ next, back,userId }: Props) {
 
                 <div>
                   <Label>
-                    Upload DBS/CRB <span className="text-red-500">*</span>
+                    <span>
+                      Upload DBS/CRB <span className="text-red-500">*</span>
+                    </span>
                   </Label>
-                  <Input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) {
-                        handleChange("crbFile", e.target.files[0]);
-                        setExistingCRB(undefined); // 🔥 same as CV
-                      }
-                    }}
+                   <DocCard<Step3Type>
+                    title="DBS / CRB"
+                    fieldKey="crbFile"
+                    hint="Upload your DBS/CRB (PDF, DOC, DOCX, JPG, JPEG or PNG)"
+                    file={formData.crbFile}
+                    onUpdate={handleChange}
+                    acceptedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png", ".jpeg"]}
                   />
-                  {existingCRB && (
-                    <a href={existingCRB} target="_blank">
-                      <Button type="button" className="mt-2" size="sm">
-                        View Existing DBS/CRB
-                      </Button>
-                    </a>
-                  )}
                 </div>
               </div>
             </div>
@@ -438,8 +452,6 @@ export default function Step3({ next, back,userId }: Props) {
 
         <SignupNavButtons onBack={back} onNext={handleSubmitStep3} />
       </div>
-
-     
     </div>
   );
 }

@@ -19,6 +19,7 @@ import { getDetails, getStep1Admin, submitStep1Admin } from "@/lib/api/step1";
 import { useEffect } from "react";
 import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
+import { DocCard } from "../common/DocCard";
 
 type NavProps = {
   onNext: () => void;
@@ -67,7 +68,6 @@ export default function Step1FullTime({
 }: Props) {
   // const user = useSelector((state: RootState) => state.user);
   const [loading, setLoading] = useState(false);
-  const [existingCV, setExistingCV] = useState<string>();
   const router = useRouter();
 
   const [formData, setFormData] = useState<Step1FullTimeType>({
@@ -151,7 +151,7 @@ export default function Step1FullTime({
     }
 
     if (roleType === "permanent" || roleType === "both") {
-      if (!cvFile && !existingCV) {
+      if (!cvFile) {
         toast.error("Please upload your CV");
         return false;
       }
@@ -192,7 +192,7 @@ export default function Step1FullTime({
         form.append("changedTo", formData.changedTo);
       }
 
-      if (formData.cvFile) {
+      if (formData.cvFile instanceof File) {
         form.append("cvFile", formData.cvFile);
       }
 
@@ -238,9 +238,9 @@ export default function Step1FullTime({
           nameChanged: Boolean(d.name_changed),
           previousName: d.previous_name || "",
           changedTo: d.changed_to || "",
-          cvFile: null,
+          cvFile: d.cv_file_path || null,
         }));
-        setExistingCV(d.cv_file_path);
+
       }
 
       setLoading(false);
@@ -455,32 +455,14 @@ export default function Step1FullTime({
             Upload CV <span className="text-red-500">*</span>
           </Label>
 
-          <div className="mt-2 relative border-2! border-dashed shadow-0 outline-0 border-primary rounded-xl p-6 text-center transition">
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx"
-              onChange={(e) => {
-                if (e.target.files && e.target.files.length > 0) {
-                  handleChange("cvFile", e.target.files[0]);
-                  setExistingCV(undefined); // 🔥 important
-                }
-              }}
-              className="absolute inset-0 opacity-0 cursor-pointer"
-            />
-
-            <p className="text-sm text-muted-foreground">
-              {formData.cvFile
-                ? `Selected: ${(formData.cvFile as File).name}` // ← Now type-safe
-                : "Click or drag your CV here (PDF, DOC, DOCX – Max 5MB)"}
-            </p>
-          </div>
-          {existingCV && (
-            <a href={existingCV} target="_blank">
-              <Button type="button" className="mt-2" size="sm">
-                View Existing CV
-              </Button>
-            </a>
-          )}
+          <DocCard<Step1FullTimeType>
+            title="Curriculum Vitae (CV)"
+            fieldKey="cvFile"
+            hint="Upload your CV (PDF, DOC or DOCX)"
+            file={formData.cvFile}
+            onUpdate={handleChange}
+            acceptedTypes={[".pdf", ".doc", ".docx" ]}
+          />
         </div>
       </div>
 

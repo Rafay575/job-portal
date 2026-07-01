@@ -43,11 +43,11 @@ export default function Stepper2({
 
               // section for comment
 
-              onClick={() => {
-                if (!isLocked ) {
-                  setCurrentStep(stepNumber);
-                }
-              }}
+              // onClick={() => {
+              //   if (!isLocked ) {
+              //     setCurrentStep(stepNumber);
+              //   }
+              // }}
               
 
               className={clsx(

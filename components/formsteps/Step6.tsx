@@ -25,6 +25,11 @@ type Props = {
   back: () => void;
 };
 
+
+const MAX_MB = 5;
+const MAX_BYTES = MAX_MB * 1024 * 1024;
+const ACCEPTED = [".pdf", ".jpg", ".jpeg", ".png", ".docx", ".doc"];
+
 type DocCardProps = {
   title: string;
   fieldKey: keyof Step6Type;
@@ -32,10 +37,6 @@ type DocCardProps = {
   file: File | string | null;
   onUpdate: (key: keyof Step6Type, file: File | string | null) => void;
 };
-
-const MAX_MB = 5;
-const MAX_BYTES = MAX_MB * 1024 * 1024;
-const ACCEPTED = [".pdf", ".jpg", ".jpeg", ".png", ".docx", ".doc"];
 
 function formatBytes(bytes: number) {
   const mb = bytes / (1024 * 1024);

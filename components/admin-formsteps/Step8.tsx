@@ -20,6 +20,7 @@ import { checkApproval } from "@/lib/users";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { IoRefresh } from "react-icons/io5";
 import Link from "next/link";
+import { DocCard } from "../common/DocCard";
 
 // ─── Nav Buttons ──────────────────────────────────────────────────────────────
 
@@ -27,7 +28,6 @@ type NavProps = {
   onNext: () => void;
   onBack: () => void;
   disableBack?: boolean;
-  
 };
 
 function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
@@ -85,8 +85,7 @@ const emptyEducation = (): EducationEntry => ({
   registrationBody: "",
   registrationNumber: "",
   registrationExpiry: "",
-  certificateFile: null,
-  existingCertificateFile: null,
+  certificateFile: null, // ← existingCertificateFile removed
 });
 
 const emptyGap = (): GapEntry8 => ({
@@ -123,7 +122,6 @@ const formatDisplayDate = (dateStr: string): string => {
 };
 
 type DetectedGap8 = { gapFrom: string; gapTo: string };
-
 
 // ─── Improved Gap Detection (covers Education AND existing Gap cards) ────────
 
@@ -306,6 +304,16 @@ type CardProps = {
 function TimelineCard(props: CardProps) {
   const { entry, label, onRemove, onUpdateEducation, onUpdateGap } = props;
 
+  const handleDocUpdate = <K extends keyof EducationEntry>(
+    key: K,
+    value: EducationEntry[K],
+  ) => {
+    onUpdateEducation(
+      entry.id,
+      key as keyof Omit<EducationEntry, "kind" | "id">,
+      value,
+    );
+  };
   return (
     <div
       id={`timeline-entry-${entry.id}`}
@@ -582,50 +590,15 @@ function TimelineCard(props: CardProps) {
 
           {/* Certificate Upload */}
           <div className="md:col-span-2">
-            <Label className="text-sm">Upload Certificate (optional)</Label>
-
-            <div className="mt-2 border rounded-md p-2">
-              <input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                className="border-0!"
-                onChange={(e) => {
-                  const file = e.target.files?.[0] ?? null;
-
-                  // 👇 Save existing path before overwriting with new File
-                  if (file && typeof entry.certificateFile === "string") {
-                    onUpdateEducation(
-                      entry.id,
-                      "existingCertificateFile",
-                      entry.certificateFile,
-                    );
-                  }
-
-                  onUpdateEducation(entry.id, "certificateFile", file);
-                }}
+            <div className="md:col-span-2">
+              <DocCard<EducationEntry>
+                title="Certificate (optional)"
+                fieldKey="certificateFile"
+                hint="Upload certificate (PDF, DOC, DOCX, JPG, JPEG or PNG)"
+                file={entry.certificateFile}
+                onUpdate={handleDocUpdate}
+                acceptedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png", ".jpeg"]}
               />
-
-              {/* 🟢 SHOW NEWLY SELECTED FILE */}
-              {entry.certificateFile &&
-                typeof entry.certificateFile === "object" && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Uploaded: {entry.certificateFile.name}
-                  </p>
-                )}
-
-              {/* 🟢 SHOW EXISTING FILE FROM DB */}
-              {entry.certificateFile &&
-                typeof entry.certificateFile === "string" && (
-                  <div className="mt-2">
-                    <a
-                      href={entry.certificateFile}
-                      target="_blank"
-                      className="text-sm text-blue-600 underline"
-                    >
-                      View uploaded certificate
-                    </a>
-                  </div>
-                )}
             </div>
           </div>
 
@@ -686,11 +659,11 @@ function TimelineCard(props: CardProps) {
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-type Props = { next: () => void; back: () => void; userId:any };
+type Props = { next: () => void; back: () => void; userId: any };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function Step8({ next, back,userId }: Props) {
+export default function Step8({ next, back, userId }: Props) {
   const [loading, setLoading] = useState(false);
 
   const [timeline, setTimeline] = useState<Step8Type[]>([]);
@@ -699,7 +672,6 @@ export default function Step8({ next, back,userId }: Props) {
 
   // Load data on page load
   useEffect(() => {
-    
     async function loadTimeline() {
       try {
         setLoading(true);

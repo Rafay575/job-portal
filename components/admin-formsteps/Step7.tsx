@@ -15,6 +15,7 @@ import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
 import { checkApproval } from "@/lib/users";
 import Link from "next/link";
+import { DocCard } from "../common/DocCard";
 
 // ================= NAV BUTTONS =================
 function SignupNavButtons({ onNext, onBack }: any) {
@@ -34,7 +35,7 @@ function SignupNavButtons({ onNext, onBack }: any) {
 }
 
 // ================= MAIN COMPONENT =================
-export default function Step7({ next, back ,userId }: any) {
+export default function Step7({ next, back, userId }: any) {
   const [loading, setLoading] = useState(false);
   const [trainings, setTrainings] = useState<Step7Type[]>([
     {
@@ -48,7 +49,6 @@ export default function Step7({ next, back ,userId }: any) {
   // ================= FETCH EXISTING DATA =================
   const router = useRouter();
   useEffect(() => {
-  
     const fetchData = async () => {
       if (!userId) {
         toast.error("Id not found in useEffect");
@@ -65,8 +65,7 @@ export default function Step7({ next, back ,userId }: any) {
             provider: t.provider,
             duration: t.duration,
             completionDate: t.completion_date,
-            certificateFile: null, // file object always starts null
-            certificateFilePath: t.certificate_file_path, // existing path from DB
+            certificateFile: t.certificate_file_path || null, // ← merged
           })),
         );
       }
@@ -102,39 +101,37 @@ export default function Step7({ next, back ,userId }: any) {
   };
   // ================= REMOVE =================
   const removeTraining = (index: number) => {
-  toast((t) => (
-    <div className="flex flex-col gap-3">
-      <p className="text-sm">
-        Are you sure you want to remove this training?
-      </p>
+    toast((t) => (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm">
+          Are you sure you want to remove this training?
+        </p>
 
-      <div className="flex justify-end gap-2">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => toast.dismiss(t.id)}
-        >
-          No
-        </Button>
+        <div className="flex justify-end gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            No
+          </Button>
 
-        <Button
-          size="sm"
-          variant="destructive"
-          onClick={() => {
-            setTrainings((prev) =>
-              prev.filter((_, i) => i !== index)
-            );
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => {
+              setTrainings((prev) => prev.filter((_, i) => i !== index));
 
-            toast.dismiss(t.id);
-            toast.success("Training removed");
-          }}
-        >
-          Yes
-        </Button>
+              toast.dismiss(t.id);
+              toast.success("Training removed");
+            }}
+          >
+            Yes
+          </Button>
+        </div>
       </div>
-    </div>
-  ));
-};
+    ));
+  };
   // ================= VALIDATION =================
   const validateStep = () => {
     for (let i = 0; i < trainings.length; i++) {
@@ -144,12 +141,12 @@ export default function Step7({ next, back ,userId }: any) {
         !t.title ||
         !t.provider ||
         !t.duration ||
-        (!t.certificateFile && !t.certificateFilePath) ||
+        !t.certificateFile || // ← simplified
         !t.completionDate
       ) {
         toast.error(`Complete all fields for training ${i + 1}`);
         return false;
-      }     
+      }
     }
     return true;
   };
@@ -172,14 +169,21 @@ export default function Step7({ next, back ,userId }: any) {
     }
     setLoading(false);
   };
+  const updateTrainingFile =
+    (index: number) =>
+    <K extends keyof Step7Type>(field: K, value: Step7Type[K]) => {
+      setTrainings((prev) => {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], [field]: value };
+        return updated;
+      });
+    };
   if (loading) return <FullPageLoader />;
 
   // ================= UI =================
   return (
     <div className="relative px-2">
-      <div
-       
-      >
+      <div>
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <AnimatePresence>
@@ -242,30 +246,14 @@ export default function Step7({ next, back ,userId }: any) {
                       <span className="text-red-700">*</span>
                     </Label>
 
-                    <Input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0] || null;
-                        const updated = [...trainings];
-                        updated[index].certificateFile = file;
-                        setTrainings(updated);
-                      }}
+                    <DocCard<Step7Type>
+                      title="Training Certificate"
+                      fieldKey="certificateFile"
+                      hint="Upload certificate (PDF, DOC, DOCX, JPG, JPEG or PNG)"
+                      file={t.certificateFile}
+                      onUpdate={updateTrainingFile(index)}
+                      acceptedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png", ".jpeg"]}
                     />
-
-                    {/* Show existing file link if already uploaded from DB */}
-                    {t.certificateFilePath && !t.certificateFile && (
-                      <p className="text-xs text-primary m-1">
-                        <a
-                          href={t.certificateFilePath}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="underline"
-                        >
-                          View Certificate
-                        </a>
-                      </p>
-                    )}
                   </div>
 
                   {/* Completion Date */}
@@ -304,7 +292,6 @@ export default function Step7({ next, back ,userId }: any) {
           <SignupNavButtons onBack={back} onNext={handleSubmit} />
         </div>
       </div>
-
     </div>
   );
 }
