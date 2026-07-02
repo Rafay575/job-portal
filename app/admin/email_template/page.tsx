@@ -712,13 +712,13 @@ export default function EmailTemplatesPage() {
                         >
                           <LuPencilLine className="w-4 h-4" /> Edit
                         </button>
-                        <button
+                        {/* <button
                           onClick={() => handleDelete(tpl.slug)}
                           disabled
                           className="flex items-center gap-1.5 bg-red-50 text-red-600 border border-red-200 text-sm px-3 py-1.5 rounded-lg hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 cursor-pointer"
                         >
                           <LuTrash2 className="w-4 h-4" /> Delete
-                        </button>
+                        </button> */}
                       </div>
                     </td>
                   </tr>
