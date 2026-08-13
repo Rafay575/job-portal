@@ -25,11 +25,6 @@ type Props = {
   back: () => void;
 };
 
-
-const MAX_MB = 5;
-const MAX_BYTES = MAX_MB * 1024 * 1024;
-const ACCEPTED = [".pdf", ".jpg", ".jpeg", ".png", ".docx", ".doc"];
-
 type DocCardProps = {
   title: string;
   fieldKey: keyof Step6Type;
@@ -37,6 +32,10 @@ type DocCardProps = {
   file: File | string | null;
   onUpdate: (key: keyof Step6Type, file: File | string | null) => void;
 };
+
+const MAX_MB = 5;
+const MAX_BYTES = MAX_MB * 1024 * 1024;
+const ACCEPTED = [".pdf", ".jpg", ".jpeg", ".png", ".docx", ".doc"];
 
 function formatBytes(bytes: number) {
   const mb = bytes / (1024 * 1024);
@@ -132,10 +131,10 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
       (isExistingUrl && (file as string).toLowerCase().includes(".pdf")));
 
   return (
-    <div className="rounded-lg md:rounded-2xl bg-white p-4 border !max-w-full !overflow-x-hidden ">
+    <div className="rounded-2xl border bg-white p-4 ">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <Label className="text-md font-semibold text-primary">
+          <Label className="text-sm font-semibold">
             {title} <span className="text-red-500">*</span>
           </Label>
           {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
@@ -167,7 +166,7 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
       >
         {!file ? (
           <div className="flex items-center gap-3">
-            <div className=" rounded-xl border flex items-center justify-center">
+            <div className="h-10 w-10 rounded-xl border flex items-center justify-center">
               <UploadCloud className="h-5 w-5" />
             </div>
             <div className="flex-1">
@@ -177,7 +176,7 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col xl:flex-row items-start justify-between gap-3">
+          <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-sm font-medium truncate">
                 {isExistingUrl ? "Uploaded document" : (file as File).name}
@@ -192,7 +191,7 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
 
               {/* ✅ "Saved" badge for existing DB documents */}
               {isExistingUrl && (
-                <p className="text-xs text-primary font-medium mt-1">
+                <p className="text-xs text-green-600 font-medium mt-1">
                   ✓ Previously uploaded
                 </p>
               )}
@@ -207,7 +206,6 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
                 variant="outline"
                 size="sm"
                 onClick={onPick}
-                className="text-primary border !border-primary "
               >
                 Replace
               </Button>
@@ -218,7 +216,7 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
                   variant="outline"
                   size="sm"
                   onClick={openPreview}
-                  className="gap-1.5 text-primary border !border-primary "
+                  className="gap-1.5"
                 >
                   <Eye className="h-4 w-4" />
                   View
@@ -389,18 +387,18 @@ export default function Step6({ next, back }: Props) {
   };
   if (loading) return <FullPageLoader />;
   return (
-    <div className="relative  max-w-full pb-4">
+    <div className="relative px-2">
       <div
         className={blur ? "blur-[3px] pointer-events-none select-none " : ""}
       >
         <div className="min-w-full space-y-4 flex flex-col">
-          <div className="rounded-2xl border bg-white p-3 md:p-5">
-            <h2 className="text-lg font-semibold mb-3 text-primary">
+          <div className="rounded-2xl border bg-white p-5">
+            <h2 className="text-lg font-semibold mb-3">
               Identity & Verification Documents
             </h2>
 
-            <div className="grid lg:grid-cols-6 gap-4 max-w-full">
-              <div className="md:col-span-2 ">
+            <div className="grid md:grid-cols-6 gap-4">
+              <div className="col-span-2">
                 <DocCard
                   title="Passport"
                   fieldKey="passport"
@@ -409,7 +407,7 @@ export default function Step6({ next, back }: Props) {
                   onUpdate={updateDoc}
                 />
               </div>
-              <div className="md:col-span-2">
+              <div className="col-span-2">
                 <DocCard
                   title="Driving Licence (Front)"
                   fieldKey="drivingLicenceFront"
@@ -418,7 +416,7 @@ export default function Step6({ next, back }: Props) {
                   onUpdate={updateDoc}
                 />
               </div>
-              <div className="md:col-span-2">
+              <div className="col-span-2">
                 <DocCard
                   title="Driving Licence (Back)"
                   fieldKey="drivingLicenceBack"
@@ -427,7 +425,7 @@ export default function Step6({ next, back }: Props) {
                   onUpdate={updateDoc}
                 />
               </div>
-              <div className="md:col-span-3">
+              <div className="col-span-3">
                 <DocCard
                   title="Proof of ID 1"
                   fieldKey="proofId1"
@@ -436,7 +434,7 @@ export default function Step6({ next, back }: Props) {
                   onUpdate={updateDoc}
                 />
               </div>
-              <div className="md:col-span-3">
+              <div className="col-span-3">
                 <DocCard
                   title="Proof of ID 2"
                   fieldKey="proofId2"

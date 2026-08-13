@@ -212,7 +212,7 @@ export default function AdminDashboard() {
   if (loading) return <FullPageLoader />;
   if (error) return <p>{error}</p>;
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br  p-8 max-w-full overflow-x-hidden">
+    <div className="w-full min-h-screen bg-gradient-to-br  p-8">
       <div className="">
         {/* Header */}
         <div className="mb-8">
@@ -225,7 +225,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8 max-w-full overflow-x-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
           {kpiCards.map((card, index) => {
             const Icon = card.icon;
 
@@ -256,7 +256,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 max-w-full overflow-x-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Applications & Hires Trend */}
           <Card className="lg:col-span-2 border-slate-300">
             <CardHeader>
@@ -379,7 +379,7 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        <Card className="border-slate-300 max-w-full overflow-x-hidden">
+        <Card className="border-slate-300">
           <CardHeader>
             <CardTitle className="text-primary">Recent Candidates</CardTitle>
             <CardDescription className="text-gray-500">

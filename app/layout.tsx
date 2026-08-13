@@ -11,6 +11,9 @@ import ReduxProvider from "@/lib/provider";
 import { Toaster } from "react-hot-toast";
 import { CheckCircle, XCircle } from "lucide-react";
 import AuthChecker from "@/components/AuthChecker";
+import Providers from "@/components/Providers";
+import { Provider } from "react-redux";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -18,13 +21,15 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   const isAdminRoute =
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/user");
-  const isAuth = pathname.startsWith("/auth");
+    pathname?.startsWith("/admin") === true ||
+    pathname?.startsWith("/auth") === true ||
+    pathname?.startsWith("/user") === true;
+
+  const isAuth = pathname?.startsWith("/auth") === true;
   return (
     <html lang="en">
       <title>Hayaibu Talent </title>
+
       <body className={` antialiased`}>
         <QueryProvider>
           <TooltipProvider>
@@ -65,8 +70,7 @@ export default function RootLayout({
                   <Navbar />
                 </>
               )}
-              <div className="max-w-screen ">{children}</div>
-              
+              {children}
               {!isAdminRoute && (
                 <>
                   <Footer />

@@ -116,6 +116,12 @@ export async function saveTimeline(
         // ✅ FILE HANDLING
         if (item.certificateFile instanceof File) {
           formData.append(`certificate_${i}`, item.certificateFile);
+          if (item.existingCertificateFile) {
+            formData.append(
+              `existing_certificate_${i}`,
+              item.existingCertificateFile,
+            );
+          }
         } else if (
           typeof item.certificateFile === "string" &&
           item.certificateFile
@@ -141,7 +147,7 @@ export async function saveTimeline(
     if (!data.success) {
       throw new Error(data.message);
     }
-    toast.success(data.message);
+    toast.success(data.message)
 
     return data;
   } catch (error) {

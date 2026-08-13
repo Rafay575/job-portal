@@ -17,23 +17,23 @@ interface RoleSelectorProps {
 
 const roles: Role[] = [
   {
-    id: "permanent",
-    title: "Permanent Role",
-    description: "Flexible hours, work part of the day",
-    image: "/role-icon2.png",
-  },
-  {
-    id: "agency-work",
-    title: "Agency Work Role",
-    description: "Flexible hours, work part of the day",
-    image: "/role-icon1.png",
-  },
-  {
-    id: "both",
-    title: "Both",
-    description: "Flexible hours, work part of the day",
-    image: "/role-icon3.png",
-  },
+  id: "permanent",
+  title: "Permanent Role",
+  description: "Stable, long-term employment with consistent hours.",
+  image: "/role-icon2.png",
+},
+{
+  id: "agency-work",
+  title: "Agency Work Role",
+  description: "Flexible work with shifts that suit your schedule.",
+  image: "/role-icon1.png",
+},
+{
+  id: "both",
+  title: "Both Roles",
+  description: "Choose permanent or flexible agency opportunities.",
+  image: "/role-icon3.png",
+},
 ];
 
 export default function RoleSelector({ value, onChange }: RoleSelectorProps) {

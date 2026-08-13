@@ -21,7 +21,6 @@ export default function Profile() {
   const router = useRouter();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
-  console.log("User in Profile component:", user);
   const handleLogout = async () => {
     try {
       dispatch(clearUser());
@@ -32,22 +31,32 @@ export default function Profile() {
     }
   };
   const getInitials = (name?: string | null) => {
-    if (!name) return "U";
+  if (!name || typeof name !== "string") {
+    return "U";
+  }
 
-    const parts = name.trim().split(" ");
+  const parts = name.trim().split(/\s+/).filter(Boolean);
 
-    const initials =
-      parts.length === 1 ? parts[0][0] : parts[0][0] + parts[1][0];
+  if (parts.length === 0) {
+    return "U";
+  }
 
-    return initials.toUpperCase();
-  };
+  if (parts.length === 1) {
+    return parts[0].charAt(0).toUpperCase();
+  }
+
+  return (
+    parts[0].charAt(0) +
+    parts[parts.length - 1].charAt(0)
+  ).toUpperCase();
+};
   return (
     <div className="flex items-center gap-[5px] md:gap-[10px] z-[999] cursor-pointer">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="p-0 rounded-full border focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="p-0 rounded-full border-none  focus-visible:ring-0 focus-visible:ring-offset-0"
           >
             <Avatar className="w-[35px] h-[35px]">
               <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
@@ -67,7 +76,7 @@ export default function Profile() {
                 {user.name || "User"}
               </p>
               <p className="text-gray-500 text-[13px]! italic">
-                {user.role || "user"}
+                {user.role || ""}
               </p>
             </div>
           </DropdownMenuItem>

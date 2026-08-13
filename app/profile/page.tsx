@@ -7,9 +7,6 @@ import { Button } from "@/components/ui/button";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { Loader2, Pencil, Eye, EyeOff } from "lucide-react";
-import { useDispatch } from "react-redux";
-import { setUser } from "@/lib/userSlice";
-
 const validatePassword = (password: string) => {
   const errors: string[] = [];
   if (password.length < 8) {
@@ -33,7 +30,6 @@ const validatePassword = (password: string) => {
 
 export default function ProfilePage() {
   const user = useSelector((state: RootState) => state.user);
-  const dispatch = useDispatch();
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -51,6 +47,7 @@ export default function ProfilePage() {
     try {
       setLoading(true);
       const res = await getUserById(user.id);
+      console.log("res", res);
       if (res.success) setData(res.data);
     } finally {
       setLoading(false);
@@ -60,21 +57,6 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user?.id) fetchUser();
   }, [user]);
-
-  const syncUser = async () => {
-    const res = await getUserById(user.id);
-    if (res.success) {
-      setData(res.data);
-      dispatch(
-        setUser({
-          ...user,
-          name: res.data.name,
-          email: res.data.email,
-        }),
-      );
-    }
-    return res;
-  };
 
   const handleUpdate = async () => {
     if (!editType) return;
@@ -99,7 +81,7 @@ export default function ProfilePage() {
       });
 
       if (editType === "name") {
-        await syncUser();
+        await fetchUser();
         setEditType(null);
         setValue("");
       } else {
@@ -126,7 +108,7 @@ export default function ProfilePage() {
       setEditType(null);
       setOtp("");
       setValue("");
-      await syncUser();
+      await fetchUser();
     } finally {
       setSubmitting(false);
     }

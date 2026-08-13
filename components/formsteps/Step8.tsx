@@ -20,7 +20,7 @@ import { checkApproval } from "@/lib/users";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { IoRefresh } from "react-icons/io5";
 import Link from "next/link";
-import { DocCard } from "../common/DocCard";
+
 // ─── Nav Buttons ──────────────────────────────────────────────────────────────
 
 type NavProps = {
@@ -84,7 +84,8 @@ const emptyEducation = (): EducationEntry => ({
   registrationBody: "",
   registrationNumber: "",
   registrationExpiry: "",
-  certificateFile: null, // ← existingCertificateFile removed
+  certificateFile: null,
+  existingCertificateFile: null,
 });
 
 const emptyGap = (): GapEntry8 => ({
@@ -332,17 +333,6 @@ type CardProps = {
 
 function TimelineCard(props: CardProps) {
   const { entry, label, onRemove, onUpdateEducation, onUpdateGap } = props;
-
-  const handleDocUpdate = <K extends keyof EducationEntry>(
-    key: K,
-    value: EducationEntry[K],
-  ) => {
-    onUpdateEducation(
-      entry.id,
-      key as keyof Omit<EducationEntry, "kind" | "id">,
-      value,
-    );
-  };
 
   return (
     <div
@@ -620,14 +610,51 @@ function TimelineCard(props: CardProps) {
 
           {/* Certificate Upload */}
           <div className="md:col-span-2">
-            <DocCard<EducationEntry>
-              title="Certificate (optional)"
-              fieldKey="certificateFile"
-              hint="Upload certificate (PDF, DOC, DOCX, JPG, JPEG or PNG)"
-              file={entry.certificateFile}
-              onUpdate={handleDocUpdate}
-              acceptedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png", ".jpeg"]}
-            />
+            <Label className="text-sm">Upload Certificate (optional)</Label>
+
+            <div className="mt-2 border rounded-md p-2">
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                className="border-0!"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+
+                  // 👇 Save existing path before overwriting with new File
+                  if (file && typeof entry.certificateFile === "string") {
+                    onUpdateEducation(
+                      entry.id,
+                      "existingCertificateFile",
+                      entry.certificateFile,
+                    );
+                  }
+
+                  onUpdateEducation(entry.id, "certificateFile", file);
+                }}
+              />
+
+              {/* 🟢 SHOW NEWLY SELECTED FILE */}
+              {entry.certificateFile &&
+                typeof entry.certificateFile === "object" && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Uploaded: {entry.certificateFile.name}
+                  </p>
+                )}
+
+              {/* 🟢 SHOW EXISTING FILE FROM DB */}
+              {entry.certificateFile &&
+                typeof entry.certificateFile === "string" && (
+                  <div className="mt-2">
+                    <a
+                      href={entry.certificateFile}
+                      target="_blank"
+                      className="text-sm text-blue-600 underline"
+                    >
+                      View uploaded certificate
+                    </a>
+                  </div>
+                )}
+            </div>
           </div>
 
           {/* Notes */}

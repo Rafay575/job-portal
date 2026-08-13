@@ -83,9 +83,9 @@ export default function SignInPage() {
           loggedIn: true,
         }),
       );
-      if (data?.user?.role !== "admin") {
+      if (data?.user?.role  !== "admin") {
         router.push("/user/dashboard");
-      } else {
+      }else{
         router.push("/admin/dashboard");
       }
     },
@@ -369,8 +369,8 @@ export default function SignInPage() {
                 <FaApple className="text-[20px] text-black" />
                 Sign in with Apple
               </Button>
-            </div>
-            */}
+            </div> */}
+
             {/* Terms */}
             <p className="mt-5 text-[11px] leading-4 text-gray-500">
               By clicking next, you agree to Hayabiu Talent&apos;s{" "}
@@ -464,7 +464,7 @@ export default function SignInPage() {
                 Reset Password
               </h2>
               <p className="text-sm text-gray-600 mt-2">
-                Enter the OTP sent to
+                Enter the OTP sent to 
                 <span className="font-semibold"> {forgotEmail}</span>
               </p>
             </div>

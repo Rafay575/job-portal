@@ -8,24 +8,34 @@ import Image from "next/image";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import Profile from "./Profile";
+import { usePathname } from "next/navigation";
+import { SidebarTrigger } from "./ui/sidebar";
+import { FiSidebar } from "react-icons/fi";
 
 const navLinks = [
   { name: "Home", href: "/" },
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
   { name: "Jobs", href: "/jobs" },
-  { name: "Blog", href: "/blogs" },
   { name: "Dashboard", href: "/user/dashboard" },
   { name: "Admin", href: "/admin/dashboard" },
 ];
 
 export default function Navbar() {
+  const pathname = usePathname();
+
+  const isDashboard = pathname?.startsWith("/user/dashboard") === true;
   const user = useSelector((state: RootState) => state.user);
   return (
     <div className="border-b border-slate-200 sticky top-0 left-0 bg-white z-50">
-      <div className=" px-4 py-2 flex items-center justify-between relative">
+      <div
+        className={`px-4 py-2 flex items-center ${isDashboard ? "justify-end" : "justify-between"} relative`}
+      >
         {/* LOGO */}
-        <Link href="/" className="flex items-center gap-2 w-[30%] max-w-45">
+        <Link
+          href="/"
+          className={`${isDashboard ? "hidden" : "flex"} flex items-center gap-2 w-[30%] max-w-45`}
+        >
           <div className="relative w-full aspect-[500/169]">
             <Image
               src="/logo.png"
@@ -39,8 +49,18 @@ export default function Navbar() {
           </div>
         </Link>
 
+        {isDashboard && (
+          <SidebarTrigger className="mr-auto ">
+            <FiSidebar
+              className={` duration-500 text-[20px] lg:text-[25px]  hover:cursor-pointer text-[var(--foreground)]`}
+            />
+          </SidebarTrigger>
+        )}
+
         {/* DESKTOP NAV */}
-        <nav className="hidden lg:flex items-center gap-2 text-md">
+        <nav
+          className={`${isDashboard ? "hidden" : "hidden lg:flex"}   items-center gap-2 text-md`}
+        >
           {navLinks.map((link) => {
             if (!user.loggedIn) {
               if (link.name === "Dashboard") return false;
@@ -56,7 +76,13 @@ export default function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className="font-medium hover:text-white hover:bg-primary px-5 py-1.5 rounded-full transition"
+                className="relative font-semibold!  px-5 py-1.5 rounded-full transition hover:text-primary
+             after:content-[''] after:absolute after:left-1/2 after:bottom-0
+             after:h-[2px] after:w-full after:bg-primary
+             after:-translate-x-1/2 after:scale-x-0
+             after:origin-center
+             after:transition-transform after:duration-300
+             hover:after:scale-x-100"
               >
                 <div className="flex items-center ">
                   <p>{link.name}</p>
@@ -71,12 +97,6 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-3">
             <div className="inline-flex rounded-full border  bg-white ">
               {/* Left button: outlined/ghost */}
-              {/* <Button
-                variant="outline"
-                className="rounded-full px-6 py-2 border-0 shadow-none bg-white hover:bg-white"
-              >
-                Post a Job
-              </Button> */}
 
               {/* Right button: filled/primary */}
               <Link href={"/auth/register"}>
@@ -158,7 +178,9 @@ export default function Navbar() {
                 </Button> */}
 
                 <Link href={"/auth/register"} className="w-full">
-                  <Button className="bg-primary w-full">Register a CV</Button>
+                  <Button className="bg-primary w-full border-none">
+                    Register a CV
+                  </Button>
                 </Link>
                 <Link href={"/auth/login"} className="w-full">
                   <Button

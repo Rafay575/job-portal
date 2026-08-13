@@ -5,6 +5,9 @@ import Header from "@/components/Header";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { JobSidebar } from "@/components/job-sidebar";
 import DashboardCheck from "@/components/DashboardCheck";
+import Navbar from "@/components/Navbar";
+import ReduxProvider from "@/lib/provider";
+import Providers from "@/components/Providers";
 
 export default function RootLayout({
   children,
@@ -15,19 +18,19 @@ export default function RootLayout({
     <div className="users-layout">
       <title>Hayaibu Talent | Dashboard</title>
       <div className="">
-        {/* <SidebarProvider> */}
-          <div className="flex-1  max-w-screen overflow-x-hidden">
+        <SidebarProvider>
+          <div className="flex-1 ">
             <TooltipProvider>
-              <Header />
-              <div className="flex container mx-auto items-start ">
-                {/* <JobSidebar /> */}
+              {/* <Header /> */}
+              {/* <Navbar/> */}
+              <div className="flex mx-auto items-start ">
                 <DashboardCheck>
-                  <div className="flex-1 pb-2 max-w-full">{children}</div>
+                  <div className="flex-1 p-2">{children}</div>
                 </DashboardCheck>
               </div>
             </TooltipProvider>
           </div>
-        {/* </SidebarProvider>x` */}
+        </SidebarProvider>
       </div>
     </div>
   );

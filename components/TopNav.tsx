@@ -4,23 +4,15 @@ import { FaLinkedin } from "react-icons/fa6";
 
 export default function TopNav() {
   return (
-    <div className="bg-primary text-white py-2">
-      <div className="container flex items-center justify-between mx-auto">
-        <div className="flex items-center gap-5">
-          <p className="text-[12px] sm:!text-[14px]">
-            <a href="mailto:info@hayaibutalent.com">info@hayaibutalent.com</a>
-          </p>
-
-          <a href="tel:+44365336587">
-            <p className="hidden sm:block">+44-3653-36587</p>
-          </a>
-        </div>
-        <div className="flex items-center gap-2">
-          <FaFacebookSquare className="text-[22px]" />
-          <FaInstagramSquare className="text-[22px]" />
-          <FaLinkedin className="text-[22px]" />
+    <div className="bg-primary from-brand-900 via-brand-800 to-brand-900 text-white text-xs py-2.5 px-4 overflow-hidden relative">
+        <div className="max-w-7xl mx-auto flex items-center justify-center">
+          <div className="flex items-center animate-pulse">
+            <i className="fa-solid fa-bolt mr-2 text-yellow-400"></i>
+            <span className="font-medium tracking-wide text-center md:text-left">⚡ Empowering UK Private Healthcare Networks with Elite Medical Talent & Advanced Workforce Solutions.</span>
+            <span className="mx-4 text-brand-300 hidden md:block">|</span>
+            <span className="text-brand-200 font-medium hidden md:block">Now serving 450+ verified employers across England, Scotland, Wales & Northern Ireland</span>
+          </div>
         </div>
       </div>
-    </div>
   );
 }

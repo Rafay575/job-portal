@@ -238,3 +238,107 @@ export async function sendAccountCreatedEmail(email: string, name: string) {
     console.error("Account Created Email Error:", error);
   }
 }
+
+export async function sendContactFormEmail(
+  name: string,
+  email: string,
+  phone: string,
+  enquiryType: string,
+  subject: string,
+  message: string
+) {
+  try {
+    await transporter.sendMail({
+      from: `"Hayaibu Talent" <${process.env.EMAIL_USER}>`,
+      to: process.env.ADMIN_MAIL,
+      replyTo: email,
+
+      subject: `New Contact Form - ${subject}`,
+
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <body style="font-family: Arial, sans-serif; background:#f5f5f5; padding:30px;">
+            
+            <div style="
+              max-width:650px;
+              margin:auto;
+              background:#ffffff;
+              border-radius:12px;
+              padding:30px;
+              box-shadow:0 4px 15px rgba(0,0,0,0.08);
+            ">
+
+              <h2 style="color:#6d28d9; margin-bottom:25px;">
+                New Contact Form Submission
+              </h2>
+
+              <p>
+                A new message has been submitted through the Hayaibu Talent
+                contact form.
+              </p>
+
+              <hr style="border:none;border-top:1px solid #eee;margin:25px 0;" />
+
+              <p>
+                <strong>Name:</strong><br />
+                ${name}
+              </p>
+
+              <p>
+                <strong>Email:</strong><br />
+                ${email}
+              </p>
+
+              <p>
+                <strong>Phone:</strong><br />
+                ${phone || "Not provided"}
+              </p>
+
+              <p>
+                <strong>Enquiry Type:</strong><br />
+                ${enquiryType || "General Enquiry"}
+              </p>
+
+              <p>
+                <strong>Subject:</strong><br />
+                ${subject}
+              </p>
+
+              <p>
+                <strong>Message:</strong><br />
+                ${message.replace(/\n/g, "<br />")}
+              </p>
+
+              <hr style="border:none;border-top:1px solid #eee;margin:25px 0;" />
+
+              <p style="font-size:13px;color:#777;">
+                This email was automatically generated from the
+                Hayaibu Talent website contact form.
+              </p>
+
+            </div>
+
+          </body>
+        </html>
+      `,
+    });
+
+    console.log("✅ Contact email sent successfully");
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error("❌ Contact Email Error:", error);
+
+    // IMPORTANT: let API know that sending failed
+    throw error;
+  }
+}
+
+
+
+
+
+

@@ -16,6 +16,7 @@ import { VscGraph } from "react-icons/vsc";
 import { PiUsers } from "react-icons/pi";
 import { BsEnvelopeAt } from "react-icons/bs";
 import { useRouter } from "next/navigation";
+import { HiOutlineClipboardDocumentCheck } from "react-icons/hi2";
 
 const links = [
   {
@@ -32,6 +33,12 @@ const links = [
     name: "Compliance",
     url: "/admin/compliance",
     icon: GrCompliance,
+  },
+  {
+    name: "Applied Jobs",
+    url: "/admin/applied-jobs",
+    icon: HiOutlineClipboardDocumentCheck 
+,
   },
   {
     name: "Email Templates",

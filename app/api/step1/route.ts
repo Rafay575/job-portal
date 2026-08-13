@@ -72,7 +72,6 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-
 // Create or Edit Step1
 export async function POST(req: NextRequest) {
   try {
