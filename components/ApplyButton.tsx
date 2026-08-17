@@ -222,18 +222,18 @@ export default function ApplyButton({ saleId }: ApplyButtonProps) {
   // APPLY BUTTON
   // ============================================
 
+  if (user?.loggedIn && user?.role === "admin") {
+    return null;
+  }
+
   return (
-    <>
-      {user?.loggedIn && user?.role === "employee" && (
-        <button
-          type="button"
-          onClick={handleApply}
-          disabled={submitting}
-          className="bg-gradient-to-r from-primary to-primary hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold px-6 sm:px-8 py-3 rounded-xl shadow-lg transition text-base sm:text-md btn-glow cursor-pointer"
-        >
-          {submitting ? "Applying..." : "Apply For This Role Now"}
-        </button>
-      )}
-    </>
+    <button
+      type="button"
+      onClick={handleApply}
+      disabled={submitting}
+      className="bg-gradient-to-r from-primary to-primary hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold px-6 sm:px-8 py-3 rounded-xl shadow-lg transition text-base sm:text-md btn-glow cursor-pointer"
+    >
+      {submitting ? "Applying..." : "Apply For This Role Now"}
+    </button>
   );
 }
