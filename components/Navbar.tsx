@@ -100,15 +100,16 @@ export default function Navbar() {
 
               {/* Right button: filled/primary */}
               <Link href={"/auth/register"}>
-                <Button className="rounded-full px-4 py-2">
+                <Button className="rounded-full px-4 py-2 font-[600]! border border-primary! text-primary bg-white hover:text-white hover:scale-[1.07] duration-300">
                   Register as Applicant
                 </Button>
               </Link>
             </div>
             <Link href={"/auth/login"}>
               <Button
-                variant="outline"
-                className="border-primary text-primary rounded-4xl"
+                // variant="outline"
+                className=" rounded-4xl font-[600]!
+                "
               >
                 Sign in
               </Button>
@@ -179,13 +180,13 @@ export default function Navbar() {
 
                 <Link href={"/auth/register"} className="w-full">
                   <Button className="bg-primary w-full border-none">
-                    Register as applicant
+                    Register as Applicant
                   </Button>
                 </Link>
                 <Link href={"/auth/login"} className="w-full">
                   <Button
                     variant="outline"
-                    className="bg-primary text-white w-full"
+                    className=" w-full border-primary! text-primary"
                   >
                     Sign in
                   </Button>
