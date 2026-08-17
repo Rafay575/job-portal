@@ -101,7 +101,7 @@ export default function Navbar() {
               {/* Right button: filled/primary */}
               <Link href={"/auth/register"}>
                 <Button className="rounded-full px-4 py-2">
-                  Register a CV
+                  Register as Applicant
                 </Button>
               </Link>
             </div>
@@ -179,7 +179,7 @@ export default function Navbar() {
 
                 <Link href={"/auth/register"} className="w-full">
                   <Button className="bg-primary w-full border-none">
-                    Register a CV
+                    Register as applicant
                   </Button>
                 </Link>
                 <Link href={"/auth/login"} className="w-full">

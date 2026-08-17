@@ -162,10 +162,10 @@ export default async function JobDetailPage({ params }: PageProps) {
               {/* OFFICE + UNIT */}
 
               <p className="text-slate-500 dark:text-slate-400 font-medium mt-2 flex items-center gap-y-1 gap-x-4 flex-wrap">
-                <span className="flex items-center gap-1">
+                {/* <span className="flex items-center gap-1">
                   <FaBuilding className="text-primary shrink-0" />
                   {job.office}
-                </span>
+                </span> */}
 
                 <span className="flex items-center gap-1">
                   <FaLocationDot className="text-primary shrink-0" />
@@ -191,7 +191,7 @@ export default async function JobDetailPage({ params }: PageProps) {
               JOB SUMMARY
           ============================================ */}
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 bg-slate-50 dark:bg-slate-900 p-6 rounded-2xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50 dark:bg-slate-900 p-6 rounded-2xl">
             {/* CATEGORY */}
 
             <div>
@@ -236,7 +236,7 @@ export default async function JobDetailPage({ params }: PageProps) {
               </span>
 
               <span className="font-semibold text-slate-800 dark:text-slate-200">
-                {job.postcode || "N/A"}
+                {job.postcode.split(" ")[0] || "N/A"}
               </span>
             </div>
 

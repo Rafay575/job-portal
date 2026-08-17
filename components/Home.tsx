@@ -330,7 +330,7 @@ export default function HomePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Card 1 - Doctors */}
-          <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100! dark:border-slate-700 hover:-translate-y-3 transition duration-500 group card-3d">
+          <Link href={"/doctor-&-specialist-positions"} className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100! dark:border-slate-700 hover:-translate-y-3 transition duration-500 group card-3d">
             <div className="relative h-52 rounded-2xl overflow-hidden mb-6">
               <img
                 src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=800&q=80"
@@ -358,10 +358,10 @@ export default function HomePage() {
                 240+ Active Roles
               </span>
             </div>
-          </div>
+          </Link>
 
           {/* Card 2 - Nurses */}
-          <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100! dark:border-slate-700 hover:-translate-y-3 transition duration-500 group card-3d">
+          <Link href={"/registered-nurse-vacancies"} className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100! dark:border-slate-700 hover:-translate-y-3 transition duration-500 group card-3d">
             <div className="relative h-52 rounded-2xl overflow-hidden mb-6">
               <img
                 src="https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80"
@@ -389,10 +389,10 @@ export default function HomePage() {
                 580+ Active Roles
               </span>
             </div>
-          </div>
+          </Link>
 
           {/* Card 3 - Healthcare Assistants */}
-          <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100! dark:border-slate-700 hover:-translate-y-3 transition duration-500 group card-3d">
+          <Link href={"/healthcare-assistants-&-care"} className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100! dark:border-slate-700 hover:-translate-y-3 transition duration-500 group card-3d">
             <div className="relative h-52 rounded-2xl overflow-hidden mb-6">
               <img
                 src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80"
@@ -420,7 +420,7 @@ export default function HomePage() {
                 380+ Active Roles
               </span>
             </div>
-          </div>
+          </Link>
         </div>
       </section>
 

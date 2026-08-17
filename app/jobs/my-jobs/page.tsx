@@ -170,14 +170,14 @@ function ApplicationCard({
             {/* OFFICE */}
 
             <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-500 dark:text-slate-400">
-              <span className="flex items-center gap-2">
+              {/* <span className="flex items-center gap-2">
                 <FaBuilding className="text-primary shrink-0" />
                 {job.office}
-              </span>
+              </span> */}
 
               {job.unit && (
                 <span className="flex items-center gap-2">
-                  <FaBriefcase className="text-primary shrink-0" />
+                  <FaMapMarkerAlt className="text-primary shrink-0" />
                   {job.unit}
                 </span>
               )}
@@ -185,12 +185,12 @@ function ApplicationCard({
 
             {/* LOCATION */}
 
-            {job.region && (
+            {/* {job.region && (
               <div className="mt-2 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                 <FaMapMarkerAlt className="text-primary" />
                 {job.region}
               </div>
-            )}
+            )} */}
           </div>
 
           {/* VIEW BUTTON */}

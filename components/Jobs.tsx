@@ -759,11 +759,11 @@ export default function JobsPage() {
                     {/* COMPANY / unit */}
 
                     <p className="text-slate-600 dark:text-slate-400 text-sm font-medium flex items-center flex-wrap gap-4">
-                      <span className="flex items-center gap-1">
+                      {/* <span className="flex items-center gap-1">
                         <FaBuilding className="text-primary shrink-0" />
 
                         <span>{job.office}</span>
-                      </span>
+                      </span> */}
 
                       <span className="flex items-center gap-1">
                         <FaLocationDot className="text-primary shrink-0" />
@@ -777,7 +777,8 @@ export default function JobsPage() {
                     <div className="flex flex-wrap gap-3 text-sm text-slate-500 dark:text-slate-400">
                       {job.region && <span>📍 {job.region}</span>}
 
-                      {job.postcode && <span>{job.postcode}</span>}
+                      {/* {job.postcode && <span>{job.postcode}</span>} */}
+                      {job.postcode && <span>{job.postcode.split(" ")[0]}</span>}
 
                       {job.region_distance_km !== undefined && (
                         <span>{job.region_distance_km} km away</span>
