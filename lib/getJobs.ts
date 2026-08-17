@@ -23,7 +23,7 @@ export const getJobById = async (
 ): Promise<JobDetailsResponse> => {
   try {
     const response = await axios.get(
-      `http://192.168.110.15/api/sales/details/${id}`,
+      `${process.env.SALES_API}/api/sales/details/${id}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.SALES_API_TOKEN}`,

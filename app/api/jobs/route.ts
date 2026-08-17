@@ -4,7 +4,7 @@ import axios from "axios";
 export async function GET() {
   try {
     const response = await axios.get(
-      "http://192.168.110.15/api/sales/open",
+      `${process.env.SALES_API}/api/sales/open`,
       {
         headers: {
           Authorization: `Bearer ${process.env.SALES_API_TOKEN}`,
