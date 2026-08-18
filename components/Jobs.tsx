@@ -759,11 +759,7 @@ export default function JobsPage() {
                     {/* COMPANY / unit */}
 
                     <p className="text-slate-600 dark:text-slate-400 text-sm font-medium flex items-center flex-wrap gap-4">
-                      {/* <span className="flex items-center gap-1">
-                        <FaBuilding className="text-primary shrink-0" />
-
-                        <span>{job.office}</span>
-                      </span> */}
+                      
 
                       <span className="flex items-center gap-1">
                         <FaLocationDot className="text-primary shrink-0" />

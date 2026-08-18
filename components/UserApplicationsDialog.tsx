@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 import type { GroupedUserApplications } from "@/types/appliedJobs";
+import { FaLocationDot } from "react-icons/fa6";
 
 // ============================================================
 // FORMAT DATE TIME
@@ -398,33 +399,7 @@ export default function UserApplicationsDialog({
 
                     {/* OFFICE */}
 
-                    {job.office && (
-                      <div
-                        className="
-                          flex
-                          items-start
-                          gap-2
-                          min-w-0
-                          text-muted-foreground
-                        "
-                      >
-                        <FaBuilding
-                          className="
-                            text-primary
-                            shrink-0
-                            mt-0.5
-                          "
-                        />
-
-                        <span className="break-words">
-                          {job.office}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* REGION */}
-
-                    {job.region && (
+                    {job.unit && (
                       <div
                         className="
                           flex
@@ -443,7 +418,27 @@ export default function UserApplicationsDialog({
                         />
 
                         <span className="break-words">
-                          {job.region}
+                          {job.unit}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* REGION */}
+
+                    {job.region && (
+                      <div
+                        className="
+                          flex
+                          items-start
+                          gap-2
+                          min-w-0
+                          text-muted-foreground
+                        "
+                      >
+                        
+
+                        <span className="break-words">
+                          📍 {job.region}
                         </span>
                       </div>
                     )}
@@ -492,32 +487,7 @@ export default function UserApplicationsDialog({
                       gap-3
                     "
                   >
-                    {/* APPLICATION ID */}
-
-                    <div
-                      className="
-                        flex
-                        items-center
-                        gap-1.5
-                        text-[10px]
-                        sm:text-xs
-                        text-muted-foreground
-                      "
-                    >
-                      <FaClock
-                        className="
-                          text-primary
-                          size-3.5
-                          sm:size-4
-                          shrink-0
-                        "
-                      />
-
-                      <span>
-                        Application #
-                        {application.applicationId}
-                      </span>
-                    </div>
+                    
 
                     {/* VIEW DETAILS */}
 
