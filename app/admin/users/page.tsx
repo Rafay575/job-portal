@@ -50,6 +50,10 @@ import {
   bulkDeleteUsers,
 } from "@/lib/users";
 import { Badge } from "@/components/ui/badge";
+import { CiEdit } from "react-icons/ci";
+import Link from "next/link";
+import { GoPlus } from "react-icons/go";
+
 type User = {
   id: number;
   name: string | null;
@@ -138,7 +142,7 @@ export default function UsersListTable() {
       toast.error(result.message ?? "Failed to load users");
     }
     setLoading(false);
-  }, [search, statusFilter, currentPage, pageSize,typeFilter]);
+  }, [search, statusFilter, currentPage, pageSize, typeFilter]);
 
   const handleTypeChange = (value: string) => {
     setTypeFilter(value);
@@ -317,6 +321,14 @@ export default function UsersListTable() {
   const right = Math.min(totalPages, currentPage + delta);
   for (let i = left; i <= right; i++) pageNumbers.push(i);
 
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   if (loadingForStatus || bulkLoading) return <FullPageLoader />;
 
   return (
@@ -416,6 +428,12 @@ export default function UsersListTable() {
               ))}
             </SelectContent>
           </Select>
+          <Link href={"/admin/users/create"}>
+            <Button>
+              Add New
+              <GoPlus className="size-5" />
+            </Button>
+          </Link>
         </div>
 
         {/* ── Table ── */}
@@ -514,9 +532,7 @@ export default function UsersListTable() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {user.created_at
-                        ? new Date(user.created_at).toLocaleDateString()
-                        : "N/A"}
+                      {user.created_at ? formatDate(user.created_at) : "N/A"}
                     </TableCell>
                     <TableCell className="text-center">
                       <AllUsersActionsMenu
@@ -734,32 +750,53 @@ const AllUsersActionsMenu = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem
+          onClick={() => router.push(`/admin/compliance/${id}`)}
+          className="text-primary cursor-pointer"
+        >
+          <Eye className="w-4 h-4 mr-2 text-primary" />
+          <span className="text-primary">View</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => router.push(`/admin/compliance/${id}/edit`)}
+          className="text-primary cursor-pointer"
+        >
+          <CiEdit className="w-5 h-5 mr-2 text-primary" />
+          <span className="text-primary">Edit</span>
+        </DropdownMenuItem>
         {status === "pending" && (
           <>
-            <DropdownMenuItem onClick={handleApprove}>
+            <DropdownMenuItem
+              onClick={handleApprove}
+              className="cursor-pointer"
+            >
               <FiCheck className="w-4 h-4 mr-2 text-green-600" />
               <span className="text-green-600">Approve</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleReject}>
+            <DropdownMenuItem onClick={handleReject} className="cursor-pointer">
               <RxCross1 className="w-4 h-4 mr-2 text-red-600" />
               <span className="text-red-600">Reject</span>
             </DropdownMenuItem>
           </>
         )}
         {status === "approved" && (
-          <DropdownMenuItem onClick={handleReject}>
+          <DropdownMenuItem onClick={handleReject} className="cursor-pointer">
             <RxCross1 className="w-4 h-4 mr-2 text-red-600" />
             <span className="text-red-600">Reject</span>
           </DropdownMenuItem>
         )}
         {status === "rejected" && (
-          <DropdownMenuItem onClick={handleApprove}>
+          <DropdownMenuItem onClick={handleApprove} className="cursor-pointer">
             <FiCheck className="w-4 h-4 mr-2 text-green-600" />
             <span className="text-green-600">Approve</span>
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem onClick={handleDelete} className="text-red-600">
-          <Trash2 className="w-4 h-4 mr-2 text-red-600" /> Delete
+        <DropdownMenuItem
+          onClick={handleDelete}
+          className="text-red-600 cursor-pointer"
+        >
+          <Trash2 className="w-4 h-4 mr-2 text-red-600" />
+          <span className="text-red-600">Delete</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

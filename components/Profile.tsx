@@ -16,11 +16,11 @@ import { clearUser } from "@/lib/userSlice";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 
-
 export default function Profile() {
   const router = useRouter();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
+  console.log("User in Profile component:", user);
   const handleLogout = async () => {
     try {
       dispatch(clearUser());
@@ -31,25 +31,24 @@ export default function Profile() {
     }
   };
   const getInitials = (name?: string | null) => {
-  if (!name || typeof name !== "string") {
-    return "U";
-  }
+    if (!name || typeof name !== "string") {
+      return "U";
+    }
 
-  const parts = name.trim().split(/\s+/).filter(Boolean);
+    const parts = name.trim().split(/\s+/).filter(Boolean);
 
-  if (parts.length === 0) {
-    return "U";
-  }
+    if (parts.length === 0) {
+      return "U";
+    }
 
-  if (parts.length === 1) {
-    return parts[0].charAt(0).toUpperCase();
-  }
+    if (parts.length === 1) {
+      return parts[0].charAt(0).toUpperCase();
+    }
 
-  return (
-    parts[0].charAt(0) +
-    parts[parts.length - 1].charAt(0)
-  ).toUpperCase();
-};
+    return (
+      parts[0].charAt(0) + parts[parts.length - 1].charAt(0)
+    ).toUpperCase();
+  };
   return (
     <div className="flex items-center gap-[5px] md:gap-[10px] z-[999] cursor-pointer">
       <DropdownMenu>

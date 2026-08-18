@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
-
 import { Step7Type } from "@/types/Form";
 import { getTrainings, saveTrainings } from "@/lib/api/step7";
 import { RootState } from "@/lib/store";
@@ -15,7 +14,6 @@ import { useSelector } from "react-redux";
 import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
 import { checkApproval } from "@/lib/users";
-import { IoRefresh } from "react-icons/io5";
 import Link from "next/link";
 import { DocCard } from "../common/DocCard";
 
@@ -37,12 +35,8 @@ function SignupNavButtons({ onNext, onBack }: any) {
 }
 
 // ================= MAIN COMPONENT =================
-export default function Step7({ next, back }: any) {
+export default function Step7({ next, back, userId }: any) {
   const [loading, setLoading] = useState(false);
-  const [blur, setBlur] = useState(false);
-
-  const user = useSelector((state: RootState) => state.user);
-
   const [trainings, setTrainings] = useState<Step7Type[]>([
     {
       title: "",
@@ -55,28 +49,14 @@ export default function Step7({ next, back }: any) {
   // ================= FETCH EXISTING DATA =================
   const router = useRouter();
   useEffect(() => {
-    const verifyUser = async () => {
-      if (!user.id) {
-        toast.error("Id not found  ");
-        router.push("/");
-        return;
-      }
-      const isApproved = await checkApproval(user.id);
-
-      if (!isApproved) {
-        setBlur(true);
-      }
-    };
-
-    verifyUser();
     const fetchData = async () => {
-      if (!user.id) {
+      if (!userId) {
         toast.error("Id not found in useEffect");
         return;
       }
       setLoading(true);
 
-      const res = await getTrainings(user.id);
+      const res = await getTrainings(userId);
 
       if (res.success && res.data?.length > 0) {
         setTrainings(
@@ -85,7 +65,7 @@ export default function Step7({ next, back }: any) {
             provider: t.provider,
             duration: t.duration,
             completionDate: t.completion_date,
-            certificateFile: t.certificate_file_path || null, // ← merged
+            certificateFile: t.certificate_file_path || null,
           })),
         );
       }
@@ -152,7 +132,6 @@ export default function Step7({ next, back }: any) {
       </div>
     ));
   };
-
   // ================= VALIDATION =================
   const validateStep = () => {
     for (let i = 0; i < trainings.length; i++) {
@@ -175,12 +154,12 @@ export default function Step7({ next, back }: any) {
   // ================= SUBMIT (CREATE + UPDATE SAME API) =================
   const handleSubmit = async () => {
     if (!validateStep()) return;
-    if (!user.id) {
+    if (!userId) {
       toast.error("Id not found in handle Submit");
       return;
     }
     setLoading(true);
-    const res = await saveTrainings(user.id, trainings);
+    const res = await saveTrainings(userId, trainings);
 
     if (res.success) {
       toast.success(res.message);
@@ -206,9 +185,7 @@ export default function Step7({ next, back }: any) {
   // ================= UI =================
   return (
     <div className="relative px-2">
-      <div
-        className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
-      >
+      <div>
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <AnimatePresence>
@@ -221,7 +198,7 @@ export default function Step7({ next, back }: any) {
                   className="border rounded-xl p-4 space-y-4 bg-white shadow-sm"
                 >
                   {/* Title */}
-                  <Label className="font-semibold text-lg ">
+                  <Label className="font-semibold text-lg">
                     Training {index + 1}
                   </Label>
 
@@ -277,16 +254,10 @@ export default function Step7({ next, back }: any) {
                       hint="Upload certificate (PDF, DOC, DOCX, JPG, JPEG or PNG)"
                       file={t.certificateFile}
                       onUpdate={updateTrainingFile(index)}
-                      acceptedTypes={[
-                        ".pdf",
-                        ".doc",
-                        ".docx",
-                        ".jpg",
-                        ".png",
-                        ".jpeg",
-                      ]}
+                      acceptedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png", ".jpeg"]}
                     />
 
+                    
                   </div>
 
                   {/* Completion Date */}
@@ -325,31 +296,6 @@ export default function Step7({ next, back }: any) {
           <SignupNavButtons onBack={back} onNext={handleSubmit} />
         </div>
       </div>
-
-      {/* Overlay */}
-      {blur && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
-          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
-            <h2 className="text-lg font-semibold mb-2">
-              Appliaction Submitted Successfully.
-            </h2>
-            <p className="text-sm text-gray-600 mb-4">
-              One of our representative will get back to you with in 24 to 48
-              hours.
-            </p>
-
-            {/* Optional action */}
-            <div className="flex justify-evenly items-center">
-              <Link href={"/"}>
-                <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
-                  Done
-                  {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
-                </button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

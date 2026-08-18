@@ -15,11 +15,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { Step1FullTimeType } from "@/types/Form";
-import { submitStep1 } from "@/lib/api/step1";
+import { getDetails, getStep1Admin, submitStep1Admin } from "@/lib/api/step1";
 import { useEffect } from "react";
-import { getStep1 } from "@/lib/api/step1";
-import { useSelector } from "react-redux";
-import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
 import { useRouter } from "next/navigation";
 import { DocCard } from "../common/DocCard";
@@ -58,17 +55,25 @@ type Props = {
   type: string;
   next: () => void;
   back: () => void;
+  userId: any;
   roleType: string;
 };
 
-export default function Step1FullTime({ type, next, back, roleType }: Props) {
-  const user = useSelector((state: RootState) => state.user);
+export default function Step1FullTime({
+  type,
+  next,
+  back,
+  userId,
+  roleType,
+}: Props) {
+  // const user = useSelector((state: RootState) => state.user);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
   const [formData, setFormData] = useState<Step1FullTimeType>({
     type: type,
-    fullName: user.name || "",
-    email: user.email || "",
+    fullName: "",
+    email: "",
     phone: "",
     address: "",
     postcode: "",
@@ -79,7 +84,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
     nameChanged: null,
     previousName: "",
     changedTo: "",
-    userId: user.id,
+    userId: userId,
     cvFile: null,
   });
 
@@ -193,15 +198,15 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
       form.append("roleType", roleType);
 
-      const res = await submitStep1(form);
+      const res = await submitStep1Admin(form);
 
       // 4. Handle response
       if (res.success) {
-        toast.success(res.data?.message || "Step 1 submitted successfully!");
+        toast.success(res.data?.message || "Basic Information submitted successfully!");
 
         next();
       } else {
-        toast.error(res.message || "Failed to submit Step 1");
+        toast.error(res.message || "Failed to submit Basic Information");
       }
     } catch (error) {
       console.error(error);
@@ -214,14 +219,15 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const res = await getStep1(user.id);
+      const res = await getStep1Admin(userId);
+    
+
       if (res.success && res.data[0]) {
         const d = res.data[0];
-        setFormData({
-          userId: user.id,
-          type: type,
-          fullName: user.name || d.full_name || "",
-          email: user.email || d.email || "",
+        setFormData((prev) => ({
+          ...prev,
+          userId,
+          type,
           phone: d.phone || "",
           address: d.address || "",
           postcode: d.postcode || "",
@@ -232,29 +238,35 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
           nameChanged: Boolean(d.name_changed),
           previousName: d.previous_name || "",
           changedTo: d.changed_to || "",
-          cvFile: d.cv_file_path || null,
-        });
+         cvFile: d.cv_file_path || null,
+        }));
       }
+
       setLoading(false);
     };
+    const fetchDetails = async () => {
+      const res2 = await getDetails(userId);
 
+      if (res2.success && res2.data) {
+        const d = res2.data;
+        setFormData((prev) => ({
+          ...prev,
+          fullName: d.name || "",
+          email: d.email || "",
+        }));
+      }
+    };
     fetchData();
+    fetchDetails();
   }, []);
-  useEffect(() => {
-    console.log(roleType);
-  }, [roleType]);
 
   if (loading) return <FullPageLoader />;
   return (
     <>
-      <div
-        className={`${roleType === "permanent" ? "pt-6" : ""} min-w-full space-y-5  grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 px-2`}
-      >
+      <div className="min-w-full space-y-5  grid gap-x-5 gap-y-1  grid-cols-1 md:grid-cols-2 px-2">
         <div>
           <Label>
-             <span>
-              Full Name <span className="text-red-500">*</span>
-            </span>
+            Full Name <span className="text-red-500">*</span>
           </Label>
           <Input
             readOnly
@@ -266,9 +278,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            <span>
-              Email Address <span className="text-red-500">*</span>
-            </span>
+            Email Address <span className="text-red-500">*</span>
           </Label>
           <Input
             readOnly
@@ -280,9 +290,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            <span>
-              Phone Number <span className="text-red-500">*</span>
-            </span>
+            Phone Number <span className="text-red-500">*</span>
           </Label>
           <Input
             value={formData.phone}
@@ -292,9 +300,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            <span>
-              Current Address <span className="text-red-500">*</span>
-            </span>
+            Current Address <span className="text-red-500">*</span>
           </Label>
           <Input
             value={formData.address}
@@ -304,9 +310,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            <span>
-              Postcode <span className="text-red-500">*</span>
-            </span>
+            Postcode <span className="text-red-500">*</span>
           </Label>
           <Input
             value={formData.postcode}
@@ -316,9 +320,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            <span>
-              Nationality <span className="text-red-500">*</span>
-            </span>
+            Nationality <span className="text-red-500">*</span>
           </Label>
           <Input
             value={formData.nationality}
@@ -328,9 +330,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            <span>
-              Immigration Status <span className="text-red-500">*</span>
-            </span>
+            Immigration Status <span className="text-red-500">*</span>
           </Label>
           <div className="border rounded-lg border-[#f0f0f0]">
             <Select
@@ -355,9 +355,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            <span>
-              Immigration Expiry Date <span className="text-red-500">*</span>
-            </span>
+            Immigration Expiry Date <span className="text-red-500">*</span>
           </Label>
           <Input
             type="date"
@@ -368,10 +366,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            <span>
-              Do you need a UK Work Permit?
-              <span className="text-red-500">*</span>
-            </span>
+            Do you need a UK Work Permit?<span className="text-red-500">*</span>
           </Label>
           <RadioGroup
             value={formData.workPermit ? "yes" : "no"}
@@ -394,10 +389,8 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
 
         <div>
           <Label>
-            <span>
-              Have you changed your name before?
-              <span className="text-red-500">*</span>
-            </span>
+            Have you changed your name before?
+            <span className="text-red-500">*</span>
           </Label>
           <RadioGroup
             value={formData.nameChanged ? "yes" : "no"}
@@ -422,13 +415,11 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
           className={`transition-all duration-500 ease-in-out  ${
             formData.nameChanged
               ? "h-auto!  opacity-100 "
-              : "h-0! overflow-hidden!  opacity-0 "
+              : "h-0! overflow-hidden!  opacity-0"
           }`}
         >
           <Label>
-            <span>
-              Previous Name <span className="text-red-500">*</span>
-            </span>
+            Previous Name <span className="text-red-500">*</span>
           </Label>
           <Input
             value={formData.previousName}
@@ -444,9 +435,7 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
           }`}
         >
           <Label>
-            <span>
-              Changed To <span className="text-red-500">*</span>
-            </span>
+            Changed To <span className="text-red-500">*</span>
           </Label>
           <Input
             value={formData.changedTo}
@@ -458,23 +447,21 @@ export default function Step1FullTime({ type, next, back, roleType }: Props) {
           className={`${
             roleType === "permanent" || roleType === "both"
               ? "h-auto!  opacity-100 "
-              : "h-0! overflow-hidden!  opacity-0 "
-          } transition-all duration-500 ease-in-out   md:col-span-2`}
+              : "h-0! overflow-hidden!  opacity-0"
+          } transition-all duration-500 ease-in-out  md:col-span-2`}
         >
           <Label>
-            <span>
-              Upload CV <span className="text-red-500">*</span>
-            </span>
+            Upload CV <span className="text-red-500">*</span>
           </Label>
 
-          <DocCard<Step1FullTimeType>
+           <DocCard<Step1FullTimeType>
             title="Curriculum Vitae (CV)"
             fieldKey="cvFile"
             hint="Upload your CV (PDF, DOC or DOCX)"
             file={formData.cvFile}
             onUpdate={handleChange}
             acceptedTypes={[".pdf", ".doc", ".docx" ]}
-          /> 
+          />
         </div>
       </div>
 

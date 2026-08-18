@@ -5,7 +5,7 @@ import axios from "axios";
 export const getTrainings = async (userId: number | string) => {
   try {
     const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/step7?userId=${userId}`
+      `${process.env.NEXT_PUBLIC_API_URL}/api/step7?userId=${userId}`,
     );
     return res.data;
   } catch (err: any) {
@@ -16,7 +16,7 @@ export const getTrainings = async (userId: number | string) => {
 // ================= SAVE TRAININGS (UPSERT) =================
 export const saveTrainings = async (
   userId: number | string,
-  trainings: Step7Type[]
+  trainings: Step7Type[],
 ) => {
   try {
     // ✅ Build FormData instead of plain JSON
@@ -29,13 +29,14 @@ export const saveTrainings = async (
       provider: t.provider,
       duration: t.duration,
       completionDate: t.completionDate,
-      certificateFilePath: t.certificateFilePath || null,
+      certificateFilePath:
+        typeof t.certificateFile === "string" ? t.certificateFile : null,
     }));
     formData.append("trainings", JSON.stringify(trainingsMeta));
 
     // Append each file with its index key: certificate_0, certificate_1 ...
     trainings.forEach((t, i) => {
-      if (t.certificateFile) {
+      if (t.certificateFile instanceof File) {
         formData.append(`certificate_${i}`, t.certificateFile);
       }
     });
@@ -43,7 +44,7 @@ export const saveTrainings = async (
     const res = await axios.post(
       `${process.env.NEXT_PUBLIC_API_URL}/api/step7`,
       formData,
-      { headers: { "Content-Type": "multipart/form-data" } }
+      { headers: { "Content-Type": "multipart/form-data" } },
     );
 
     return res.data;

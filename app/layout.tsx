@@ -70,7 +70,7 @@ export default function RootLayout({
                   <Navbar />
                 </>
               )}
-              {children}
+              <div className="max-w-screen ">{children}</div>
               {!isAdminRoute && (
                 <>
                   <Footer />

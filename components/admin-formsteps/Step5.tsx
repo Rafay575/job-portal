@@ -9,13 +9,8 @@ import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Step5Type } from "@/types/Form";
 import { submitStep5, getStep5 } from "@/lib/api/step5";
-import { useSelector } from "react-redux";
-import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
-import { useRouter } from "next/navigation";
-import { checkApproval } from "@/lib/users";
-import { IoRefresh } from "react-icons/io5";
-import Link from "next/link";
+
 
 // ------------------ Types ------------------
 
@@ -28,6 +23,7 @@ type NavProps = {
 type Props = {
   next: () => void;
   back: () => void;
+  userId:any
 };
 
 // ------------------ Navigation Buttons ------------------
@@ -53,10 +49,8 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 }
 
 // ------------------ Step 5 Component ------------------
-export default function Step5({ next, back }: Props) {
+export default function Step5({ next, back, userId }: Props) {
   const [loading, setLoading] = useState(false);
-  const [blur, setBlur] = useState(false);
-  const user = useSelector((state: RootState) => state.user);
 
   const [formData, setFormData] = useState<Step5Type>({
     isNurse: null,
@@ -78,30 +72,16 @@ export default function Step5({ next, back }: Props) {
   };
 
   // ------------------ Prefetch Existing Data ------------------
-  const router = useRouter();
   useEffect(() => {
-    const verifyUser = async () => {
-      if (!user.id) {
-        toast.error("Id not found  ");
-        router.push("/");
-        return;
-      }
-      const isApproved = await checkApproval(user.id);
-
-      if (!isApproved) {
-        setBlur(true);
-      }
-    };
-
-    verifyUser();
+    
     const fetchStep5 = async () => {
-      if (!user.id) {
+      if (!userId) {
         toast.error("Id not found in useEffect");
         return;
       }
       setLoading(true);
 
-      const res = await getStep5(user.id);
+      const res = await getStep5(userId);
 
       if (res.success && res.data?.[0]) {
         const d = res.data[0];
@@ -145,7 +125,7 @@ export default function Step5({ next, back }: Props) {
     try {
       setLoading(true);
       const res = await submitStep5({
-        userId: user.id,
+        userId: userId,
         isNurse: formData.isNurse,
         professionalBody: formData.professionalBody,
         registrationType: formData.registrationType,
@@ -171,11 +151,11 @@ export default function Step5({ next, back }: Props) {
   return (
     <div className="relative min-h-[250px] px-2">
       <div
-        className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
+        
       >
         {/* Nurse Radio */}
         <div className="col-span-2 mb-2">
-          <Label><span>Are you a Nurse?<span className="text-red-500">*</span></span></Label>
+          <Label>Are you a Nurse?<span className="text-red-500">*</span></Label>
 
           <RadioGroup
             value={
@@ -209,7 +189,7 @@ export default function Step5({ next, back }: Props) {
         >
           <div>
             <Label>
-               <span>Professional Body Name <span className="text-red-500">*</span></span>
+              Professional Body Name <span className="text-red-500">*</span>
             </Label>
             <Input
               value={formData.professionalBody}
@@ -219,7 +199,7 @@ export default function Step5({ next, back }: Props) {
 
           <div>
             <Label>
-              <span>Registration Type <span className="text-red-500">*</span></span>
+              Registration Type <span className="text-red-500">*</span>
             </Label>
             <Input
               value={formData.registrationType}
@@ -229,7 +209,7 @@ export default function Step5({ next, back }: Props) {
 
           <div>
             <Label>
-              <span>Registration / PIN Number <span className="text-red-500">*</span></span>
+              Registration / PIN Number <span className="text-red-500">*</span>
             </Label>
             <Input
               value={formData.registrationNumber}
@@ -241,7 +221,7 @@ export default function Step5({ next, back }: Props) {
 
           <div>
             <Label>
-               <span>Expiry Date <span className="text-red-500">*</span></span>
+              Expiry Date <span className="text-red-500">*</span>
             </Label>
             <Input
               type="date"
@@ -256,31 +236,6 @@ export default function Step5({ next, back }: Props) {
         {/* Navigation */}
         <SignupNavButtons onBack={back} onNext={handleSubmitStep5} />
       </div>
-
-      {/* Overlay */}
-      {blur && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
-            <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
-              <h2 className="text-lg font-semibold mb-2">
-                Appliaction Submitted Successfully.
-              </h2>
-              <p className="text-sm text-gray-600 mb-4">
-                One of our representative will get back to you with in 24 to 48
-                hours.
-              </p>
-
-              {/* Optional action */}
-              <div className="flex justify-evenly items-center">
-                <Link href={"/"}>
-                  <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
-                    Done
-                    {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
-                  </button>
-                </Link>
-              </div>
-            </div>
-          </div>
-      )}
     </div>
   );
 }

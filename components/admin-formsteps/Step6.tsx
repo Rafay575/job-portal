@@ -6,13 +6,7 @@ import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { UploadCloud, Trash2, Eye } from "lucide-react";
 import { Step6Type } from "@/types/Form";
 import { submitStep6, getStep6 } from "@/lib/api/step6";
-import { useSelector } from "react-redux";
-import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
-import { useRouter } from "next/navigation";
-import { checkApproval } from "@/lib/users";
-import { IoRefresh } from "react-icons/io5";
-import Link from "next/link";
 
 type NavProps = {
   onNext: () => void;
@@ -23,12 +17,8 @@ type NavProps = {
 type Props = {
   next: () => void;
   back: () => void;
+  userId: any 
 };
-
-
-const MAX_MB = 5;
-const MAX_BYTES = MAX_MB * 1024 * 1024;
-const ACCEPTED = [".pdf", ".jpg", ".jpeg", ".png", ".docx", ".doc"];
 
 type DocCardProps = {
   title: string;
@@ -37,6 +27,10 @@ type DocCardProps = {
   file: File | string | null;
   onUpdate: (key: keyof Step6Type, file: File | string | null) => void;
 };
+
+const MAX_MB = 5;
+const MAX_BYTES = MAX_MB * 1024 * 1024;
+const ACCEPTED = [".pdf", ".jpg", ".jpeg", ".png", ".docx", ".doc"];
 
 function formatBytes(bytes: number) {
   const mb = bytes / (1024 * 1024);
@@ -132,7 +126,7 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
       (isExistingUrl && (file as string).toLowerCase().includes(".pdf")));
 
   return (
-     <div className="rounded-lg md:rounded-2xl bg-white p-4 border !max-w-full !overflow-x-hidden ">
+    <div className="rounded-lg md:rounded-2xl bg-white p-4 border !max-w-full !overflow-x-hidden ">
       <div className="flex items-start justify-between gap-2">
         <div>
           <Label className="text-md font-semibold text-primary">
@@ -177,7 +171,7 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col xl:flex-row items-start justify-between gap-3">
+          <div className="flex flex-col 2xl:flex-row items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-sm font-medium truncate">
                 {isExistingUrl ? "Uploaded document" : (file as File).name}
@@ -192,7 +186,7 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
 
               {/* ✅ "Saved" badge for existing DB documents */}
               {isExistingUrl && (
-                 <p className="text-xs text-primary font-medium mt-1">
+                <p className="text-xs text-primary font-medium mt-1">
                   ✓ Previously uploaded
                 </p>
               )}
@@ -218,7 +212,7 @@ function DocCard({ title, fieldKey, hint, file, onUpdate }: DocCardProps) {
                   variant="outline"
                   size="sm"
                   onClick={openPreview}
-                  className="gap-1.5 text-primary border !border-primary "
+                   className="gap-1.5 text-primary border !border-primary "
                 >
                   <Eye className="h-4 w-4" />
                   View
@@ -278,10 +272,8 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
   );
 }
 
-export default function Step6({ next, back }: Props) {
+export default function Step6({ next, back, userId }: Props) {
   const [loading, setLoading] = useState(false);
-  const user = useSelector((state: RootState) => state.user);
-  const [blur, setBlur] = useState(false);
 
   const [documents, setDocuments] = useState<Step6Type>({
     passport: null,
@@ -291,29 +283,14 @@ export default function Step6({ next, back }: Props) {
     proofId2: null,
   });
 
-  const router = useRouter();
   useEffect(() => {
-    const verifyUser = async () => {
-      if (!user.id) {
-        toast.error("Id not found  ");
-        router.push("/");
-        return;
-      }
-      const isApproved = await checkApproval(user.id);
-
-      if (!isApproved) {
-        setBlur(true);
-      }
-    };
-
-    verifyUser();
     const fetchStep6 = async () => {
-      if (!user.id) {
+      if (!userId) {
         toast.error("Id not found in useEffect");
         return;
       }
       setLoading(true);
-      const res = await getStep6(user.id);
+      const res = await getStep6(userId);
       if (res.success && res.data?.[0]) {
         const d = res.data[0];
         setDocuments({
@@ -354,7 +331,7 @@ export default function Step6({ next, back }: Props) {
       setLoading(true);
 
       const formData = new FormData();
-      formData.append("userId", String(user.id));
+      formData.append("userId", String(userId));
 
       if (documents.passport instanceof File)
         formData.append("passport", documents.passport);
@@ -389,18 +366,16 @@ export default function Step6({ next, back }: Props) {
   };
   if (loading) return <FullPageLoader />;
   return (
-    <div className="relative  max-w-full pb-4">
-      <div
-        className={blur ? "blur-[3px] pointer-events-none select-none " : ""}
-      >
+    <div className="relative px-2">
+       <div>
         <div className="min-w-full space-y-4 flex flex-col">
-           <div className="rounded-2xl border bg-white p-3 md:p-5">
-            <h2 className="text-lg font-semibold mb-3 text-primary">
+          <div className="rounded-2xl border bg-white p-5">
+            <h2 className="text-lg font-semibold mb-3">
               Identity & Verification Documents
             </h2>
 
             <div className="grid lg:grid-cols-6 gap-4 max-w-full">
-              <div className="md:col-span-2 ">
+              <div className="md:col-span-3 xl:col-span-2 ">
                 <DocCard
                   title="Passport"
                   fieldKey="passport"
@@ -409,7 +384,7 @@ export default function Step6({ next, back }: Props) {
                   onUpdate={updateDoc}
                 />
               </div>
-              <div className="md:col-span-2">
+              <div className="md:col-span-3 xl:col-span-2">
                 <DocCard
                   title="Driving Licence (Front)"
                   fieldKey="drivingLicenceFront"
@@ -418,7 +393,7 @@ export default function Step6({ next, back }: Props) {
                   onUpdate={updateDoc}
                 />
               </div>
-              <div className="md:col-span-2">
+              <div className="col-span-2">
                 <DocCard
                   title="Driving Licence (Back)"
                   fieldKey="drivingLicenceBack"
@@ -427,8 +402,8 @@ export default function Step6({ next, back }: Props) {
                   onUpdate={updateDoc}
                 />
               </div>
-              <div className="md:col-span-3">
-                  <DocCard
+             <div className="md:col-span-3">
+                <DocCard
                   title="Proof of ID 1"
                   fieldKey="proofId1"
                   hint="Any valid proof of ID "
@@ -436,7 +411,7 @@ export default function Step6({ next, back }: Props) {
                   onUpdate={updateDoc}
                 />
               </div>
-               <div className="md:col-span-3">
+              <div className="md:col-span-3">
                 <DocCard
                   title="Proof of ID 2"
                   fieldKey="proofId2"
@@ -451,31 +426,6 @@ export default function Step6({ next, back }: Props) {
           <SignupNavButtons onBack={back} onNext={handleSubmitStep6} />
         </div>
       </div>
-
-      {/* Overlay */}
-      {blur && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
-          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
-            <h2 className="text-lg font-semibold mb-2">
-              Appliaction Submitted Successfully.
-            </h2>
-            <p className="text-sm text-gray-600 mb-4">
-              One of our representative will get back to you with in 24 to 48
-              hours.
-            </p>
-
-            {/* Optional action */}
-            <div className="flex justify-evenly items-center">
-              <Link href={"/"}>
-                <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
-                  Done
-                  {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
-                </button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

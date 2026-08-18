@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Step1FullTime from "@/components/formsteps/Step1FullTime";
 import Step2 from "@/components/formsteps/Step2";
 import Step3 from "@/components/formsteps/Step3";
 import Step4 from "@/components/formsteps/Step4";
@@ -17,7 +18,6 @@ import Stepper from "./Stepper";
 import RoleSelector from "@/components/RoleSelector";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import Step1FullTime from "@/components/formsteps/Step1FullTime";
 import { checkApproval } from "@/lib/users";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -137,7 +137,7 @@ export default function Page() {
   }, []);
 
   return (
-    <div className=" overflow-hidden">
+    <div className="overflow-hidden">
       {/* Shadcn Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTitle className="text-white hidden">.</DialogTitle>

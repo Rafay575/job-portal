@@ -13,7 +13,7 @@ export type Step1FullTimeType = {
   previousName: string;
   changedTo: string;
   userId?: number | string | null;
-  cvFile?: File | null;
+  cvFile: File | string | null;
 };
 
 export type Step2Type = {
@@ -71,12 +71,12 @@ export type Step6Type = {
   proofId1: File | string | null;
   proofId2: File | string | null;
 };
+
 export type Step7Type = {
   title: string;
   provider: string;
   duration: string;
-  certificateFile: File | string | null;
-  certificateFilePath?: string;
+   certificateFile: File | string | null;
   completionDate: string;
 };
 
@@ -97,8 +97,7 @@ export type EducationEntry = {
   registrationBody: string;
   registrationNumber: string;
   registrationExpiry: string;
-  certificateFile: File | string | null;
-  existingCertificateFile?: string | null;
+   certificateFile: File | string | null; // string = existing, File = new
 };
 
 export type GapEntry8 = {

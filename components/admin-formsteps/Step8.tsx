@@ -123,36 +123,7 @@ const formatDisplayDate = (dateStr: string): string => {
 
 type DetectedGap8 = { gapFrom: string; gapTo: string };
 
-// Sorts educations by startDate ascending, walks consecutive pairs,
-// flags uncovered periods >= MIN_GAP_DAYS. Overlapping/touching pairs are skipped.
-// const detectMissingEducationGaps = (tl: Step8Type[]): DetectedGap8[] => {
-//   const educations = tl
-//     .filter((e): e is EducationEntry => e.kind === "education")
-//     .filter((e) => e.startDate && e.endDate)
-//     .sort(
-//       (a, b) =>
-//         new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-//     );
 
-//   const gaps: DetectedGap8[] = [];
-
-//   for (let i = 0; i < educations.length - 1; i++) {
-//     const current = educations[i];
-//     const next = educations[i + 1];
-
-//     const gapStart = addDays(current.endDate, 1);
-//     const gapEnd = addDays(next.startDate, -1);
-
-//     if (diffInDays(gapStart, gapEnd) < 0) continue; // overlap/touching → no gap
-
-//     const gapLengthDays = diffInDays(gapStart, gapEnd) + 1;
-//     if (gapLengthDays >= MIN_GAP_DAYS) {
-//       gaps.push({ gapFrom: gapStart, gapTo: gapEnd });
-//     }
-//   }
-
-//   return gaps;
-// };
 // ─── Improved Gap Detection (covers Education AND existing Gap cards) ────────
 
 type CoveredInterval8 = { from: string; to: string };
@@ -334,7 +305,7 @@ type CardProps = {
 function TimelineCard(props: CardProps) {
   const { entry, label, onRemove, onUpdateEducation, onUpdateGap } = props;
 
-  const handleDocUpdate = <K extends keyof EducationEntry>(
+   const handleDocUpdate = <K extends keyof EducationEntry>(
     key: K,
     value: EducationEntry[K],
   ) => {
@@ -621,14 +592,18 @@ function TimelineCard(props: CardProps) {
 
           {/* Certificate Upload */}
           <div className="md:col-span-2">
-            <DocCard<EducationEntry>
-              title="Certificate (optional)"
-              fieldKey="certificateFile"
-              hint="Upload certificate (PDF, DOC, DOCX, JPG, JPEG or PNG)"
-              file={entry.certificateFile}
-              onUpdate={handleDocUpdate}
-              acceptedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png", ".jpeg"]}
-            />
+             <div className="md:col-span-2">
+              <DocCard<EducationEntry>
+                title="Certificate (optional)"
+                fieldKey="certificateFile"
+                hint="Upload certificate (PDF, DOC, DOCX, JPG, JPEG or PNG)"
+                file={entry.certificateFile}
+                onUpdate={handleDocUpdate}
+                acceptedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png", ".jpeg"]}
+              />
+
+              
+            </div>
           </div>
 
           {/* Notes */}
@@ -688,39 +663,24 @@ function TimelineCard(props: CardProps) {
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
-type Props = { next: () => void; back: () => void };
+type Props = { next: () => void; back: () => void; userId:any };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function Step8({ next, back }: Props) {
+export default function Step8({ next, back,userId }: Props) {
   const [loading, setLoading] = useState(false);
-  const [blur, setBlur] = useState(false);
-  const user = useSelector((state: RootState) => state.user);
+
   const [timeline, setTimeline] = useState<Step8Type[]>([]);
   const [initialLoad, setInitialLoad] = useState(true);
   const [pendingGapIds, setPendingGapIds] = useState<number[]>([]);
 
   // Load data on page load
-  const router = useRouter();
   useEffect(() => {
-    const verifyUser = async () => {
-      if (!user.id) {
-        toast.error("Id not found  ");
-        router.push("/");
-        return;
-      }
-      const isApproved = await checkApproval(user.id);
-
-      if (!isApproved) {
-        setBlur(true);
-      }
-    };
-
-    verifyUser();
+    
     async function loadTimeline() {
       try {
         setLoading(true);
-        const data = await getTimeline(user.id);
+        const data = await getTimeline(userId);
         // Convert loaded data to include proper IDs and types
         const formattedData = data.map((item: any) => {
           if (item.kind === "education") {
@@ -1030,14 +990,14 @@ export default function Step8({ next, back }: Props) {
   // Save data (POST API) — called when user clicks Next
   const handleSave = async (): Promise<boolean> => {
     try {
-      if (!user.id) {
+      if (!userId) {
         toast.error("User not found. Please login again.");
         return false;
       }
 
       setLoading(true);
 
-      await saveTimeline(user.id, timeline);
+      await saveTimeline(userId, timeline);
 
       return true;
     } catch (err) {
@@ -1253,9 +1213,7 @@ export default function Step8({ next, back }: Props) {
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="relative">
-      <div
-        className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
-      >
+      <div>
         <div className="min-w-full space-y-4 p-1 flex flex-col">
           {/* Header card */}
           <div className="rounded-2xl border bg-white p-5">
@@ -1318,31 +1276,6 @@ export default function Step8({ next, back }: Props) {
           />
         </div>
       </div>
-
-      {/* Overlay */}
-      {blur && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
-          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
-            <h2 className="text-lg font-semibold mb-2">
-              Appliaction Submitted Successfully.
-            </h2>
-            <p className="text-sm text-gray-600 mb-4">
-              One of our representative will get back to you with in 24 to 48
-              hours.
-            </p>
-
-            {/* Optional action */}
-            <div className="flex justify-evenly items-center">
-              <Link href={"/"}>
-                <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
-                  Done
-                  {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
-                </button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

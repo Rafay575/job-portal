@@ -168,7 +168,7 @@ export default function AppliedJobsTable() {
 
         {/* TABLE */}
 
-        <div className="border rounded-xl overflow-hidden bg-white dark:bg-slate-900">
+        <div className="border  overflow-hidden bg-white dark:bg-slate-900">
           <Table className="px-6">
             <TableHeader>
               <TableRow>

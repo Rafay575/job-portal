@@ -28,7 +28,8 @@ import { Trash2 } from "lucide-react";
 import { FiCheck } from "react-icons/fi";
 import { RxCross1 } from "react-icons/rx";
 import Image from "next/image";
-
+import { CiEdit } from "react-icons/ci";
+import Link from "next/link";
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 function isEmpty(val: any): boolean {
@@ -960,8 +961,6 @@ export default function UserDetailPage() {
     setDownloading(false);
   };
 
-
-
   if (!user_id)
     return (
       <div className="p-6 text-red-500 font-medium">
@@ -988,11 +987,11 @@ export default function UserDetailPage() {
       {/* ── Header + Download Button ─────────────────────────────────────── */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <div className="flex items-center sm:gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-2xl md:text-4xl font-bold text-primary capitalize">
               {basic.full_name || "Unknown Applicant"}
             </h1>
-            <span className="text-white bg px-2 py-0.5 text-[11px] rounded-full">
+            <span className="text-white bg px-2 py-0.5 text-[11px] rounded-full uppercase">
               {basic.type}
             </span>
           </div>
@@ -1824,7 +1823,15 @@ const ActionsButtons = ({
       {/* STATUS */}
       <div className="font-semibold text-md">
         Status:{" "}
-        <span className="font-medium underline">
+        <span
+          className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
+            status === "approved"
+              ? "bg-green-100 text-green-700"
+              : status === "rejected"
+                ? "bg-red-100 text-red-700"
+                : "bg-gray-100 text-gray-600"
+          }`}
+        >
           {status === "approved"
             ? "Approved"
             : status === "rejected"
@@ -1849,6 +1856,12 @@ const ActionsButtons = ({
             Reject User
           </Button>
         )}
+        <Link href={`/admin/compliance/${id}/edit`}>
+          <Button className=" text-white ">
+            <CiEdit className="w-4 h-4  text-white" />
+            Edit User
+          </Button>
+        </Link>
         <Button
           onClick={handleDelete}
           variant="destructive"

@@ -12,13 +12,8 @@ import { submitStep2 } from "@/lib/api/step2";
 import { getStep2 } from "@/lib/api/step2";
 import { useEffect } from "react";
 import { Step2Type } from "@/types/Form";
-import { useSelector } from "react-redux";
-import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
-import { useRouter } from "next/navigation";
-import { IoRefresh } from "react-icons/io5";
-import { IoMdCheckmark } from "react-icons/io";
-import Link from "next/link";
+
 type NavProps = {
   onNext: () => void;
   onBack: () => void;
@@ -28,6 +23,7 @@ type NavProps = {
 type Props = {
   next: () => void;
   back: () => void;
+  userId: any;
 };
 
 // ------------------ Navigation Buttons ------------------
@@ -62,10 +58,9 @@ const checkApproval = async (userId: number | string) => {
 };
 
 // ------------------ Step 2 Component ------------------
-export default function Step2({ next, back }: Props) {
-  const [blur, setBlur] = useState(false);
+export default function Step2({ next, back, userId }: Props) {
   const [loading, setLoading] = useState(false);
-  const user = useSelector((state: RootState) => state.user);
+  // const user = useSelector((state: RootState) => state.user);
   const [formData, setFormData] = useState<Step2Type>({
     availabilityIssue: null,
     workRestrictions: null,
@@ -124,7 +119,7 @@ export default function Step2({ next, back }: Props) {
     try {
       // 2. API CALL
       const res = await submitStep2({
-        userId: user.id, // replace later with real user id
+        userId: userId, // replace later with real user id
         availabilityIssue: formData.availabilityIssue,
         overtime: formData.overtime,
         hoursAvoid: formData.hoursAvoid,
@@ -150,31 +145,16 @@ export default function Step2({ next, back }: Props) {
       setLoading(false);
     }
   };
-  const router = useRouter();
+
   useEffect(() => {
-    const verifyUser = async () => {
-      if (!user.id) {
-        toast.error("Id not found  ");
-        router.push("/");
-        return;
-      }
-      const isApproved = await checkApproval(user.id);
-
-      if (!isApproved) {
-        setBlur(true);
-      }
-    };
-
-    verifyUser();
-
     const fetchStep2 = async () => {
       setLoading(true);
-      if (!user.id) {
+      if (!userId) {
         toast.error("Id not found ");
         return;
       }
 
-      const res = await getStep2(user.id);
+      const res = await getStep2(userId);
 
       if (res.success && res.data?.[0]) {
         const d = res.data[0];
@@ -201,15 +181,13 @@ export default function Step2({ next, back }: Props) {
     <>
       <div className="relative px-2">
         <div
-          className={
-            blur ? "blur-[3px] pointer-events-none select-none p-2" : ""
-          }
         >
           <div className="min-w-full space-y-5  grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
             {/* Availability Issue */}
             <div>
               <Label>
-                <span>Are you involved in any activities that limit your work availibility? <span className="text-red-500">*</span></span> 
+                Are you involved in any activities that limit your work availibility?
+                <span className="text-red-500">*</span>
               </Label>
               <RadioGroup
                 value={formData.availabilityIssue ? "yes" : "no"}
@@ -233,7 +211,8 @@ export default function Step2({ next, back }: Props) {
             {/* Overtime */}
             <div>
               <Label>
-                <span>Willing to work overtime & weekends?<span className="text-red-500">*</span></span>
+                Willing to work overtime & weekends?
+                <span className="text-red-500">*</span>
               </Label>
               <RadioGroup
                 value={formData.overtime ? "yes" : "no"}
@@ -255,7 +234,8 @@ export default function Step2({ next, back }: Props) {
             {/* Hours Avoid */}
             <div>
               <Label>
-                <span>Hours you do not wish to work<span className="text-red-500">*</span></span>
+                Hours you do not wish to work{" "}
+                <span className="text-red-500">*</span>
               </Label>
               <Input
                 value={formData.hoursAvoid}
@@ -267,7 +247,7 @@ export default function Step2({ next, back }: Props) {
             {/* Notice Period */}
             <div>
               <Label>
-               <span>Notice period required <span className="text-red-500">*</span></span>
+                Notice period required <span className="text-red-500">*</span>
               </Label>
               <Input
                 value={formData.noticePeriod}
@@ -280,7 +260,7 @@ export default function Step2({ next, back }: Props) {
             <div className="flex flex-col items-stretch gap-4">
               <div>
                 <Label>
-                  <span>Applied before?<span className="text-red-500">*</span></span>
+                  Applied before?<span className="text-red-500">*</span>
                 </Label>
                 <RadioGroup
                   value={formData.appliedBefore ? "yes" : "no"}
@@ -309,7 +289,7 @@ export default function Step2({ next, back }: Props) {
                 }`}
               >
                 <Label>
-                  <span>Application Details <span className="text-red-500">*</span></span>
+                  Application Details <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
                   value={formData.appliedDetails}
@@ -324,7 +304,8 @@ export default function Step2({ next, back }: Props) {
             <div className="flex flex-col items-stretch gap-4">
               <div>
                 <Label>
-                  <span>Subject to work restrictions / covenants?<span className="text-red-500">*</span></span>
+                  Subject to work restrictions / covenants?
+                  <span className="text-red-500">*</span>
                 </Label>
                 <RadioGroup
                   value={formData.workRestrictions ? "yes" : "no"}
@@ -353,7 +334,7 @@ export default function Step2({ next, back }: Props) {
                 }`}
               >
                 <Label>
-                  <span>Restriction Details <span className="text-red-500">*</span></span>
+                  Restriction Details <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
                   value={formData.restrictionDetails}
@@ -367,8 +348,8 @@ export default function Step2({ next, back }: Props) {
             {/* Worked Before */}
             <div>
               <Label>
-                <span>Have you worked for us before?
-                <span className="text-red-500">*</span></span>
+                Have you worked for us before?
+                <span className="text-red-500">*</span>
               </Label>
               <RadioGroup
                 value={formData.workedBefore ? "yes" : "no"}
@@ -390,30 +371,7 @@ export default function Step2({ next, back }: Props) {
           <SignupNavButtons onBack={back} onNext={handleSubmitStep2} />
         </div>
 
-        {/* Overlay */}
-        {blur && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
-            <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
-              <h2 className="text-lg font-semibold mb-2">
-                Appliaction Submitted Successfully.
-              </h2>
-              <p className="text-sm text-gray-600 mb-4">
-                One of our representative will get back to you with in 24 to 48
-                hours.
-              </p>
-
-              {/* Optional action */}
-              <div className="flex justify-evenly items-center">
-                <Link href={"/"}>
-                  <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
-                    Done
-                    {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
-                  </button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
+        
       </div>
     </>
   );

@@ -12,13 +12,7 @@ import { Step3Type } from "@/types/Form";
 import { useEffect } from "react";
 import { getStep3 } from "@/lib/api/step3";
 import { submitStep3 } from "@/lib/api/step3";
-import { useSelector } from "react-redux";
-import { RootState } from "@/lib/store";
 import { FullPageLoader } from "../Loading";
-import { useRouter } from "next/navigation";
-import { checkApproval } from "@/lib/users";
-import { IoRefresh } from "react-icons/io5";
-import Link from "next/link";
 import { DocCard } from "../common/DocCard";
 
 type NavProps = {
@@ -30,6 +24,7 @@ type NavProps = {
 type Props = {
   next: () => void;
   back: () => void;
+  userId: any;
 };
 
 // ------------------ Navigation Buttons ------------------
@@ -55,11 +50,10 @@ function SignupNavButtons({ onNext, onBack, disableBack }: NavProps) {
 }
 
 // ------------------ Step 3 Component ------------------
-export default function Step3({ next, back }: Props) {
+export default function Step3({ next, back, userId }: Props) {
   const [loading, setLoading] = useState(false);
-  const [blur, setBlur] = useState(false);
 
-  const user = useSelector((state: RootState) => state.user);
+  // const user = useSelector((state: RootState) => state.user);
 
   const [formData, setFormData] = useState<Step3Type>({
     hasConvictions: null,
@@ -125,30 +119,15 @@ export default function Step3({ next, back }: Props) {
     return true;
   };
 
-  const router = useRouter();
   useEffect(() => {
-    const verifyUser = async () => {
-      if (!user.id) {
-        toast.error("Id not found  ");
-        router.push("/");
-        return;
-      }
-      const isApproved = await checkApproval(user.id);
-
-      if (!isApproved) {
-        setBlur(true);
-      }
-    };
-
-    verifyUser();
     const fetchData = async () => {
       setLoading(true);
 
-      if (!user.id) {
+      if (!userId) {
         toast.error("Id not found in useEffect");
         return;
       }
-      const res = await getStep3(user.id);
+      const res = await getStep3(userId);
 
       if (res.success && res.data[0]) {
         const d = res.data[0];
@@ -165,7 +144,7 @@ export default function Step3({ next, back }: Props) {
           fullName: d.full_name || "",
           surname: d.surname || "",
           dob: d.dob ? d.dob.split("T")[0] : "",
-         crbFile: d.crb_file_path || null,
+          crbFile: d.crb_file_path || null,
         });
       }
       setLoading(false);
@@ -181,7 +160,7 @@ export default function Step3({ next, back }: Props) {
       setLoading(true);
       const form = new FormData();
 
-      form.append("userId", String(user.id));
+      form.append("userId", String(userId));
       form.append("hasConvictions", String(formData.hasConvictions));
       form.append("convictionDetails", formData.convictionDetails);
 
@@ -227,15 +206,15 @@ export default function Step3({ next, back }: Props) {
 
   return (
     <div className="relative px-2">
-      <div
-        className={blur ? "blur-[3px] pointer-events-none select-none p-2" : ""}
-      >
+      <div>
         <div className="min-w-full space-y-5 p-1 grid gap-x-5 gap-y-1 grid-cols-1 md:grid-cols-2">
           {/* Convictions */}
           <div className="flex flex-col items-stretch gap-4">
             <div>
               <Label>
-               <span>Any convictions?<span className="text-red-500">*</span></span>
+                <span>
+                  Any convictions?<span className="text-red-500">*</span>
+                </span>
               </Label>
               <RadioGroup
                 value={formData.hasConvictions ? "yes" : "no"}
@@ -260,7 +239,9 @@ export default function Step3({ next, back }: Props) {
               }`}
             >
               <Label>
-                 <span>Conviction Details <span className="text-red-500">*</span></span>
+                <span>
+                  Conviction Details <span className="text-red-500">*</span>
+                </span>
               </Label>
               <Textarea
                 value={formData.convictionDetails}
@@ -275,8 +256,10 @@ export default function Step3({ next, back }: Props) {
           <div className="flex flex-col items-stretch gap-4">
             <div>
               <Label>
-                 <span>Do you have any unspent convictions?
-                <span className="text-red-500">*</span></span>
+                <span>
+                  Do you have any unspent convictions?
+                  <span className="text-red-500">*</span>
+                </span>
               </Label>
               <RadioGroup
                 value={formData.hasUnspentConvictions ? "yes" : "no"}
@@ -301,7 +284,10 @@ export default function Step3({ next, back }: Props) {
               }`}
             >
               <Label>
-                <span>Unspent Conviction Details<span className="text-red-500">*</span></span>
+                <span>
+                  Unspent Conviction Details
+                  <span className="text-red-500">*</span>
+                </span>
               </Label>
               <Textarea
                 value={formData.unspentDetails}
@@ -313,8 +299,10 @@ export default function Step3({ next, back }: Props) {
           {/* Fitness Investigation */}
           <div>
             <Label>
-              <span>Currently under fitness to practice investigation?
-              <span className="text-red-500">*</span></span>
+              <span>
+                Currently under fitness to practice investigation?
+                <span className="text-red-500">*</span>
+              </span>
             </Label>
             <RadioGroup
               value={formData.fitnessInvestigation ? "yes" : "no"}
@@ -334,8 +322,10 @@ export default function Step3({ next, back }: Props) {
           {/* Removed From Register */}
           <div>
             <Label>
-               <span>Have you been ever removed from professional registeration? 
-              <span className="text-red-500">*</span></span>
+              <span>
+                Have you been ever removed from professional registeration?
+                <span className="text-red-500">*</span>
+              </span>
             </Label>
             <RadioGroup
               value={formData.removedFromRegister ? "yes" : "no"}
@@ -356,8 +346,10 @@ export default function Step3({ next, back }: Props) {
           <div className="flex flex-col items-stretch gap-4 md:col-span-2">
             <div>
               <Label>
-                <span>Do you have DBS/CRB on update service? 
-                <span className="text-red-500">*</span></span>
+                <span>
+                  Do you have DBS/CRB on update service?
+                  <span className="text-red-500">*</span>
+                </span>
               </Label>
               <RadioGroup
                 value={formData.crb ? "yes" : "no"}
@@ -388,7 +380,11 @@ export default function Step3({ next, back }: Props) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
                 {/* Certificate Number - NEW FIELD */}
                 <div>
-                  <Label><span>Certificate Number <span className="text-red-500">*</span></span></Label>
+                  <Label>
+                    <span>
+                      Certificate Number <span className="text-red-500">*</span>
+                    </span>
+                  </Label>
                   <Input
                     value={formData.certificateNumber}
                     onChange={(e) =>
@@ -399,7 +395,11 @@ export default function Step3({ next, back }: Props) {
 
                 {/* Full Name - NEW FIELD */}
                 <div>
-                  <Label><span>Full Name <span className="text-red-500">*</span></span></Label>
+                   <Label>
+                    <span>
+                      Full Name <span className="text-red-500">*</span>
+                    </span>
+                  </Label>
                   <Input
                     value={formData.fullName}
                     onChange={(e) => handleChange("fullName", e.target.value)}
@@ -407,7 +407,9 @@ export default function Step3({ next, back }: Props) {
                 </div>
                 <div>
                   <Label>
-                    <span>Surname <span className="text-red-500">*</span></span>
+                     <span>
+                      Surname <span className="text-red-500">*</span>
+                    </span>
                   </Label>
                   <Input
                     value={formData.surname}
@@ -417,7 +419,9 @@ export default function Step3({ next, back }: Props) {
 
                 <div>
                   <Label>
-                     <span>Date of Birth <span className="text-red-500">*</span></span>
+                    <span>
+                      Date of Birth <span className="text-red-500">*</span>
+                    </span>
                   </Label>
                   <Input
                     type="date"
@@ -428,9 +432,11 @@ export default function Step3({ next, back }: Props) {
 
                 <div>
                   <Label>
-                    <span>Upload DBS/CRB <span className="text-red-500">*</span></span>
+                      <span>
+                      Upload DBS/CRB <span className="text-red-500">*</span>
+                    </span>
                   </Label>
-                   <DocCard<Step3Type>
+                  <DocCard<Step3Type>
                     title="DBS / CRB"
                     fieldKey="crbFile"
                     hint="Upload your DBS/CRB (PDF, DOC, DOCX, JPG, JPEG or PNG)"
@@ -447,31 +453,6 @@ export default function Step3({ next, back }: Props) {
 
         <SignupNavButtons onBack={back} onNext={handleSubmitStep3} />
       </div>
-
-      {/* Overlay */}
-      {blur && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
-          <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
-            <h2 className="text-lg font-semibold mb-2">
-              Appliaction Submitted Successfully.
-            </h2>
-            <p className="text-sm text-gray-600 mb-4">
-              One of our representative will get back to you with in 24 to 48
-              hours.
-            </p>
-
-            {/* Optional action */}
-            <div className="flex justify-evenly items-center">
-              <Link href={"/"}>
-                <button className="px-6 py-1 bg-primary text-white rounded text-[15px] flex gap-1 items-center">
-                  Done
-                  {/* <IoMdCheckmark className="size-5 mb-0.5"/> */}
-                </button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
