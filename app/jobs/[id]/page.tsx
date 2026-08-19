@@ -66,17 +66,80 @@ const formatDate = (date: string) => {
     return date;
   }
 };
+const formatRelativeTime = (date: string) => {
+  if (!date) return "N/A";
 
+  const createdDate = new Date(date);
+  const now = new Date();
+
+  if (isNaN(createdDate.getTime())) {
+    return "N/A";
+  }
+
+  const diffInSeconds = Math.floor(
+    (now.getTime() - createdDate.getTime()) / 1000,
+  );
+
+  // Future date
+  if (diffInSeconds < 0) {
+    return "Just now";
+  }
+
+  // Less than 1 minute
+  if (diffInSeconds < 60) {
+    return "Just now";
+  }
+
+  // Minutes
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes} ${diffInMinutes === 1 ? "minute" : "minutes"} ago`;
+  }
+
+  // Hours
+  const diffInHours = Math.floor(diffInMinutes / 60);
+
+  if (diffInHours < 24) {
+    return `${diffInHours} ${diffInHours === 1 ? "hour" : "hours"} ago`;
+  }
+
+  // Days
+  const diffInDays = Math.floor(diffInHours / 24);
+
+  if (diffInDays < 7) {
+    return `${diffInDays} ${diffInDays === 1 ? "day" : "days"} ago`;
+  }
+
+  // Weeks
+  const diffInWeeks = Math.floor(diffInDays / 7);
+
+  if (diffInWeeks < 4) {
+    return `${diffInWeeks} ${diffInWeeks === 1 ? "week" : "weeks"} ago`;
+  }
+
+  // Months
+  const diffInMonths = Math.floor(diffInDays / 30);
+
+  if (diffInMonths < 12) {
+    return `${diffInMonths} ${diffInMonths === 1 ? "month" : "months"} ago`;
+  }
+
+  // Years
+  const diffInYears = Math.floor(diffInDays / 365);
+
+  return `${diffInYears} ${diffInYears === 1 ? "year" : "years"} ago`;
+};
 export default async function JobDetailPage({ params }: PageProps) {
   const { id } = await params;
   let job: JobDetails | null = null;
-
 
   try {
     const response: JobDetailsResponse = await getJobById(id);
 
     if (response?.success && response?.data) {
       job = response.data;
+      console.log("job", job);
     }
   } catch (error) {
     console.error("Failed to fetch job details:", error);
@@ -140,10 +203,24 @@ export default async function JobDetailPage({ params }: PageProps) {
             {/* LEFT */}
 
             <div className="min-w-0">
+              {job.created && (
+                <div className="text-slate-500 mb-1">
+                  <p className="mt-1 text-[12px]!">
+                    Posted {formatRelativeTime(job.created)}
+                  </p>
+                </div>
+              )}
+
+              {/* TITLE */}
+
+              <h1 className="text-xl! sm:text-2xl! lg:text-3xl! font-semibold text-slate-900 dark:text-white">
+                {job.title}
+              </h1>
+
               {/* BADGES */}
 
-              <div className="flex items-center gap-2 mb-3 flex-wrap">
-              <AppliedBadge saleId={job.sale_id} />
+              <div className="flex items-center gap-2 mb-3 flex-wrap mt-1">
+                <AppliedBadge saleId={job.sale_id} />
                 <span className="bg-[#EDE9FE] dark:bg-brand-900 text-primary dark:text-brand-300 text-xs font-bold px-3 py-1.5 rounded-full">
                   {formatPositionType(job.position_type)}
                 </span>
@@ -152,12 +229,6 @@ export default async function JobDetailPage({ params }: PageProps) {
                   {job.category}
                 </span>
               </div>
-
-              {/* TITLE */}
-
-              <h1 className="text-xl! sm:text-2xl! lg:text-3xl! font-semibold text-slate-900 dark:text-white">
-                {job.title}
-              </h1>
 
               {/* OFFICE + UNIT */}
 
@@ -178,7 +249,7 @@ export default async function JobDetailPage({ params }: PageProps) {
 
             <div className="md:text-right shrink-0 ">
               <span className="block text-xs uppercase text-primary font-bold">
-                Salary / Rate
+                Salary
               </span>
 
               <span className="text-xl! sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">
@@ -242,7 +313,7 @@ export default async function JobDetailPage({ params }: PageProps) {
 
             {/* DISTANCE */}
 
-            <div>
+            {/* <div>
               <span className="block text-xs uppercase text-primary font-bold mb-1">
                 Distance
               </span>
@@ -253,7 +324,7 @@ export default async function JobDetailPage({ params }: PageProps) {
                   ? `${job.region_distance_km} km`
                   : "N/A"}
               </span>
-            </div>
+            </div> */}
           </div>
 
           {/* ============================================
@@ -342,12 +413,11 @@ export default async function JobDetailPage({ params }: PageProps) {
           ============================================ */}
 
           <div className="border-t border-slate-100 dark:border-slate-700 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <ApplyButton saleId={job.sale_id} />
 
-              <ApplyButton saleId={job.sale_id} />
-
-            <div className="text-sm text-slate-500 text-center sm:text-right">
-              <p className="mt-1">Posted {formatDate(job.created)}</p>
-            </div>
+            {/* <div className="text-sm text-slate-500 text-center sm:text-right">
+              <p className="mt-1"> Posted {formatRelativeTime(job.created)}</p>
+            </div> */}
           </div>
         </div>
       </section>

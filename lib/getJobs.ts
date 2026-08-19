@@ -64,6 +64,7 @@ export type MyJobApplication = {
     unit: string;
     region: string;
     status: string;
+    created:string;
   };
 };
 

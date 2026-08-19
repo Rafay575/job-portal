@@ -53,11 +53,7 @@ const formatPositionType = (value: string) => {
 
   return value
     .split(/[\s_-]+/)
-    .map(
-      (word) =>
-        word.charAt(0).toUpperCase() +
-        word.slice(1).toLowerCase()
-    )
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 };
 
@@ -86,7 +82,72 @@ export default function UserApplicationsDialog({
    * IMPORTANT:
    * Hook must be called before any conditional return.
    */
+  const formatRelativeTime = (date: string) => {
+    if (!date) return "N/A";
 
+    const createdDate = new Date(date);
+    const now = new Date();
+
+    if (isNaN(createdDate.getTime())) {
+      return "N/A";
+    }
+
+    const diffInSeconds = Math.floor(
+      (now.getTime() - createdDate.getTime()) / 1000,
+    );
+
+    // Future date
+    if (diffInSeconds < 0) {
+      return "Just now";
+    }
+
+    // Less than 1 minute
+    if (diffInSeconds < 60) {
+      return "Just now";
+    }
+
+    // Minutes
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} ${
+        diffInMinutes === 1 ? "minute" : "minutes"
+      } ago`;
+    }
+
+    // Hours
+    const diffInHours = Math.floor(diffInMinutes / 60);
+
+    if (diffInHours < 24) {
+      return `${diffInHours} ${diffInHours === 1 ? "hour" : "hours"} ago`;
+    }
+
+    // Days
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInDays < 7) {
+      return `${diffInDays} ${diffInDays === 1 ? "day" : "days"} ago`;
+    }
+
+    // Weeks
+    const diffInWeeks = Math.floor(diffInDays / 7);
+
+    if (diffInWeeks < 4) {
+      return `${diffInWeeks} ${diffInWeeks === 1 ? "week" : "weeks"} ago`;
+    }
+
+    // Months
+    const diffInMonths = Math.floor(diffInDays / 30);
+
+    if (diffInMonths < 12) {
+      return `${diffInMonths} ${diffInMonths === 1 ? "month" : "months"} ago`;
+    }
+
+    // Years
+    const diffInYears = Math.floor(diffInDays / 365);
+
+    return `${diffInYears} ${diffInYears === 1 ? "year" : "years"} ago`;
+  };
   if (!user) return null;
 
   return (
@@ -272,10 +333,32 @@ export default function UserApplicationsDialog({
                       sm:justify-between
                     "
                   >
-                    <div className="min-w-0 flex-1">
-                      {/* BADGES */}
+                    <div className="min-w-0 flex-1 ">
+                      {job.created && (
+                        <div className="text-slate-500 mb-1">
+                          <p className="mt-1 text-[12px]!">
+                            Posted {formatRelativeTime(job.created)}
+                          </p>
+                        </div>
+                      )}
 
-                      <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-2">
+                      {/* TITLE */}
+                      <h3
+                        className="
+                          font-bold
+                          text-base
+                          sm:text-lg
+                          text-slate-900
+                          dark:text-white
+                          leading-snug
+                          break-words 
+                        "
+                      >
+                        {job.title || "Job unavailable"}
+                      </h3>
+
+                      {/* BADGES */}
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2">
                         {job.category && (
                           <span
                             className="
@@ -310,28 +393,10 @@ export default function UserApplicationsDialog({
                               dark:text-slate-300
                             "
                           >
-                            {formatPositionType(
-                              job.position_type
-                            )}
+                            {formatPositionType(job.position_type)}
                           </span>
                         )}
                       </div>
-
-                      {/* TITLE */}
-
-                      <h3
-                        className="
-                          font-bold
-                          text-base
-                          sm:text-lg
-                          text-slate-900
-                          dark:text-white
-                          leading-snug
-                          break-words
-                        "
-                      >
-                        {job.title || "Job unavailable"}
-                      </h3>
                     </div>
 
                     {/* APPLIED BADGE */}
@@ -385,15 +450,14 @@ export default function UserApplicationsDialog({
                     >
                       <FaMoneyBillWave
                         className="
-                          text-emerald-500
+                          text-primary
                           shrink-0
                           mt-0.5
                         "
                       />
 
                       <span className="break-words">
-                        {job.salary ||
-                          "Salary not specified"}
+                        {job.salary || "Salary not specified"}
                       </span>
                     </div>
 
@@ -417,9 +481,7 @@ export default function UserApplicationsDialog({
                           "
                         />
 
-                        <span className="break-words">
-                          {job.unit}
-                        </span>
+                        <span className="break-words">{job.unit}</span>
                       </div>
                     )}
 
@@ -435,11 +497,7 @@ export default function UserApplicationsDialog({
                           text-muted-foreground
                         "
                       >
-                        
-
-                        <span className="break-words">
-                          📍 {job.region}
-                        </span>
+                        <span className="break-words">📍 {job.region}</span>
                       </div>
                     )}
 
@@ -463,9 +521,7 @@ export default function UserApplicationsDialog({
                       />
 
                       <span className="break-words">
-                        {formatDateTime(
-                          application.appliedAt
-                        )}
+                        {formatDateTime(application.appliedAt)}
                       </span>
                     </div>
                   </div>
@@ -487,8 +543,6 @@ export default function UserApplicationsDialog({
                       gap-3
                     "
                   >
-                    
-
                     {/* VIEW DETAILS */}
 
                     <Button
@@ -507,9 +561,7 @@ export default function UserApplicationsDialog({
                       onClick={() => {
                         onOpenChange(false);
 
-                        router.push(
-                          `/jobs/${application.applicationId}`
-                        );
+                        router.push(`/jobs/${application.applicationId}`);
                       }}
                     >
                       <span>View Details</span>

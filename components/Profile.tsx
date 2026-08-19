@@ -20,7 +20,7 @@ export default function Profile() {
   const router = useRouter();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
-  console.log("User in Profile component:", user);
+  // console.log("User in Profile component:", user);
   const handleLogout = async () => {
     try {
       dispatch(clearUser());

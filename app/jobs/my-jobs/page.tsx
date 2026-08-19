@@ -51,8 +51,6 @@ const formatAppliedDateTime = (date: string) => {
       day: "numeric",
       month: "short",
       year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   } catch {
     return date;
@@ -108,6 +106,73 @@ function ApplicationCard({
   onClick,
 }: ApplicationCardProps) {
   const job = application.job;
+  console.log("job", job);
+  const formatRelativeTime = (date: string) => {
+    if (!date) return "N/A";
+
+    const createdDate = new Date(date);
+    const now = new Date();
+
+    if (isNaN(createdDate.getTime())) {
+      return "N/A";
+    }
+
+    const diffInSeconds = Math.floor(
+      (now.getTime() - createdDate.getTime()) / 1000,
+    );
+
+    // Future date
+    if (diffInSeconds < 0) {
+      return "Just now";
+    }
+
+    // Less than 1 minute
+    if (diffInSeconds < 60) {
+      return "Just now";
+    }
+
+    // Minutes
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} ${
+        diffInMinutes === 1 ? "minute" : "minutes"
+      } ago`;
+    }
+
+    // Hours
+    const diffInHours = Math.floor(diffInMinutes / 60);
+
+    if (diffInHours < 24) {
+      return `${diffInHours} ${diffInHours === 1 ? "hour" : "hours"} ago`;
+    }
+
+    // Days
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInDays < 7) {
+      return `${diffInDays} ${diffInDays === 1 ? "day" : "days"} ago`;
+    }
+
+    // Weeks
+    const diffInWeeks = Math.floor(diffInDays / 7);
+
+    if (diffInWeeks < 4) {
+      return `${diffInWeeks} ${diffInWeeks === 1 ? "week" : "weeks"} ago`;
+    }
+
+    // Months
+    const diffInMonths = Math.floor(diffInDays / 30);
+
+    if (diffInMonths < 12) {
+      return `${diffInMonths} ${diffInMonths === 1 ? "month" : "months"} ago`;
+    }
+
+    // Years
+    const diffInYears = Math.floor(diffInDays / 365);
+
+    return `${diffInYears} ${diffInYears === 1 ? "year" : "years"} ago`;
+  };
 
   return (
     <motion.button
@@ -145,9 +210,23 @@ function ApplicationCard({
           {/* LEFT */}
 
           <div className="min-w-0 flex-1">
+            {job.created && (
+              <div className="text-slate-500 mb-1">
+                <p className="mt-1 text-[12px]!">
+                  Posted {formatRelativeTime(job.created)}
+                </p>
+              </div>
+            )}
+
+            {/* TITLE */}
+
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors duration-300 line-clamp-2">
+              {job.title}
+            </h2>
+
             {/* BADGES */}
 
-            <div className="flex flex-wrap items-center gap-2 mb-3">
+            <div className="flex flex-wrap items-center gap-2 mt-2">
               <span className="inline-flex items-center gap-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-3 py-1.5 rounded-full">
                 ✓ Applied
               </span>
@@ -160,12 +239,6 @@ function ApplicationCard({
                 {job.category}
               </span>
             </div>
-
-            {/* TITLE */}
-
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors duration-300 line-clamp-2">
-              {job.title}
-            </h2>
 
             {/* OFFICE */}
 
@@ -235,7 +308,7 @@ function ApplicationCard({
 
             <div>
               <span className="block text-[11px] uppercase tracking-wide font-bold text-primary mb-1">
-                Salary / Rate
+                Salary
               </span>
 
               <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">

@@ -374,6 +374,73 @@ export default function JobsPage() {
     checkApplications();
   }, [paginatedJobs, user?.id, user?.loggedIn]);
 
+  const formatRelativeTime = (date: string) => {
+    if (!date) return "N/A";
+
+    const createdDate = new Date(date);
+    const now = new Date();
+
+    if (isNaN(createdDate.getTime())) {
+      return "N/A";
+    }
+
+    const diffInSeconds = Math.floor(
+      (now.getTime() - createdDate.getTime()) / 1000,
+    );
+
+    // Future date
+    if (diffInSeconds < 0) {
+      return "Just now";
+    }
+
+    // Less than 1 minute
+    if (diffInSeconds < 60) {
+      return "Just now";
+    }
+
+    // Minutes
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} ${
+        diffInMinutes === 1 ? "minute" : "minutes"
+      } ago`;
+    }
+
+    // Hours
+    const diffInHours = Math.floor(diffInMinutes / 60);
+
+    if (diffInHours < 24) {
+      return `${diffInHours} ${diffInHours === 1 ? "hour" : "hours"} ago`;
+    }
+
+    // Days
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInDays < 7) {
+      return `${diffInDays} ${diffInDays === 1 ? "day" : "days"} ago`;
+    }
+
+    // Weeks
+    const diffInWeeks = Math.floor(diffInDays / 7);
+
+    if (diffInWeeks < 4) {
+      return `${diffInWeeks} ${diffInWeeks === 1 ? "week" : "weeks"} ago`;
+    }
+
+    // Months
+    const diffInMonths = Math.floor(diffInDays / 30);
+
+    if (diffInMonths < 12) {
+      return `${diffInMonths} ${diffInMonths === 1 ? "month" : "months"} ago`;
+    }
+
+    // Years
+    const diffInYears = Math.floor(diffInDays / 365);
+
+    return `${diffInYears} ${diffInYears === 1 ? "year" : "years"} ago`;
+  };
+
   // ============================================
   // RENDER
   // ============================================
@@ -718,37 +785,16 @@ export default function JobsPage() {
                       JOB INFORMATION
                   ========================== */}
 
-                  <div className="space-y-3 flex-1 min-w-0">
+                  <div className="space-y-2 flex-1 min-w-0">
+                    {job.created && (
+                      <div className="text-slate-500 mb-1">
+                        <p className="mt-1 text-[12px]!">
+                          Posted {formatRelativeTime(job.created)}
+                        </p>
+                      </div>
+                    )}
+
                     {/* BADGES */}
-
-                    <motion.div
-                      className="flex items-center gap-2 flex-wrap"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{
-                        delay: index * 0.08 + 0.2,
-                      }}
-                    >
-                      {/* APPLIED BADGE */}
-
-                      {user?.loggedIn && appliedJobs[job.sale_id] && (
-                        <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-3 py-1.5 rounded-full">
-                          ✓ Applied
-                        </span>
-                      )}
-
-                      {/* POSITION TYPE */}
-
-                      <span className="bg-[#EDE9FE] dark:bg-primary/50 text-primary dark:text-primary-300 text-xs font-bold px-3 py-1.5 rounded-full">
-                        {formatPositionType(job.position_type)}
-                      </span>
-
-                      {/* CATEGORY */}
-
-                      <span className="bg-[#EDE9FE] dark:bg-brand-900 text-primary dark:text-brand-300 text-xs font-bold px-3 py-1.5 rounded-full">
-                        {job.category || "Healthcare"}
-                      </span>
-                    </motion.div>
 
                     {/* TITLE */}
 
@@ -759,8 +805,6 @@ export default function JobsPage() {
                     {/* COMPANY / unit */}
 
                     <p className="text-slate-600 dark:text-slate-400 text-sm font-medium flex items-center flex-wrap gap-4">
-                      
-
                       <span className="flex items-center gap-1">
                         <FaLocationDot className="text-primary shrink-0" />
 
@@ -774,11 +818,13 @@ export default function JobsPage() {
                       {job.region && <span>📍 {job.region}</span>}
 
                       {/* {job.postcode && <span>{job.postcode}</span>} */}
-                      {job.postcode && <span>{job.postcode.split(" ")[0]}</span>}
-
-                      {job.region_distance_km !== undefined && (
-                        <span>{job.region_distance_km} km away</span>
+                      {job.postcode && (
+                        <span>{job.postcode.split(" ")[0]}</span>
                       )}
+
+                      {/* {job.region_distance_km !== undefined && (
+                        <span>{job.region_distance_km} km away</span>
+                      )} */}
                     </div>
 
                     {/* TIMING */}
@@ -809,6 +855,34 @@ export default function JobsPage() {
                         Last updated: {formatDate(job.last_updated)}
                       </div>
                     )}
+                    <motion.div
+                      className="flex items-center gap-2 flex-wrap "
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{
+                        delay: index * 0.08 + 0.2,
+                      }}
+                    >
+                      {/* APPLIED BADGE */}
+
+                      {user?.loggedIn && appliedJobs[job.sale_id] && (
+                        <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-3 py-1.5 rounded-full">
+                          ✓ Applied
+                        </span>
+                      )}
+
+                      {/* POSITION TYPE */}
+
+                      <span className="bg-[#EDE9FE] dark:bg-primary/50 text-primary dark:text-primary-300 text-xs font-bold px-3 py-1.5 rounded-full">
+                        {formatPositionType(job.position_type)}
+                      </span>
+
+                      {/* CATEGORY */}
+
+                      <span className="bg-[#EDE9FE] dark:bg-brand-900 text-primary dark:text-brand-300 text-xs font-bold px-3 py-1.5 rounded-full">
+                        {job.category || "Healthcare"}
+                      </span>
+                    </motion.div>
                   </div>
 
                   {/* =========================
@@ -832,7 +906,7 @@ export default function JobsPage() {
                   >
                     <div className="text-left sm:text-right max-w-xs">
                       <span className="block text-xs text-slate-400 uppercase font-bold mb-1">
-                        Salary / Rate
+                        Salary
                       </span>
 
                       <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">

@@ -157,7 +157,7 @@ export default function Step10({ next, back }: Props) {
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
             <div className="bg-white p-6 rounded-xl shadow-lg text-center max-w-sm">
               <h2 className="text-lg font-semibold mb-2">
-                Appliaction Submitted Successfully.
+                Application Submitted Successfully.
               </h2>
               <p className="text-sm text-gray-600 mb-4">
                 One of our representative will get back to you with in 24 to 48

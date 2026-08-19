@@ -56,9 +56,9 @@ export default function Page() {
     if (step === 1 && (roleType === "agency-work" || roleType === "both")) {
       const { isApproved } = await checkApproval(user.id);
       if (!isApproved) {
-        toast.success(
-          "One of our representative will get back to you within 24 to 48 hours.",
-        );
+        // toast.success(
+        //   "One of our representative will get back to you within 24 to 48 hours.",
+        // );
         setDirection(1);
         setStep((prev) => prev + 1);
 

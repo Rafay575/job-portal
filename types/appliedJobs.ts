@@ -20,6 +20,7 @@ export type AppliedJob = {
     unit: string;
     region: string;
     status: string;
+    created: string;
   };
 };
 

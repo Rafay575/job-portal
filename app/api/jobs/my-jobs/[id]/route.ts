@@ -112,6 +112,7 @@ export async function GET(
               unit: job.unit,
               region: job.region,
               status: job.status,
+              created: job.created,
             },
           };
         } catch (error) {

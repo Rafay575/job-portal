@@ -110,6 +110,7 @@ export async function GET(request: NextRequest) {
                 unit: job.unit,
                 region: job.region,
                 status: job.status,
+                created: job.created,
               }
             : {
                 sale_id: application.jobId,
@@ -121,6 +122,7 @@ export async function GET(request: NextRequest) {
                 unit: "",
                 region: "",
                 status: "unavailable",
+                created: "N/A",
               },
         };
       })
@@ -176,6 +178,7 @@ export async function GET(request: NextRequest) {
           item.job.unit,
           item.job.region,
           item.job.status,
+          item.job.created,
 
           item.appliedAt,
         ];
