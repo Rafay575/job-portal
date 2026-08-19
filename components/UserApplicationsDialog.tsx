@@ -38,6 +38,7 @@ export const formatDateTime = (date: string) => {
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      hour12: true,
     });
   } catch {
     return date;
@@ -274,6 +275,7 @@ export default function UserApplicationsDialog({
         >
           {user.applications.map((application, index) => {
             const job = application.job;
+            console.log("job",job )
 
             return (
               <motion.div
@@ -418,7 +420,7 @@ export default function UserApplicationsDialog({
                         dark:text-emerald-400
                       "
                     >
-                      Applied
+                      Applied {formatDateTime(application.appliedAt)}
                     </span>
                   </div>
 
@@ -503,7 +505,7 @@ export default function UserApplicationsDialog({
 
                     {/* APPLIED DATE */}
 
-                    <div
+                    {/* <div
                       className="
                         flex
                         items-start
@@ -523,7 +525,7 @@ export default function UserApplicationsDialog({
                       <span className="break-words">
                         {formatDateTime(application.appliedAt)}
                       </span>
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* ==================================================
