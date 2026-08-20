@@ -114,7 +114,6 @@ export default function TermsAndConditionsPage() {
                       {section.title}
                     </span>
 
-                    <FaChevronRight className="shrink-0 text-[8px] opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
                   </a>
                 ))}
               </nav>
@@ -139,7 +138,7 @@ export default function TermsAndConditionsPage() {
 
               <Definition
                 title="Agency"
-                text="Hayaibu Talent Ltd, registered company no. 11804530, of Apollo Centre, Desborough Road, High Wycombe, England, HP11 2QW (the Agency)."
+                text="Hayaibu Talent Ltd, 128 City Road, London, EC1V 2NX, UK"
               />
 
               <Definition
@@ -629,17 +628,17 @@ export default function TermsAndConditionsPage() {
               <div className="space-y-3 text-sm">
                 <CompanyDetail
                   label="Company"
-                  value="Hayaibu Talent Ltd (Company No. 11804530)"
+                  value="Hayaibu Talent Ltd "
                 />
 
                 <CompanyDetail
                   label="Registered office"
-                  value="Apollo Centre, Desborough Road, High Wycombe, England, HP11 2QW"
+                  value="128 City Road, London, EC1V 2NX, UK"
                 />
 
                 <CompanyDetail
                   label="Telephone"
-                  value="01494 211220"
+                  value="+44 20 4620 4046"
                 />
 
                 <CompanyDetail

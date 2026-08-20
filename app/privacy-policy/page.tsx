@@ -117,7 +117,7 @@ export default function PrivacyPolicyPage() {
                   <a
                     key={section.id}
                     href={`#${section.id}`}
-                    className="group flex items-start gap-2 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-white hover:text-primary dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-primary"
+                    className="group flex items-stretch gap-2 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-white hover:text-primary dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-primary"
                   >
                     <span className="w-6 shrink-0 text-[12px] font-bold text-primary mt-0.5">
                       {section.number}
@@ -125,7 +125,7 @@ export default function PrivacyPolicyPage() {
 
                     <span className="min-w-0 flex-1">{section.title}</span>
 
-                    <FaChevronRight className="shrink-0 text-[8px] opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
+                   
                   </a>
                 ))}
               </nav>
@@ -171,10 +171,10 @@ export default function PrivacyPolicyPage() {
                   Hayaibu Talent Ltd
                 </p>
 
-                <p>
+                {/* <p>
                   <strong className="font-bold text-slate-900">Contact:</strong>{" "}
                   Bilal Sheikh
-                </p>
+                </p> */}
 
                 <p>
                   <strong className="font-bold text-slate-900">
@@ -184,7 +184,7 @@ export default function PrivacyPolicyPage() {
                     href="tel:+441494211220"
                     className="text-primary hover:underline"
                   >
-                    01494 211220
+                    +44 20 4620 4046
                   </a>
                 </p>
 
@@ -194,7 +194,7 @@ export default function PrivacyPolicyPage() {
                     href="mailto:mbs@hayaibutalent.com"
                     className="break-all text-primary hover:underline"
                   >
-                    mbs@hayaibutalent.com
+                    info@hayaibutalent.com
                   </a>
                 </p>
               </div>
@@ -409,19 +409,19 @@ export default function PrivacyPolicyPage() {
               <SectionHeading number="12" title="Complaints" />
 
               <p className="text-sm leading-7 text-slate-600 sm:text-[15px]">
-                If you have any concerns, contact Bilal Sheikh at{" "}
+                If you have any concerns, contact 
                 <a
                   href="tel:+441494211220"
                   className="text-primary hover:underline"
                 >
-                  01494 211220
+                  {" "} +44 20 4620 4046
                 </a>{" "}
                 or{" "}
                 <a
                   href="mailto:mbs@hayaibutalent.com"
                   className="break-all text-primary hover:underline"
                 >
-                  mbs@hayaibutalent.com
+                  info@hayaibutalent.com
                 </a>
                 . You may also complain to the Information Commissioner's Office
                 (ICO) via{" "}
