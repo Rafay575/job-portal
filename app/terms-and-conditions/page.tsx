@@ -784,15 +784,26 @@ function CompanyDetail({
   label: string;
   value: string;
 }) {
+  const isEmail = label.toLowerCase() === "email";
+
   return (
     <div className="grid grid-cols-1 gap-1 border-b border-slate-200 pb-3 last:border-0 last:pb-0 dark:border-slate-800 sm:grid-cols-[150px_1fr]">
       <span className="font-bold text-slate-800 dark:text-slate-300">
         {label}
       </span>
 
-      <span className="break-words text-slate-600 dark:text-slate-400">
-        {value}
-      </span>
+      {isEmail ? (
+        <a
+          href={`mailto:${value}`}
+          className="break-words text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
+        >
+          {value}
+        </a>
+      ) : (
+        <span className="break-words text-slate-600 dark:text-slate-400">
+          {value}
+        </span>
+      )}
     </div>
   );
 }

@@ -171,10 +171,10 @@ export default function PrivacyPolicyPage() {
                   Hayaibu Talent Ltd
                 </p>
 
-                {/* <p>
+                <p>
                   <strong className="font-bold text-slate-900">Contact:</strong>{" "}
-                  Bilal Sheikh
-                </p> */}
+                  Naseer Miyan
+                </p>
 
                 <p>
                   <strong className="font-bold text-slate-900">
@@ -191,10 +191,10 @@ export default function PrivacyPolicyPage() {
                 <p>
                   <strong className="font-bold text-slate-900">Email:</strong>{" "}
                   <a
-                    href="mailto:mbs@hayaibutalent.com"
+                    href="mailto:naseer@hayaibu.com"
                     className="break-all text-primary hover:underline"
                   >
-                    info@hayaibutalent.com
+                    naseer@hayaibu.com
                   </a>
                 </p>
               </div>
@@ -418,7 +418,7 @@ export default function PrivacyPolicyPage() {
                 </a>{" "}
                 or{" "}
                 <a
-                  href="mailto:mbs@hayaibutalent.com"
+                  href="mailto:info@hayaibutalent.com"
                   className="break-all text-primary hover:underline"
                 >
                   info@hayaibutalent.com

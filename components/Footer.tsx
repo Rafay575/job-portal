@@ -83,7 +83,7 @@ export default function Footer() {
             </li>
             <li className="flex items-center gap-2">
               <FaEnvelope className="text-primary" />
-              <span>recruitment@hayaibutalent.com</span>
+              <a href="mailto:recruitment@hayaibutalent.com">recruitment@hayaibutalent.com</a>
             </li>
             <li className="flex items-center gap-2">
               <FaClock className="text-primary" />
