@@ -485,13 +485,11 @@ export default function RegisterPage() {
             {/* Terms */}
             <p className="mt-5 text-[11px] leading-4 text-gray-500">
               By clicking next, you agree to Hayabiu Talent&apos;s{" "}
-              <span  className="text-primary underline">
-                Terms &amp; Conditions
-              </span>{" "}
+              <Link href={"/terms-and-conditions"} className="text-primary underline">
+                Terms &amp; Conditions{" "}
+              </Link>
               and you acknowledge that you have read Hayabiu Talent&apos;s{" "}
-              <span className="text-primary underline">
-                Privacy Policy
-              </span>{" "}
+              <Link href={"/privacy-policy"} className="text-primary underline">Privacy Policy</Link>{" "}
               which will apply to the processing of your personal data in the
               provision of our services
             </p>
