@@ -271,7 +271,7 @@ export default function About() {
       </div>
 
       {/* Team Section */}
-      <div className="bg-slate-50 dark:bg-slate-900 py-24 px-4 sm:px-6">
+      {/* <div className="bg-slate-50 dark:bg-slate-900 py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <span className="text-primary dark:text-primary font-bold uppercase tracking-widest text-xs mb-3 block">
@@ -396,10 +396,10 @@ export default function About() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Timeline Section */}
-      <div className="py-24 px-4 sm:px-6 max-w-5xl mx-auto">
+      {/* <div className="py-24 px-4 sm:px-6 max-w-5xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-primary dark:text-primary font-bold uppercase tracking-widest text-xs mb-3 block">
             Our Journey
@@ -538,7 +538,7 @@ export default function About() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Testimonials */}
       <div className="bg-slate-900 py-24 px-4 sm:px-6">
