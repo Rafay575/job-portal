@@ -159,7 +159,7 @@ export default function ResumeServicesSection() {
 
         {/* Action Buttons */}
         <a href="https://www.etsy.com/uk/listing/4567265334/executive-resume-writing-service-ats?sr_prefetch=1&pf_from=shop_home&ref=shop_home_active_1&pro=1&dd=1&logging_key=fb710f35f46ead1d8fb472170a15ab4d3a0a5074%3A4567265334" target="_blank" rel="noopener noreferrer">
-          <button className="inline-flex items-center justify-center bg-[#5b32d6] hover:bg-[#4b28b4] text-white font-bold py-2.5 px-10 rounded-sm transition-all shadow-md shadow-[#5b32d6]/20 group text-sm! mt-5 lg:mt-0">
+          <button className="inline-flex items-center justify-center bg-[#5b32d6] hover:bg-[#4b28b4] text-white font-bold py-2.5 px-10 rounded-sm transition-all shadow-md shadow-[#5b32d6]/20 group text-sm! mt-5 lg:mt-0 hover:cursor-pointer">
             <span className="">ORDER NOW</span>
             <FaRegArrowAltCircleRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1 animate-arrow" />
           </button>
