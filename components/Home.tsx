@@ -18,6 +18,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { getAllJobs } from "@/lib/getJobs";
 import type { Job } from "@/types/job";
+import ResumeServicesSection from "./ResumeServicesSection";
 
 export default function HomePage() {
   const router = useRouter();
@@ -566,6 +567,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <ResumeServicesSection />
     </div>
   );
 }

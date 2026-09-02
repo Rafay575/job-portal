@@ -6,7 +6,7 @@
 :root {
   --primary: #5c49d8;
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --background: #F8FAFC;
   --foreground: #585858;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -145,6 +145,7 @@ p {
   body {
     @apply bg-background text-foreground;
     font-family: "Plus Jakarta Sans", sans-serif;
+
   }
 }
 
@@ -506,4 +507,47 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+.cv-title {
+    font-size: 3vw !important;
+  }
+@media screen and (max-width: 1024px) {
+.cv-title {
+    font-size: 6vw !important;
+  }
+}
+@media screen and (max-width: 639px) {
+.cv-title {
+    font-size: 9vw !important;
+  }
+}
+
+@media screen and (min-width: 1800px) {
+  .cv-title {
+    font-size: 2.2vw !important;
+  }
+  .title-container {
+    @apply w-full!;
+  }
+}
+@media screen and (min-width: 1024px) and (max-width: 1106px) {
+  .cv-title {
+    font-size: 2.2vw !important;
+  }
+  .title-container {
+    @apply w-full!;
+  }
+}
+@keyframes moveLeftRight {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(6px);
+  }
+}
+
+.animate-arrow {
+  animation: moveLeftRight 01s ease-in-out infinite;
 }
