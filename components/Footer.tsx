@@ -24,7 +24,7 @@ export default function Footer() {
           <p className="text-sm max-w-md leading-relaxed text-slate-400">
             The UK&apos;s trusted enterprise recruitment platform connecting specialized doctors, registered nurses, and healthcare assistants with premier private medical institutions.
           </p>
-          <div className="flex space-x-3">
+          {/* <div className="flex space-x-3">
             <a href="#" className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-primary hover:text-white transition">
              <FaLinkedinIn />
             </a>
@@ -37,7 +37,7 @@ export default function Footer() {
             <a href="#" className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-primary hover:text-white transition">
               <FaInstagram />
             </a>
-          </div>
+          </div> */}
         </div>
 
         <div>

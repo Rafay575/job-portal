@@ -17,7 +17,7 @@ export default function ResumeServicesSection() {
     {
       icon: <PiTarget className="w-8 h-8 text-[#5b32d6]" />,
       title: "ATS-Friendly",
-      description: "Optimized to pass ATS scans",
+      description: "Optimized to pass ATS scanning",
     },
     {
       icon: <PiUserCircleDashedLight className="w-8 h-8 text-[#5b32d6]" />,
@@ -88,7 +88,7 @@ export default function ResumeServicesSection() {
   ];
 
   return (
-    <section className="relative flex flex-col lg:flex-row justify-between items-center w-[95%] max-w-7xl  mx-auto bg-[#F1F0F5]  font-sans  rounded-3xl overflow-hidden mb-15">
+    <section className="relative flex flex-col lg:flex-row justify-between items-center w-[95%] max-w-7xl  mx-auto bg-[#F1F0F5]  font-sans  rounded-3xl overflow-hidden mb-15 border-slate-100! border shadow-xl shadow-slate-200/50  ">
       {/* Bottom-Left Dotted Triangular Pattern */}
       <div className="absolute bottom-2 left-2 hidden sm:flex flex-col gap-3 pointer-events-none z-0">
         {dotRows.map((row, rowIndex) => (
