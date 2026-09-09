@@ -191,7 +191,7 @@ function TimelineCard(props: CardProps) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid md:grid-cols-2 gap-3">
             <div>
               <Label className="text-sm">
                 Date From<span className="text-red-500">*</span>

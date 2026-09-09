@@ -46,7 +46,7 @@ export default function Counter({ target, suffix = '+' }: CounterProps) {
   }, [target]);
 
   return (
-    <div ref={elementRef} className="counter-value font-extrabold">
+    <div ref={elementRef} className="counter-value font-extrabold text-3xl md:text-5xl">
       {count.toLocaleString()}
       {count >= target && target > 100 ? suffix : ''}
     </div>

@@ -11,6 +11,7 @@ import Profile from "./Profile";
 import { usePathname } from "next/navigation";
 import { SidebarTrigger } from "./ui/sidebar";
 import { FiSidebar } from "react-icons/fi";
+import { useState } from "react";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -23,7 +24,7 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
-
+const [sheetOpen, setSheetOpen] = useState(false);
   const isDashboard = pathname?.startsWith("/user/dashboard") === true;
   const user = useSelector((state: RootState) => state.user);
   return (
@@ -123,7 +124,7 @@ export default function Navbar() {
         )}
 
         {/* MOBILE MENU */}
-        <Sheet>
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
           <SheetTrigger asChild>
             <div className=" flex gap-3 item-center lg:hidden">
               {user.loggedIn && (
@@ -162,6 +163,7 @@ export default function Navbar() {
                   <Link
                     key={link.name}
                     href={link.href}
+                    onClick={() => setSheetOpen(false)}
                     className="text-primary font-medium text-center"
                   >
                     {link.name}
@@ -178,12 +180,12 @@ export default function Navbar() {
                   Recruiting? Post a Job
                 </Button> */}
 
-                <Link href={"/auth/register"} className="w-full">
+                <Link href={"/auth/register"} className="w-full" onClick={() => setSheetOpen(false)}>
                   <Button className="bg-primary w-full border-none">
                     Register as Applicant
                   </Button>
                 </Link>
-                <Link href={"/auth/login"} className="w-full">
+                <Link href={"/auth/login"} className="w-full" onClick={() => setSheetOpen(false)}>
                   <Button
                     variant="outline"
                     className=" w-full border-primary! text-primary"

@@ -28,7 +28,7 @@ export function JobCard({
   colorClass,
 }: JobCardProps) {
   return (
-    <Card className="flex flex-col gap-2 p-5 hover:shadow-lg transition-shadow">
+    <Card className="flex flex-col gap-2 p-5 hover:shadow-lg transition-shadow ">
       {/* Color Badge */}
       <div className={cn('h-12 w-12 rounded-lg', colorClass)} />
 

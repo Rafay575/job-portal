@@ -172,7 +172,7 @@ export default function About() {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-5xl text-white">
+              <div className=" text-white">
                 <Counter target={45000} />
               </div>
               <div className="text-slate-300/80 text-sm mt-2 uppercase tracking-wider font-medium">
@@ -180,7 +180,7 @@ export default function About() {
               </div>
             </div>
             <div>
-              <div className="text-5xl text-white">
+              <div className=" text-white">
                 <Counter target={450} />
               </div>
               <div className="text-slate-300/80 text-sm mt-2 uppercase tracking-wider font-medium">
@@ -188,7 +188,7 @@ export default function About() {
               </div>
             </div>
             <div>
-              <div className="text-5xl text-white">
+              <div className=" text-white">
                 <Counter target={99} suffix="%" />
               </div>
               <div className="text-slate-300/80 text-sm mt-2 uppercase tracking-wider font-medium">
@@ -196,7 +196,7 @@ export default function About() {
               </div>
             </div>
             <div>
-              <div className="text-5xl text-white">
+              <div className=" text-white">
                 <Counter target={6} suffix="" />
               </div>
               <div className="text-slate-300/80 text-sm mt-2 uppercase tracking-wider font-medium">
@@ -655,7 +655,7 @@ export default function About() {
             Join 45,000+ healthcare professionals who have found their perfect
             role through Hayaibu Talent.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
             <Link href="/auth/register">
               <button className="bg-white text-primary font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-purple-50 transition text-lg cursor-pointer flex gap-2 items-center">
                 <RiUserAddFill className="text-primary" /> Register as
