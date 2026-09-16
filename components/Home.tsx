@@ -51,9 +51,9 @@ export default function HomePage() {
 
   useEffect(() => {
     const counters = [
-      { target: 1200, key: "active" },
+      { target: jobs.length , key: "active" },
       { target: 450, key: "employers" },
-      { target: 99, key: "success" },
+      { target: 92, key: "success" },
     ];
     const duration = 2000;
     const startTimes = [0, 100, 200];
@@ -85,7 +85,7 @@ export default function HomePage() {
       };
       requestAnimationFrame(updateCounter);
     });
-  }, []);
+  }, [jobs.length]);
 
   const regions = useMemo(() => {
     return Array.from(
@@ -141,7 +141,7 @@ export default function HomePage() {
             className="inline-flex items-center py-2 px-5 rounded-full text-xs font-bold bg-white/10 backdrop-blur-md border border-white/20! mb-8 text-purple-200"
           >
             <i className="fa-solid fa-award mr-2 text-yellow-400"></i>
-            🌻 The Premier UK Medical Talent Ecosystem
+            The Premier UK Medical Talent Ecosystem
           </motion.span>
           <motion.p
             initial={{ opacity: 0, y: 60 }}
