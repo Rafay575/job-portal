@@ -57,7 +57,7 @@ export default function RootLayout({
     return <FullPageLoader />; // or loader
   }
   return (
-    <div className="dashboard-layout">
+    <div className="dashboard-layout bg-[#FFFFFF]!">
       {/* <title>Hayaibu Talent | Admin Portal</title> */}
       <div className="w-full">
         <TooltipProvider>

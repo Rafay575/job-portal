@@ -352,7 +352,7 @@ export default function UsersTable() {
   return (
     <Card className="border-0 shadow-none max-w-[100%]">
       <CardHeader>
-        <CardTitle className="text-primary text-3xl">Compliance</CardTitle>
+        <CardTitle className="text-slate-700 text-3xl">Compliance</CardTitle>
          <p className="text-gray-600">
           Monitor hiring activities to ensure policies and regulations are
           followed.
