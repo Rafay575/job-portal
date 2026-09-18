@@ -334,7 +334,7 @@ export default function UsersListTable() {
   return (
     <Card className="border-0 shadow-none max-w-[100%]">
       <CardHeader>
-        <CardTitle className="text-primary text-3xl lato">All Users</CardTitle>
+        <CardTitle className="text-slate-700 text-3xl lato">All Users</CardTitle>
         <p className="text-gray-600">
           Manage team members, roles, and access permissions in one place.
         </p>

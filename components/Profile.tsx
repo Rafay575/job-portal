@@ -57,7 +57,7 @@ export default function Profile() {
             variant="ghost"
             className="p-0 rounded-full border-none  focus-visible:ring-0 focus-visible:ring-offset-0"
           >
-            <Avatar className="w-[35px] h-[35px]">
+            <Avatar className="w-[35px] h-[35px] font-[500]">
               <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
             </Avatar>
           </Button>

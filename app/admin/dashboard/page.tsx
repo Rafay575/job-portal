@@ -1,19 +1,16 @@
 "use client";
 
 import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
   Pie,
+  PieChart,
   Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
+  AreaChart,
+  Area,
 } from "recharts";
 import {
   Card,
@@ -35,15 +32,23 @@ import {
   TrendingUp,
   Users,
   Briefcase,
-  CheckCircle2,
   UserCheck,
   Layers,
+  ArrowUpRight,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDashboard, getLatestUsers } from "@/lib/api/Dashboard";
 import { FullPageLoader } from "@/components/Loading";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+
+// 2. Import Shadcn Chart Utilities
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 
 const MONTHS = [
   "Jan",
@@ -92,24 +97,27 @@ const groupByMonth = (data: any[]) => {
   // Step 3: Return in correct order
   return MONTHS.map((m) => map[m]);
 };
+
 const getTypeStyles = (type: string | null) => {
   switch (type) {
     case "permanent":
-      return "bg-primary text-white";
+      return "bg-[#5C49D8] text-white";
     case "agency-work":
-      return "bg-[#10b981] text-white";
+      return "bg-[#10B981] text-white ";
     case "both":
-      return "bg-[#f59e0b] text-white";
+      return "bg-[#F59E0B] text-white";
     default:
-      return "bg-gray-400 text-white";
+      return "bg-gray-100 text-gray-500 ";
   }
 };
+
 const formatType = (type: string) => {
   if (type === "permanent") return "Permanent";
   if (type === "agency-work") return "Agency Work";
   if (type === "both") return "Both";
   return "Not Submitted";
 };
+
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString("en-GB", {
     day: "numeric",
@@ -117,18 +125,42 @@ const formatDate = (date: string) => {
     year: "numeric",
   });
 };
+
 const getStatusStyles = (status: string) => {
   switch (status) {
     case "approved":
-      return "bg-green-600 text-white ";
+      return "bg-[#10B981] text-white";
     case "pending":
-      return "bg-gray-500 text-white ";
+      return "bg-[#F59E0B] text-white";
     case "rejected":
-      return "bg-red-500 text-white ";
+      return "bg-[#EF4444] text-white ";
     default:
-      return "bg-gray-400 text-white ";
+      return "bg-gray-100 text-gray-500 border border-gray-200";
   }
 };
+
+const getInitials = (name: string) => {
+  if (!name) return "?";
+  const parts = name.trim().split(" ");
+  const initials = parts.length > 1 ? parts[0][0] + parts[1][0] : parts[0][0];
+  return initials.toUpperCase();
+};
+
+const chartConfig = {
+  permanent: {
+    label: "Permanent",
+    color: "#5C49D8",
+  },
+  agency: {
+    label: "Agency Work",
+    color: "#10b981",
+  },
+  both: {
+    label: "Both",
+    color: "#f59e0b",
+  },
+} satisfies ChartConfig;
+
 export default function AdminDashboard() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -162,6 +194,7 @@ export default function AdminDashboard() {
       icon: Users,
       description: "All registered employees",
       highlight: true,
+      color: "#3d3d3d",
     },
     {
       title: "Permanent",
@@ -169,6 +202,7 @@ export default function AdminDashboard() {
       icon: UserCheck,
       description: "Permanent employees",
       highlight: true,
+      color: "#5C49D8",
     },
     {
       title: "Agency Work",
@@ -176,6 +210,7 @@ export default function AdminDashboard() {
       icon: Briefcase,
       description: "Agency employees",
       highlight: true,
+      color: "#10b981",
     },
     {
       title: "Both Type",
@@ -183,6 +218,7 @@ export default function AdminDashboard() {
       icon: Layers,
       description: "Both category users",
       highlight: true,
+      color: "#f59e0b",
     },
   ];
   const fetchData = async () => {
@@ -211,42 +247,64 @@ export default function AdminDashboard() {
 
   if (loading) return <FullPageLoader />;
   if (error) return <p>{error}</p>;
+
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br  p-8  max-w-full overflow-x-hidden">
-      <div className="">
+    <div className="w-full min-h-screen bg-slate-50 p-6 md:p-8 max-w-full overflow-x-hidden">
+      <div className="mx-auto ">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold  mb-2 text-primary">
+        <div className="mb-6 flex flex-col gap-1">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-700">
             Recruitment Dashboard
           </h1>
-          <p className="">
+          <p className="text-sm text-slate-500">
             Monitor applications, candidates, and hiring metrics
           </p>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8 max-w-full overflow-x-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4 max-w-full overflow-x-hidden">
           {kpiCards.map((card, index) => {
             const Icon = card.icon;
 
             return (
-              <Card key={index} className="border-slate-300">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center justify-between text-primary">
-                    <span>{card.title}</span>
-                    {Icon && <Icon className="w-5 h-5 text-primary" />}
-                  </CardTitle>
-                </CardHeader>
+              <Card
+                key={index}
+                className="relative overflow-hidden border border-slate-200 shadow-sm transition-shadow hover:shadow-md"
+                style={{ borderTopWidth: 7, borderTopColor: card.color }}
+              >
+                <CardContent className="pt-2 ">
+                  <div className="flex items-start justify-between" >
+                    <div>
+                      <p className="text-sm font-medium text-slate-500" >
+                        {card.title}
+                      </p>
+                      <div className="mt-2 text-3xl font-bold text-slate-700">
+                        {card.value}
+                      </div>
+                    </div>
 
-                <CardContent>
-                  <div className="text-4xl font-bold text-gray-700">
-                    {card.value}
+                    {Icon && (
+                      <div
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+                        style={{
+                          backgroundColor: `${card.color}1A`,
+                        }}
+                      >
+                        <Icon
+                          className="h-5 w-5"
+                          style={{ color: card.color }}
+                        />
+                      </div>
+                    )}
                   </div>
 
-                  <p
-                    className={`text-sm mt-2 flex items-center gap-1 text-primary`}
-                  >
-                    {card.highlight && <TrendingUp className="w-4 h-4" />}
+                  <p className="mt-3 flex items-center gap-1 text-xs " style={{ color: card.color }}>
+                    {card.highlight && (
+                      <TrendingUp
+                        className="h-3.5 w-3.5"
+                        style={{ color: card.color }}
+                      />
+                    )}
                     {card.description}
                   </p>
                 </CardContent>
@@ -256,106 +314,162 @@ export default function AdminDashboard() {
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 max-w-full overflow-x-hidden">
-          {/* Applications & Hires Trend */}
-          <Card className="lg:col-span-2 border-slate-300">
-            <CardHeader>
-              <CardTitle className="text-primary">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 max-w-full overflow-x-hidden">
+          {/* User Registrations Trend */}
+          <Card className="lg:col-span-2 border border-slate-200 shadow-sm h-full flex flex-col max-h-[500px]">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold text-slate-700">
                 User Registrations Trend
               </CardTitle>
-              <CardDescription className="text-gray-500">
+              <CardDescription className="text-slate-500">
                 Monthly employee registrations by type
               </CardDescription>
             </CardHeader>
 
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-
-                  <XAxis dataKey="month" stroke="#5C49D8" />
-                  <YAxis stroke="#5C49D8" />
-
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #5C49D8",
-                      borderRadius: "8px",
-                    }}
+            <CardContent className="flex-1 min-h-0">
+              <ChartContainer config={chartConfig} className="h-[100%] w-full">
+                <AreaChart
+                  accessibilityLayer
+                  data={chartData}
+                  margin={{
+                    top: 10,
+                    left: 12,
+                    right: 12,
+                    bottom: 0,
+                  }}
+                >
+                  <CartesianGrid
+                    vertical={false}
+                    strokeDasharray="3 3"
+                    stroke="#e2e8f0"
+                  />
+                  <XAxis
+                    dataKey="month"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tick={{ fill: "#94a3b8", fontSize: 12 }}
+                    tickFormatter={(value) => value.slice(0, 3)}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    domain={[0, "auto"]}
+                    allowDecimals={false}
+                    tick={{ fill: "#94a3b8", fontSize: 12 }}
                   />
 
-                  <Legend />
+                  <ChartTooltip
+                    cursor={{ stroke: "#e2e8f0", strokeWidth: 1 }}
+                    content={<ChartTooltipContent indicator="dot" />}
+                  />
 
-                  {/* Permanent */}
-                  <Line
-                    type="monotone"
+                  <defs>
+                    <linearGradient
+                      id="fillPermanent"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="5%" stopColor="#5C49D8" stopOpacity={0.8} />
+                      <stop
+                        offset="95%"
+                        stopColor="#5C49D8"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                    <linearGradient id="fillAgency" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                      <stop
+                        offset="95%"
+                        stopColor="#10b981"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                    <linearGradient id="fillBoth" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8} />
+                      <stop
+                        offset="95%"
+                        stopColor="#f59e0b"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                  </defs>
+
+                  <Area
                     dataKey="permanent"
+                    type="monotone"
+                    fill="url(#fillPermanent)"
+                    fillOpacity={0.4}
                     stroke="#5C49D8"
                     strokeWidth={2}
-                    name="Permanent"
                   />
-
-                  {/* Agency Work */}
-                  <Line
-                    type="monotone"
+                  <Area
                     dataKey="agency"
+                    type="monotone"
+                    fill="url(#fillAgency)"
+                    fillOpacity={0.4}
                     stroke="#10b981"
                     strokeWidth={2}
-                    name="Agency Work"
                   />
-
-                  {/* Both */}
-                  <Line
-                    type="monotone"
+                  <Area
                     dataKey="both"
+                    type="monotone"
+                    fill="url(#fillBoth)"
+                    fillOpacity={0.4}
                     stroke="#f59e0b"
                     strokeWidth={2}
-                    name="Both"
                   />
-                </LineChart>
-              </ResponsiveContainer>
+                </AreaChart>
+              </ChartContainer>
             </CardContent>
           </Card>
 
           {/* Job Positions Distribution */}
-          <Card className="border-slate-300 ">
-            <CardHeader>
-              <CardTitle className="text-primary">
+          <Card className="border border-slate-200 shadow-sm h-full flex flex-col">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold text-slate-700">
                 User Type Distribution
               </CardTitle>
-              <CardDescription className="text-gray-500">
+              <CardDescription className="text-slate-500">
                 Breakdown of employee types
               </CardDescription>
             </CardHeader>
 
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={jobPositions}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    dataKey="value"
-                  >
-                    {jobPositions.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
+            <CardContent className="flex-1 flex flex-col justify-between min-h-0 pb-4">
+              <div className="w-full h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={jobPositions}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      innerRadius={50}
+                      outerRadius={80}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {jobPositions.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
 
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: "8px",
-                    }}
-                    labelStyle={{ color: "#374151" }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#ffffff",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "10px",
+                        fontSize: "13px",
+                      }}
+                      labelStyle={{ color: "#374151" }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
 
-              <div className="mt-4 space-y-2">
+              <div className="space-y-2.5 mt-auto">
                 {jobPositions.map((pos) => (
                   <div
                     key={pos.name}
@@ -363,13 +477,13 @@ export default function AdminDashboard() {
                   >
                     <div className="flex items-center gap-2">
                       <div
-                        className="w-3 h-3 rounded-full"
+                        className="w-2.5 h-2.5 rounded-full"
                         style={{ backgroundColor: pos.color }}
                       />
-                      <span className="text-gray-700">{pos.name}</span>
+                      <span className="text-slate-700">{pos.name}</span>
                     </div>
 
-                    <span className="text-primary font-semibold">
+                    <span className="text-slate-700 font-semibold">
                       {pos.value}
                     </span>
                   </div>
@@ -379,25 +493,52 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        <Card className="border-slate-300 max-w-full overflow-x-hidden">
-          <CardHeader>
-            <CardTitle className="text-primary">Recent Candidates</CardTitle>
-            <CardDescription className="text-gray-500">
-              Latest applicants and their status
-            </CardDescription>
+        {/* Recent Candidates */}
+        <Card className="border border-slate-200 shadow-sm max-w-full overflow-x-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div>
+              <CardTitle className="text-base font-semibold text-slate-700">
+                Recent Candidates
+              </CardTitle>
+              <CardDescription className="text-slate-500">
+                Latest applicants and their status
+              </CardDescription>
+            </div>
+            <Link href={"/admin/users"}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1 border-slate-200 text-slate-700 hover:bg-slate-50"
+              >
+                View All Users
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
           </CardHeader>
 
-          <CardContent>
-            <div className="overflow-x-auto">
+          <CardContent className="pt-2">
+            <div className="overflow-x-auto rounded-lg border border-slate-100">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-slate-200 bg-gray-200">
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead className="text-center">Type</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead>Date</TableHead>
+                  <TableRow className="border-slate-200 bg-slate-50 hover:bg-slate-50">
+                    <TableHead className="text-slate-500 font-medium">
+                      Name
+                    </TableHead>
+                    <TableHead className="text-slate-500 font-medium">
+                      Email
+                    </TableHead>
+                    <TableHead className="text-slate-500 font-medium">
+                      Phone
+                    </TableHead>
+                    <TableHead className="text-center text-slate-500 font-medium">
+                      Type
+                    </TableHead>
+                    <TableHead className="text-center text-slate-500 font-medium">
+                      Status
+                    </TableHead>
+                    <TableHead className="text-slate-500 font-medium">
+                      Date
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -405,8 +546,8 @@ export default function AdminDashboard() {
                   {latestUsers.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={4}
-                        className="text-center text-gray-400 py-6"
+                        colSpan={6}
+                        className="text-center text-slate-400 py-10"
                       >
                         No users found
                       </TableCell>
@@ -415,34 +556,41 @@ export default function AdminDashboard() {
                     latestUsers.map((user: any) => (
                       <TableRow
                         key={user.id}
-                        className="border-slate-200 hover:bg-gray-50 transition"
+                        className="border-slate-100 hover:bg-slate-50 transition-colors"
                       >
                         {/* Name */}
-                        <TableCell className="text-gray-800 font-medium">
-                          {user.name}
+                        <TableCell className="font-medium text-slate-800">
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#5C49D8]/10 text-[11px] font-semibold text-[#5C49D8]">
+                              {getInitials(user.name)}
+                            </div>
+                            {user.name}
+                          </div>
                         </TableCell>
 
                         {/* Email */}
-                        <TableCell className="text-gray-600">
+                        <TableCell className="text-slate-500">
                           {user.email}
                         </TableCell>
 
                         {/* Phone */}
-                        <TableCell className="text-gray-600">
+                        <TableCell className="text-slate-500">
                           {user.phone || "NA"}
                         </TableCell>
 
                         {/* Type */}
                         <TableCell className="text-center">
                           <Badge
-                            className={` text-white w-[100px] ${getTypeStyles(user.type)}`}
+                            className={`font-medium w-[90px] justify-center rounded-full ${getTypeStyles(user.type)}`}
                           >
                             {formatType(user.type)}
                           </Badge>
                         </TableCell>
+
+                        {/* Status */}
                         <TableCell>
                           <div
-                            className={`font-[500] py-0.5 w-[65px] mx-auto rounded-full text-[11px] text-center ${getStatusStyles(user.is_approved)}`}
+                            className={`font-medium py-0.5 w-[70px] mx-auto rounded-full text-[11px] text-center ${getStatusStyles(user.is_approved)}`}
                           >
                             {user.is_approved === "approved"
                               ? "Approved"
@@ -453,7 +601,7 @@ export default function AdminDashboard() {
                         </TableCell>
 
                         {/* Date */}
-                        <TableCell className="text-gray-500">
+                        <TableCell className="text-slate-500">
                           {formatDate(user.created_at)}
                         </TableCell>
                       </TableRow>
@@ -462,11 +610,6 @@ export default function AdminDashboard() {
                 </TableBody>
               </Table>
             </div>
-            <Link href={"/admin/users"} className="">
-              <Button className="mt-3" size={"sm"}>
-                View All Users
-              </Button>
-            </Link>
           </CardContent>
         </Card>
       </div>
