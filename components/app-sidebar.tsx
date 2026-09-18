@@ -25,7 +25,7 @@ const links = [
     icon: VscGraph  ,
   },
   {
-    name: "All Users",
+    name: "Users",
     url: "/admin/users",
     icon: PiUsers,
   },
@@ -51,7 +51,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   return (
     <Sidebar collapsible="icon" {...props} className="border-slate-200">
-      <SidebarHeader className="mb-[10px]">
+      <SidebarHeader className="mb-[30px]">
         {open ? (
           <div className="flex justify-between">
           <Image
