@@ -24,13 +24,13 @@ export default function SidebarLinks({ links }: { links: LinkItem[] }) {
           <SidebarMenuButton asChild>
             <Link
               href={item.url}
-              className={`flex items-center w-full transition-all duration-200 mx-auto ${
+              className={`flex items-center w-full transition-all duration-200 mx-auto text-[#383838] ${
                 open
-                  ? "gap-3 justify-start px-3"
+                  ? "gap-2 justify-start px-4"
                   : "justify-center"
               }`}
             >
-              <item.icon className="!h-5 !w-5 shrink-0 " />
+              <item.icon className="!h-5 !w-5 shrink-0 text-[#383838]" />
               
               {open && <span>{item.name}</span>}
             </Link>

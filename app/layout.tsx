@@ -27,7 +27,7 @@ export default function RootLayout({
 
   const isAuth = pathname?.startsWith("/auth") === true;
   return (
-    <html lang="en">
+    <html lang="en" className="bg-[#FFFFFF]">
       <title>Hayaibu Talent </title>
 
       <body className={` antialiased`}>

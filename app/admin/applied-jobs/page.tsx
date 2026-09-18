@@ -146,7 +146,7 @@ export default function AppliedJobsTable() {
         {/* HEADER */}
 
         <div>
-          <h1 className="text-3xl font-bold text-primary">Applied Jobs</h1>
+          <h1 className="text-3xl font-bold text-slate-700">Applied Jobs</h1>
 
           <p className="text-sm text-muted-foreground mt-1">
             View users and their job applications.
@@ -228,7 +228,7 @@ export default function AppliedJobsTable() {
                     {/* USER */}
 
                     <TableCell>
-                      <div className="font-semibold text-primary">{group.user.name}</div>
+                      <div className="font-semibold text-slate-700">{group.user.name}</div>
                     </TableCell>
 
                     {/* EMAIL */}

@@ -56,7 +56,7 @@ export default function CreateUserPage() {
 
   return (
     <div className="max-w-2xl p-6">
-      <h1 className="text-2xl font-bold mb-6 text-primary">Create User</h1>
+      <h1 className="text-2xl font-bold mb-6 text-slate-700">Create User</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Name */}
